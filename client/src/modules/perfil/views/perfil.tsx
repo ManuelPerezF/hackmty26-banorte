@@ -1,19 +1,37 @@
-export function ProfileView() {
+import Link from 'next/link';
+export function ProfileView({
+  savedCardLabel,
+}: {
+  savedCardLabel: string | null;
+}) {
   return (
-    <section className="team-view">
-      <h2>Tu perfil, conectado.</h2>
-      <p>Datos del perfil de demostración.</p>
-      <div className="team-person">
-        <span className="company-avatar">AM</span>
+    <section className="settings-view">
+      <h2>Tu perfil Banorte</h2>
+      <p>Tu información y preferencias, en un mismo lugar.</p>
+      <dl>
         <div>
-          <strong>Alex Morgan</strong>
-          <span>demo.banorte</span>
+          <dt>Persona de ejemplo</dt>
+          <dd>Alex Morgan</dd>
         </div>
-        <span className="team-role">Administrador</span>
-      </div>
-      <p className="panel-footnote">
-        Este perfil es ficticio. No se envían invitaciones.
+        <div>
+          <dt>Idioma</dt>
+          <dd>Español (México)</dd>
+        </div>
+        <div>
+          <dt>Entorno</dt>
+          <dd>Demostración</dd>
+        </div>
+        <div>
+          <dt>Tarjeta elegida</dt>
+          <dd>{savedCardLabel ? savedCardLabel : 'Sin seleccionar'}</dd>
+        </div>
+      </dl>
+      <p>
+        Los cambios de esta demo se conservan mientras permaneces en el panel.
       </p>
+      <Link className="button" href="/login">
+        Salir de la demo
+      </Link>
     </section>
   );
 }

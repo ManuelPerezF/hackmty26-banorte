@@ -5,7 +5,7 @@ import {
   ChevronDown,
   ChevronRight,
   Command,
-  Plus,
+  Target,
   TrendingUp,
   CreditCard,
 } from 'lucide-react';
@@ -32,10 +32,10 @@ export function HomeOverview({
         <Button
           variant="ghost"
           onClick={() => {
-            onNavigate('Chat');
+            onNavigate('Asistente');
           }}
         >
-          Análisis
+          Asistente
         </Button>
       </nav>
       <div className="panel-with-chat">
@@ -54,16 +54,16 @@ export function HomeOverview({
               $284,650<span>.00</span>
             </div>
             <div className="modern-balance-actions">
-              <Button onClick={() => onNavigate('Transferencias')}>
-                <ArrowUpRight size={19} /> Enviar dinero
+              <Button onClick={() => onNavigate('Metas')}>
+                <Target size={19} /> Mis metas
               </Button>
-              <Button variant="ghost" onClick={() => onNavigate('Cuentas')}>
-                <Plus size={19} /> Ver cuentas
+              <Button variant="ghost" onClick={() => onNavigate('Tarjetas')}>
+                <CreditCard size={19} /> Ver tarjetas
               </Button>
               <Button
                 variant="ghost"
                 onClick={() => {
-                  onNavigate('Chat');
+                  onNavigate('Asistente');
                 }}
               >
                 <TrendingUp size={19} /> Analizar
@@ -92,8 +92,8 @@ export function HomeOverview({
                   <h2 id="everyday-title">Tu cuenta personal</h2>
                   <Button
                     variant="ghost"
-                    aria-label="Ver tu cuenta personal"
-                    onClick={() => onNavigate('Cuentas')}
+                    aria-label="Ver tarjetas de tu cuenta"
+                    onClick={() => onNavigate('Tarjetas')}
                   >
                     <ChevronRight size={21} />
                   </Button>
@@ -139,7 +139,7 @@ export function HomeOverview({
               <div className="intelligence-bottom">
                 <Button
                   className="open-assistant"
-                  onClick={() => onNavigate('Chat')}
+                  onClick={() => onNavigate('Asistente')}
                 >
                   Conoce tu asistente <ArrowRight size={17} />
                 </Button>
@@ -165,8 +165,8 @@ export function HomeOverview({
           >
             <div className="finance-section-title">
               <h3 id="recent-title">Movimientos</h3>
-              <Button variant="ghost" onClick={() => onNavigate('Gastos')}>
-                Ver todos <ArrowUpRight size={16} />
+              <Button variant="ghost" onClick={() => onNavigate('Asistente')}>
+                Analizar gastos <ArrowUpRight size={16} />
               </Button>
             </div>
             <span className="transaction-day">Septiembre</span>

@@ -4,7 +4,6 @@ import {
   ArrowUpRight,
   ChevronRight,
   Search,
-  Settings,
   ShieldCheck,
   X,
 } from 'lucide-react';
@@ -61,14 +60,6 @@ function AppShellContent({
               <Search size={21} />
             </Button>
             <Button
-              className="toolbar-icon"
-              variant="ghost"
-              aria-label="Configuración del perfil"
-              onClick={() => changeSection('Configuración')}
-            >
-              <Settings size={21} />
-            </Button>
-            <Button
               variant="ghost"
               className="company-switch"
               onClick={() => changeSection('Perfil')}
@@ -88,7 +79,7 @@ function AppShellContent({
             <div className="panel-search-input">
               <Input
                 id="section-search"
-                placeholder="Tarjetas, cuentas, gastos…"
+                placeholder="Inicio, tarjetas, metas…"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />

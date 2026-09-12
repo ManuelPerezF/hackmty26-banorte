@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useMetas } from '@/modules/metas/hooks/useMetas';
 import type { CardSelectionValue } from '@/modules/tarjetas/types/tarjetas.types';
 import { navigation } from '../data/navigation';
 export function usePanel() {
+  const metas = useMetas();
   const [section, setSection] = useState('Inicio');
   const [savedCard, setSavedCard] = useState<CardSelectionValue | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
@@ -16,6 +18,7 @@ export function usePanel() {
   );
 
   return {
+    metas,
     section,
     savedCard,
     setSavedCard,
