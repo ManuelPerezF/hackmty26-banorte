@@ -1,0 +1,47 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MovementType {
+  income
+  expense
+}
+
+enum MovementSource {
+  demo
+  manual
+}
+
+model Account {
+  id                  String     @id @default(uuid()) @db.Uuid
+  name                String     @db.VarChar(80)
+  currency            String     @default("MXN") @db.Char(3)
+  openingBalanceCents BigInt
+  createdAt           DateTime   @default(now()) @db.Timestamptz(3)
+  movements           Movement[]
+}
+
+model Movement {
+  id             String         @id @default(uuid()) @db.Uuid
+  accountId      String         @db.Uuid
+  account        Account        @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  description    String         @db.VarChar(80)
+  amountCents    BigInt
+  type           MovementType
+  category       String         @db.VarChar(40)
+  date           DateTime       @db.Date
+  notes          String         @default("") @db.VarChar(500)
+  source         MovementSource @default(manual)
+  idempotencyKey String         @db.Uuid
+  createdAt      DateTime       @default(now()) @db.Timestamptz(3)
+
+  @@unique([accountId, idempotencyKey])
+  @@index([accountId, date, createdAt, id])
+  @@index([accountId, type, category])
+}
