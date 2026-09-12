@@ -1,3 +1,4 @@
+import { instruments, instrumentLabel } from '@/modules/cuentas/data/accounts';
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -36,6 +37,7 @@ export function MovimientosTable({
     totals,
   } = history;
   const activeFilters = Boolean(
+    filters.instrumentId ||
     filters.query ||
     filters.type !== 'all' ||
     filters.category ||
@@ -49,7 +51,7 @@ export function MovimientosTable({
           <Search size={17} aria-hidden="true" />
           <Input
             aria-label="Buscar movimientos"
-            placeholder="Buscar por concepto o categoría"
+            placeholder="Buscar concepto, cuenta o tarjeta"
             value={filters.query}
             onChange={(event) => updateFilter('query', event.target.value)}
           />
@@ -63,6 +65,20 @@ export function MovimientosTable({
           )}
         </div>
         <div className="movement-filter-controls">
+          <select
+            aria-label="Cuenta o tarjeta"
+            value={filters.instrumentId ?? ''}
+            onChange={(event) =>
+              updateFilter('instrumentId', event.target.value)
+            }
+          >
+            <option value="">Todas las cuentas y tarjetas</option>
+            {instruments.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
           <select
             aria-label="Tipo de movimientos"
             value={filters.type}
@@ -150,7 +166,7 @@ export function MovimientosTable({
       >
         <div className="movement-table-area">
           {!ready ? (
-            <p className="movement-empty">Cargando el historial local…</p>
+            <p className="movement-empty">Cargando tu historial…</p>
           ) : filtered.length ? (
             <div className="movement-table-scroll">
               <table className="movements-table">
@@ -163,6 +179,9 @@ export function MovimientosTable({
                     <th scope="col">Concepto</th>
                     <th scope="col" className="movement-category-col">
                       Categoría
+                    </th>
+                    <th scope="col" className="movement-instrument-col">
+                      Cuenta / tarjeta
                     </th>
                     <th scope="col" className="movement-date-col">
                       Fecha
@@ -206,9 +225,7 @@ export function MovimientosTable({
                             <strong>{item.description}</strong>
                             <small>
                               {item.type === 'income' ? 'Ingreso' : 'Gasto'} ·{' '}
-                              {item.source === 'manual'
-                                ? 'Registro manual'
-                                : 'Ejemplo'}
+                              {instrumentLabel(item.instrumentId)}
                               <span className="movement-mobile-date">
                                 {' '}
                                 · {formatMovementDate(item.date)}
@@ -220,6 +237,11 @@ export function MovimientosTable({
                       <td className="movement-category-col">
                         <span className="movement-category">
                           {item.category}
+                        </span>
+                      </td>
+                      <td className="movement-instrument-col">
+                        <span className="movement-instrument-label">
+                          {instrumentLabel(item.instrumentId)}
                         </span>
                       </td>
                       <td className="movement-date-col">

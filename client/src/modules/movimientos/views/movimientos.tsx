@@ -9,11 +9,13 @@ import type { useMovimientos } from '../hooks/useMovimientos';
 import '../styles/movimientos.css';
 export function Movimientos({
   ledger,
+  initialInstrument = '',
 }: {
   ledger: ReturnType<typeof useMovimientos>;
+  initialInstrument?: string;
 }) {
   const [view, setView] = useState<'history' | 'register'>('history');
-  const history = useHistorial(ledger.movements);
+  const history = useHistorial(ledger.movements, initialInstrument);
   const openRegistration = () => {
     ledger.clearError();
     setView('register');
@@ -49,7 +51,7 @@ export function Movimientos({
         <>
           <div className="movement-heading">
             <h2>Tu historial</h2>
-            <p>Consulta lo que entra y sale de tu cuenta personal.</p>
+            <p>Consulta tus ingresos y gastos por cuenta o tarjeta.</p>
           </div>
           {ledger.notice && (
             <output className="movement-success" aria-live="polite">
@@ -64,12 +66,12 @@ export function Movimientos({
           )}
           <MovimientosTable history={history} ready={ledger.ready} />
           <p className="movement-disclosure">
-            Cuenta personal · MXN · Datos de ejemplo y registros manuales
-            guardados en este navegador.
+            Importes en pesos mexicanos (MXN).
           </p>
         </>
       ) : (
         <MovimientoForm
+          initialInstrument={initialInstrument}
           ready={ledger.ready}
           error={ledger.error}
           onCancel={() => {

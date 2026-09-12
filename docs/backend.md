@@ -1,90 +1,49 @@
-# Backend
+# Backend implementado
 
-## Implementado
+NestJS 12, Prisma 7, PostgreSQL, Zod 4, Helmet y TypeScript. API REST bajo `/api/v1`. Nest se ejecuta localmente; Docker contiene únicamente PostgreSQL.
 
-NestJS 12, Prisma 7, PostgreSQL, Zod 4, Helmet y TypeScript. API REST con prefijo `/api/v1`. El backend solo opera la cuenta definida por `DEMO_ACCOUNT_ID`; no acepta una cuenta arbitraria en el cuerpo de una solicitud.
+## Dominios
 
-| Método | Ruta | Resultado |
-| --- | --- | --- |
-| GET | `/health` | Proceso activo y modo demo |
-| GET | `/health/ready` | Consulta `SELECT 1`; 503 si la DB no responde |
-| GET | `/account` | Cuenta MXN, saldo inicial, ingresos, gastos y saldo actual |
-| GET | `/movements/categories` | Categorías permitidas |
-| GET | `/movements` | Historial paginado y totales del filtro completo |
-| GET | `/movements/:id` | Detalle; 404 si no pertenece a la cuenta demo |
-| POST | `/movements` | Registra un ingreso o gasto manual |
-
-## Registrar
-
-`Idempotency-Key` es un UUID generado por el consumidor para una intención de registro. Reutilizarlo durante los reintentos; generar uno nuevo para otro movimiento.
-
-```sh
-curl -X POST http://127.0.0.1:3001/api/v1/movements \
-  -H 'Content-Type: application/json' \
-  -H 'Idempotency-Key: 74e19b80-e0cb-44ef-82b7-4e989571d47d' \
-  -d '{"description":"Supermercado","amountCents":12550,"type":"expense","category":"Alimentación","date":"2026-09-11","notes":"Compra semanal"}'
-```
-
-`12550` representa $125.50 MXN. El backend no recibe un número decimal en pesos.
-
-Reglas: concepto de 1–80 caracteres; centavos enteros positivos hasta `99999999999`; tipo `income` o `expense`; categoría del catálogo; fecha real `YYYY-MM-DD` no posterior a hoy en `America/Monterrey`; nota hasta 500 caracteres. Se rechazan campos extra, incluido `accountId` o `source`. Zod elimina espacios externos de los textos.
-
-Respuesta HTTP 201, también en un reintento idéntico:
-
-```json
-{
-  "id": "<uuid>",
-  "description": "Supermercado",
-  "amountCents": 12550,
-  "type": "expense",
-  "category": "Alimentación",
-  "date": "2026-09-11",
-  "notes": "Compra semanal",
-  "source": "manual",
-  "createdAt": 1789142400000
-}
-```
-
-El ID y `createdAt` de arriba son ilustrativos. La fecha del movimiento es una fecha de calendario; `createdAt` representa milisegundos Unix.
-
-La restricción única de PostgreSQL resuelve reintentos simultáneos. Si la clave ya existe con otros datos, responde 409. La comparación usa el cuerpo normalizado. El registro manual no inicia pagos ni transferencias.
-
-## Consultar
-
-```sh
-curl 'http://127.0.0.1:3001/api/v1/movements?type=expense&from=2026-09-01&to=2026-09-30&page=1&pageSize=8'
-curl 'http://127.0.0.1:3001/api/v1/movements?query=supermercado'
-curl http://127.0.0.1:3001/api/v1/account
-```
-
-Filtros opcionales: `query` (concepto/categoría/nota), `type`, `category`, `from`, `to`. Búsqueda sin distinción de mayúsculas; **sí distingue acentos**, a diferencia del filtro local actual del frontend. Fechas inclusivas. `page` empieza en 1; `pageSize` por defecto 20, máximo 100. Orden: fecha, creación e ID descendentes. Una página fuera de rango devuelve `items: []`.
-
-```json
-{
-  "items": [],
-  "total": 0,
-  "page": 1,
-  "pageSize": 20,
-  "totals": { "incomeCents": 0, "expenseCents": 0, "netCents": 0 }
-}
-```
-
-Conteo, página y totales se leen con una misma instantánea (`RepeatableRead`). Los totales cubren todos los resultados filtrados, no solamente la página visible.
-
-## Errores
-
-| Estado | Caso |
+| Módulo | Responsabilidad |
 | --- | --- |
-| 400 | Payload, encabezado UUID, fecha o filtros inválidos |
-| 404 | Movimiento o cuenta inexistente |
-| 409 | Clave de idempotencia reutilizada con datos distintos |
-| 413 | Cuerpo JSON mayor a 32 KB |
-| 503 | Readiness con DB no disponible |
+| autenticacion | Registro, Argon2id, login, sesiones, guard, CSRF y aprovisionamiento |
+| perfil | Perfil, catálogo, tarjetas asignadas y preferencia |
+| cuentas | Resumen y saldo calculado de la cuenta del usuario |
+| movimientos | Registro idempotente, historial, filtros, categorías y detalle |
+| analisis | Agregados por periodo, categoría y día/mes |
+| metas | Crear, consultar, editar y archivar objetivos |
+| simulaciones | Proyección educativa con aritmética exacta |
+| asistente | Conversaciones, mensajes, turnos, acciones y SSE |
+| salud | Liveness y readiness |
 
-El pipe Zod devuelve `code: VALIDATION_ERROR`, `message` e `issues: [{path,message}]`. Los demás errores usan el formato HTTP de Nest. Los errores internos no se convierten en registros exitosos.
+Las integraciones LLM/MCP y el protocolo visual viven fuera de los módulos del negocio. Todas las rutas financieras obtienen `userId → profileId → accountId` de la sesión; el consumidor no elige su identidad en el body. Recursos ajenos devuelven 404.
 
-## Pendiente
+## Contratos
 
-Conectar frontend; persistir metas; catálogo de tarjetas en API si hace falta; sesiones/conversaciones; adaptador LLM; cliente MCP; streaming de UI; autenticación si se publica. Swagger/OpenAPI generado todavía no está instalado: este documento es el contrato humano actual.
+El [catálogo de endpoints](endpoints.md) detalla rutas, cuerpos y respuestas. [Autenticación](autenticacion.md) explica cookies, origen y CSRF. El token de sesión no se entrega en JSON ni se guarda en localStorage.
 
-Fuentes técnicas: [validación NestJS](https://docs.nestjs.com/techniques/validation), [Prisma con NestJS](https://docs.prisma.io/docs/guides/frameworks/nestjs).
+El dinero se recibe en centavos enteros y se almacena como `BigInt`. Saldo = apertura + ingresos − gastos. Las consultas de movimientos incluyen totales del filtro completo en una instantánea RepeatableRead. POST idempotentes usan una clave UUID y restricciones únicas en PostgreSQL; repetir payload conserva el resultado, cambiarlo con la misma clave devuelve 409.
+
+El registro manual solo guarda un dato financiero: no procesa un pago. Las tarjetas son asignaciones sintéticas y no contienen PAN/CVV/PIN. Las metas no apartan dinero y las simulaciones no compran inversiones.
+
+## Arranque y comprobación
+
+Consultar [server/README.md](../server/README.md). `npm run check` ejecuta TypeScript y build. La API base funciona sin clave de modelo; enviar una pregunta devuelve `503 LLM_NOT_CONFIGURED` mientras no se configure `GEMINI_API_KEY`.
+
+Verificación de esta entrega con PostgreSQL local y scripts temporales, eliminando sus usuarios al terminar:
+
+- Registro de dos usuarios, login válido/inválido y hash Argon2id en DB.
+- Dos tarjetas y nueve movimientos independientes por usuario; persistencia tras logout/login.
+- Endpoints protegidos, cookie HttpOnly, CSRF/origen, vencimiento e imposibilidad de consultar o modificar recursos ajenos.
+- Tres registros simultáneos con la misma clave generan un solo movimiento; payload diferente devuelve 409; saldo y agregados correctos.
+- Metas aisladas, PATCH conserva campos omitidos, simulación exacta y rechazo de desbordamiento.
+- MCP real por stdio: descubrimiento de ocho herramientas, lectura autorizada y rechazo de escritura sin capacidad.
+- Asistente con modelo controlado: preparación sin escritura, confirmación idempotente, persistencia, respuesta posterior al modelo, mensajes A2UI y SSE.
+
+No se hizo una llamada real a Gemini en estas pruebas. El frontend no fue conectado ni se implementó su renderer en esta entrega. No se añadió una suite permanente en `server/test`, conforme a la eliminación solicitada.
+
+## Límites operativos
+
+Una instancia Nest: límites de solicitudes, capacidades MCP y ejecución de turnos viven en memoria. Los turnos persisten; al reiniciar, queued/running se marcan interrupted. La escritura usa la misma clave de acción para recuperar reintentos. No hay cola distribuida ni replay de deltas SSE; la recuperación se hace con snapshots.
+
+Swagger/OpenAPI generado, recuperación de contraseña, verificación de email y despliegue remoto quedan fuera de esta entrega. Los errores Zod contienen `code`, `message`, `issues`; algunos errores de dominio conservan el formato HTTP estándar de Nest.

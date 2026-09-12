@@ -6,12 +6,14 @@ import { navigation } from '../data/navigation';
 export function usePanel() {
   const metas = useMetas();
   const ledger = useMovimientos();
+  const [movementInstrument, setMovementInstrument] = useState('');
   const [section, setSection] = useState('Inicio');
   const [savedCard, setSavedCard] = useState<CardSelectionValue | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const changeSection = (title: string) => {
     setSection(title);
+    if (title === 'Movimientos') setMovementInstrument('');
     setSearchOpen(false);
     setQuery('');
   };
@@ -20,6 +22,11 @@ export function usePanel() {
   );
 
   return {
+    movementInstrument,
+    showMovements: (instrumentId = '') => {
+      changeSection('Movimientos');
+      setMovementInstrument(instrumentId);
+    },
     metas,
     ledger,
     section,

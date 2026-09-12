@@ -106,7 +106,7 @@ export function MetasPanel({
       )}
       <p className="goals-note">
         Los objetivos se conservan mientras permaneces en el panel. Crear una
-        meta en esta demo no aparta ni mueve dinero.
+        meta no aparta ni mueve dinero.
       </p>
     </section>
   );

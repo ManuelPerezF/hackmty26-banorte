@@ -58,11 +58,11 @@ export function BankSidebar({
           <span className="company-avatar">AM</span>
           <div>
             <strong>Alex Morgan</strong>
-            <span>Perfil de demostración</span>
+            <span>Cuenta personal</span>
           </div>
         </div>
         <Link href="/login">
-          <LogOut size={18} strokeWidth={1.7} /> Salir de la demo
+          <LogOut size={18} strokeWidth={1.7} /> Salir del panel
         </Link>
       </SidebarFooter>
     </Sidebar>

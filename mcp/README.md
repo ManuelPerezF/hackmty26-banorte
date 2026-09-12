@@ -1,5 +1,7 @@
 # Servidor MCP financiero
 
-Pendiente de implementación. Esta carpeta no contiene un servidor ni un comando de arranque todavía.
+`server.cjs` implementa ocho herramientas del proyecto mediante el SDK oficial y transporte stdio. Nest lo inicia automáticamente por turno con una capacidad breve de autorización; no necesita un puerto ni un contenedor propios.
 
-El contrato de herramientas, el transporte propuesto y los criterios de integración están en [docs/mcp.md](../docs/mcp.md). La API NestJS disponible para envolver se documenta en [docs/backend.md](../docs/backend.md).
+Primero instalar, generar Prisma y compilar el backend siguiendo [server/README.md](../server/README.md). El proceso usa `server/node_modules` y los esquemas de `server/dist`. No ejecutarlo sin las variables privadas que inyecta el orquestador.
+
+Ver [herramientas, autorización y verificación](../docs/mcp.md).

@@ -1,10 +1,9 @@
 # Backend Banorte
 
-NestJS + Zod + Prisma + PostgreSQL. Cuenta y movimientos de demostración, con consultas paginadas e idempotencia en registros.
-
-Desde la raíz, iniciar la base de datos y luego NestJS local:
+NestJS + Zod + Prisma + PostgreSQL. Registro/login real, datos aislados por usuario y orquestación de asistente con MCP y A2UI.
 
 ```sh
+# Desde la raíz
 docker compose up -d --wait postgres
 cd server
 cp -n .env.example .env
@@ -15,12 +14,17 @@ npm run db:seed
 npm run dev
 ```
 
-API: `http://127.0.0.1:3001/api/v1`. `cp -n` conserva un `.env` existente. No hay Dockerfile del backend.
+API: `http://127.0.0.1:3001/api/v1`. `cp -n` conserva la configuración existente. Solo la base de datos usa Docker.
 
-- [Contrato de API](../docs/backend.md)
-- [Desarrollo, Docker y pruebas](../docs/docker.md)
-- [Modelo y migraciones](../docs/base-de-datos.md)
-- [Arquitectura](../docs/arquitectura.md)
-- [Pendientes del reto](../docs/reto-y-pendientes.md)
+Crear usuarios con `POST /auth/register` y luego iniciar sesión. Opcionalmente configurar `BOOTSTRAP_EMAIL` y `BOOTSTRAP_PASSWORD` antes del seed para habilitar el propietario del historial original. El seed no cambia la contraseña de un usuario ya habilitado. Nunca versionar `.env`.
 
-El frontend aún usa datos locales. No hay autenticación ni integración LLM/MCP/A2UI implementada en este backend.
+Configurar `GEMINI_API_KEY` para el asistente. MCP utiliza las dependencias y el código compilado de este backend; `npm run dev` compila antes de arrancar. Para ejecutar sin watch: `npm run build && npm start`.
+
+- [Backend y verificación](../docs/backend.md)
+- [Endpoints y ejemplos](../docs/endpoints.md)
+- [Autenticación](../docs/autenticacion.md)
+- [Base de datos](../docs/base-de-datos.md)
+- [Docker y variables](../docs/docker.md)
+- [MCP](../docs/mcp.md), [LLM](../docs/llm.md), [A2UI](../docs/a2ui.md)
+
+`npm run check` valida TypeScript y compilación. Se verificaron flujos HTTP y MCP con scripts temporales; no se recreó la carpeta `server/test` eliminada por decisión del usuario. El frontend aún no consume esta API.

@@ -20,15 +20,21 @@ export default function Panel() {
           onNavigate={changeSection}
         />
       )}
-      {section === 'Movimientos' && <Movimientos ledger={panel.ledger} />}
+      {section === 'Movimientos' && (
+        <Movimientos
+          ledger={panel.ledger}
+          initialInstrument={panel.movementInstrument}
+        />
+      )}
       {section === 'Asistente' && (
         <AssistantWorkspace movements={panel.ledger.movements} />
       )}
-      {section === 'Tarjetas' && (
+      {section === 'Cuentas y tarjetas' && (
         <CardSelection
           saved={savedCard}
           onSave={setSavedCard}
-          onBack={() => changeSection('Inicio')}
+          ledger={panel.ledger}
+          onMovements={panel.showMovements}
         />
       )}
       {section === 'Metas' && <Metas {...panel.metas} />}

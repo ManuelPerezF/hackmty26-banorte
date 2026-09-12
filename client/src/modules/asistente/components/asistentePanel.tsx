@@ -48,7 +48,7 @@ export function AsistentePanel({
           </header>
           <div className="assistant-context">
             <span>
-              <Link2 size={13} /> MCP simulado
+              <Link2 size={13} /> Análisis de movimientos
             </span>
             <span>
               <span className="context-dot" /> 3 herramientas
@@ -228,7 +228,7 @@ export function AsistentePanel({
               }}
             >
               <label className="sr-only" htmlFor="assistant-prompt">
-                Mensaje de prueba al asistente
+                Mensaje al asistente
               </label>
               <Input
                 id="assistant-prompt"
@@ -239,13 +239,13 @@ export function AsistentePanel({
               />
               <Button
                 type="submit"
-                aria-label="Enviar mensaje de prueba"
+                aria-label="Enviar mensaje"
                 disabled={!draft.trim()}
               >
                 <ArrowUp size={17} />
               </Button>
             </form>
-            <p>Demostración visual · Sin conexión bancaria real</p>
+            <p>Explora tus gastos y encuentra oportunidades de ahorro.</p>
           </div>
         </aside>
       </div>

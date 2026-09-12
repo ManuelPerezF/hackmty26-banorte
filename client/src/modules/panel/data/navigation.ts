@@ -10,7 +10,7 @@ export const navigation = [
   { title: 'Inicio', icon: Home },
   { title: 'Movimientos', icon: ArrowLeftRight },
   { title: 'Asistente', icon: MessageCircle },
-  { title: 'Tarjetas', icon: CreditCard },
+  { title: 'Cuentas y tarjetas', icon: CreditCard },
   { title: 'Metas', icon: Target },
   { title: 'Perfil', icon: UserRound },
 ];

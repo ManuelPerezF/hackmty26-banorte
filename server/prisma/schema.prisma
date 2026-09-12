@@ -20,6 +20,8 @@ enum MovementSource {
 
 model Account {
   id                  String     @id @default(uuid()) @db.Uuid
+  profileId           String     @unique @db.Uuid
+  profile             Profile    @relation(fields: [profileId], references: [id], onDelete: Restrict)
   name                String     @db.VarChar(80)
   currency            String     @default("MXN") @db.Char(3)
   openingBalanceCents BigInt
@@ -44,4 +46,126 @@ model Movement {
   @@unique([accountId, idempotencyKey])
   @@index([accountId, date, createdAt, id])
   @@index([accountId, type, category])
+}
+
+model User {
+  id String @id @default(uuid()) @db.Uuid
+  email String @unique @db.VarChar(254)
+  passwordHash String
+  active Boolean @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  profile Profile?
+  sessions Session[]
+}
+model Profile {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @unique @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  displayName String @db.VarChar(80)
+  locale String @default("es-MX")
+  timezone String @default("America/Monterrey")
+  preferredCardId String? @db.Uuid
+  account Account?
+  cards Card[]
+  goals Goal[]
+  conversations Conversation[]
+}
+model Session {
+  id String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tokenHash String @unique
+  csrfToken String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  lastSeenAt DateTime @default(now()) @db.Timestamptz(3)
+  expiresAt DateTime @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3)
+  @@index([userId, expiresAt])
+}
+model CardProduct {
+  key String @id
+  name String
+  network String @default("Visa")
+  imageKey String
+  cards Card[]
+}
+model Card {
+  id String @id @default(uuid()) @db.Uuid
+  profileId String @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  productKey String
+  product CardProduct @relation(fields: [productKey], references: [key], onDelete: Restrict)
+  last4 String @db.Char(4)
+  status String @default("active")
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@unique([profileId, productKey])
+}
+model Goal {
+  id String @id @default(uuid()) @db.Uuid
+  profileId String @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  name String @db.VarChar(80)
+  targetCents BigInt
+  deadline DateTime? @db.Date
+  status String @default("active")
+  requestKey String @db.Uuid
+  originalInput Json
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@unique([profileId, requestKey])
+}
+model Conversation {
+  id String @id @default(uuid()) @db.Uuid
+  profileId String @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  title String @db.VarChar(80)
+  requestKey String @db.Uuid
+  originalInput Json
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  messages Message[]
+  turns AgentTurn[]
+  @@unique([profileId, requestKey])
+}
+model Message {
+  id String @id @default(uuid()) @db.Uuid
+  conversationId String @db.Uuid
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role String
+  content String
+  turnId String? @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@index([conversationId, createdAt])
+}
+model AgentTurn {
+  id String @id @default(uuid()) @db.Uuid
+  conversationId String @db.Uuid
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sessionId String @db.Uuid
+  requestKey String @db.Uuid
+  input Json
+  status String @default("queued")
+  revision Int @default(0)
+  uiSnapshot Json?
+  assistantMessage String @default("")
+  errorCode String?
+  trace Json?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  actions PendingAction[]
+  @@unique([conversationId, requestKey])
+}
+model PendingAction {
+  id String @id @default(uuid()) @db.Uuid
+  turnId String @db.Uuid
+  turn AgentTurn @relation(fields: [turnId], references: [id], onDelete: Cascade)
+  sessionId String @db.Uuid
+  surfaceId String
+  revision Int
+  payload Json
+  status String @default("pending")
+  expiresAt DateTime @db.Timestamptz(3)
+  result Json?
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@index([sessionId, status])
 }

@@ -6,14 +6,18 @@ import {
 import type { Movement, MovementFilters } from '../types/movimientos.types';
 export const PAGE_SIZE = 8;
 const initialFilters: MovementFilters = {
+  instrumentId: '',
   query: '',
   type: 'all',
   category: '',
   from: '',
   to: '',
 };
-export function useHistorial(movements: Movement[]) {
-  const [filters, setFilters] = useState(initialFilters);
+export function useHistorial(movements: Movement[], instrumentId = '') {
+  const [filters, setFilters] = useState<MovementFilters>({
+    ...initialFilters,
+    instrumentId,
+  });
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [page, setPage] = useState(1);

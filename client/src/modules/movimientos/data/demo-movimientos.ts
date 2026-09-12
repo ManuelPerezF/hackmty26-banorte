@@ -12,6 +12,7 @@ export const categories = [
 export const demoMovements: Movement[] = [
   {
     id: 'demo-payroll',
+    instrumentId: 'account-personal',
     description: 'Depósito de nómina',
     amountCents: 2450000,
     type: 'income',
@@ -23,6 +24,7 @@ export const demoMovements: Movement[] = [
   },
   {
     id: 'demo-subscription',
+    instrumentId: 'card-oro',
     description: 'Suscripción digital',
     amountCents: 129900,
     type: 'expense',
@@ -34,6 +36,7 @@ export const demoMovements: Movement[] = [
   },
   {
     id: 'demo-rent',
+    instrumentId: 'account-personal',
     description: 'Renta del departamento',
     amountCents: 850000,
     type: 'expense',
@@ -45,6 +48,7 @@ export const demoMovements: Movement[] = [
   },
   {
     id: 'demo-groceries',
+    instrumentId: 'card-clasica',
     description: 'Supermercado',
     amountCents: 124580,
     type: 'expense',
@@ -56,6 +60,7 @@ export const demoMovements: Movement[] = [
   },
   {
     id: 'demo-coffee',
+    instrumentId: 'card-clasica',
     description: 'Café de la esquina',
     amountCents: 8900,
     type: 'expense',
@@ -67,6 +72,7 @@ export const demoMovements: Movement[] = [
   },
   {
     id: 'demo-transport',
+    instrumentId: 'card-oro',
     description: 'Viaje en aplicación',
     amountCents: 16500,
     type: 'expense',
@@ -78,6 +84,7 @@ export const demoMovements: Movement[] = [
   },
   {
     id: 'demo-refund',
+    instrumentId: 'card-oro',
     description: 'Reembolso de compra',
     amountCents: 79900,
     type: 'income',
@@ -89,6 +96,7 @@ export const demoMovements: Movement[] = [
   },
   {
     id: 'demo-electricity',
+    instrumentId: 'account-personal',
     description: 'Servicio de luz',
     amountCents: 68000,
     type: 'expense',
@@ -100,6 +108,7 @@ export const demoMovements: Movement[] = [
   },
   {
     id: 'demo-books',
+    instrumentId: 'card-clasica',
     description: 'Librería',
     amountCents: 42000,
     type: 'expense',

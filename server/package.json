@@ -2,7 +2,9 @@
   "name": "banorte-server",
   "version": "0.1.0",
   "private": true,
-  "engines": { "node": ">=22.13.0" },
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "dev": "nest start --watch",
     "build": "nest build",
@@ -16,11 +18,15 @@
     "check": "npm run typecheck && npm run build"
   },
   "dependencies": {
+    "@google/genai": "^2.22.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
     "@nestjs/common": "12.0.1",
     "@nestjs/core": "12.0.1",
     "@nestjs/platform-express": "12.0.1",
     "@prisma/adapter-pg": "7.10.0",
     "@prisma/client": "7.10.0",
+    "argon2": "^0.45.1",
+    "cookie": "^1.1.1",
     "dotenv": "^17.2.3",
     "helmet": "^8.1.0",
     "pg": "^8.16.3",
@@ -28,7 +34,9 @@
     "rxjs": "^7.8.2",
     "zod": "4.6.2"
   },
-  "overrides": { "multer": "^2.3.0" },
+  "overrides": {
+    "multer": "^2.3.0"
+  },
   "devDependencies": {
     "@nestjs/cli": "^11.0.0",
     "@types/express": "^5.0.0",

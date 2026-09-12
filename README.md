@@ -1,18 +1,8 @@
 # Reto Banorte × Tec
 
-Prototipo de banca personal con una interfaz adaptable, educación financiera contextual y exploración de inversiones.
+Banca personal con historial propio, educación financiera contextual y una interfaz adaptable a la intención.
 
-## Frontend
-
-La landing y las páginas de demostración están en `client`, organizadas por funcionalidades. Consultar [la arquitectura y las instrucciones del frontend](client/README.md).
-
-```sh
-cd client
-npm ci
-npm run dev
-```
-
-## Backend y PostgreSQL
+## Arranque
 
 ```sh
 docker compose up -d --wait postgres
@@ -25,13 +15,15 @@ npm run db:seed
 npm run dev
 ```
 
-NestJS, Zod y Prisma se ejecutan localmente en `server`. Docker se utiliza únicamente para PostgreSQL; las migraciones y el seed se ejecutan desde el backend local. La API registra ingresos/gastos y consulta historial y saldo de una cuenta ficticia.
+NestJS corre localmente en `http://127.0.0.1:3001/api/v1`. Docker ejecuta **solo PostgreSQL**. En otra terminal: `cd client`, `npm ci` y `npm run dev`.
 
-## Áreas del proyecto
+## Áreas
 
-- `client`: frontend organizado por dominios; actualmente usa `localStorage`.
-- `server`: API NestJS modular con Prisma y PostgreSQL.
-- `mcp`: guía para implementar las herramientas financieras; todavía sin servidor ejecutable.
-- `docs`: [documentación por área, arquitectura y pendientes del reto](docs/README.md).
+- `client`: React por funcionalidades; sus pantallas aún usan datos locales. Falta conectarlas a la autenticación/API y registrar el renderer A2UI.
+- `server`: NestJS, Zod y Prisma; registro/login con Argon2id y sesiones, autorización por usuario, tarjetas, movimientos, análisis, metas, simulaciones y asistente persistente con SSE.
+- `mcp`: servidor ejecutable por stdio, lanzado automáticamente por Nest para cada turno; ocho herramientas financieras.
+- `docs`: [guía del proyecto](docs/README.md), [endpoints](docs/endpoints.md) y [pendientes del reto](docs/reto-y-pendientes.md).
 
-Frontend y backend todavía no están conectados. LLM, MCP y A2UI siguen pendientes. El acceso es de demostración y no almacena contraseñas.
+Cada registro crea un perfil, cuenta, dos tarjetas (Clásica y Oro) y nueve movimientos de ejemplo independientes. El login es real; los datos bancarios son sintéticos y los movimientos manuales persisten.
+
+El adaptador Gemini está implementado. Configurar `GEMINI_API_KEY` en `server/.env` para enviar preguntas al asistente. Sin clave devuelve 503; no simula una respuesta del modelo. El backend genera mensajes A2UI v0.9.1 con catálogo propio; falta renderizarlos en el frontend.

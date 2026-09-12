@@ -1,39 +1,32 @@
 # MCP financiero
 
-**Estado: diseñado, sin implementar.** No hay un servidor MCP ejecutable todavía en `mcp/`.
+Implementado con `@modelcontextprotocol/sdk`: cliente Nest y servidor `mcp/server.cjs` sobre stdio. Nest inicia un proceso por turno, descubre herramientas, las llama y cierra el proceso al terminar. El servidor reutiliza las dependencias de `server` y los esquemas compilados; primero instalar y compilar el backend.
 
-MCP define cómo el cliente del agente descubre y llama herramientas. Usaremos el SDK oficial y un proceso separado que envuelva la API bancaria. Para la primera demo local, transporte `stdio`; Streamable HTTP solo si necesitan desplegarlo independientemente. La selección de versión del SDK y del protocolo se fijará al implementarlo. [Arquitectura oficial de MCP](https://modelcontextprotocol.io/docs/2026-07-28/learn/architecture).
+## Herramientas
 
-## Responsabilidades propuestas
-
-- Nest alberga el orquestador y cliente MCP.
-- `mcp` expone herramientas con esquemas Zod.
-- Las herramientas llaman a la API interna de cuentas y movimientos; PostgreSQL tiene un único dueño de reglas: el backend.
-- La cuenta proviene del contexto del servidor, nunca de una identidad inventada por el modelo.
-
-| Herramienta propuesta | Entrada | Implementación subyacente |
+| Nombre | Entrada | Alcance |
 | --- | --- | --- |
-| `get_account_summary` | Ninguna | `GET /api/v1/account`, existe |
-| `list_movements` | Tipo, categoría, fechas, búsqueda, página | `GET /api/v1/movements`, existe |
-| `get_movement` | UUID | `GET /api/v1/movements/:id`, existe |
-| `list_movement_categories` | Ninguna | `GET /api/v1/movements/categories`, existe |
-| `register_movement` | Concepto, centavos, tipo, fecha, categoría, nota | `POST /api/v1/movements`, existe; clave de reintento del servidor |
-| `create_savings_goal` | Nombre, monto y plazo | Endpoint y modelo pendientes |
-| `simulate_savings` | Aportación, plazo y tasa explícita | Cálculo determinista pendiente |
+| get_profile | `{}` | Perfil autenticado |
+| list_my_cards | `{}` | Dos tarjetas asignadas |
+| get_account_summary | `{}` | Saldo e ingresos/gastos |
+| list_movements | Filtros y paginación del historial | Cuenta autenticada |
+| get_movement | `{id}` | Detalle propio |
+| list_movement_categories | `{}` | Catálogo de categorías |
+| get_spending_insights | from/to, category, bucket opcionales | Agregados propios |
+| register_movement | `{}` | Payload de una acción aprobada en servidor |
 
-No implementar todas antes de la demo. Las primeras cinco permiten un flujo de control de gasto con una acción persistente. Inversiones y metas son una ampliación.
+Los esquemas Zod compartidos están en `server/src/integrations/mcp/tool-definitions.ts`. El LLM solo recibe las siete herramientas de lectura. Una confirmación válida permite que el orquestador ejecute `register_movement` con la acción previamente persistida; el modelo no puede inventar una aprobación ni cambiar su monto.
 
-## Acciones
+## Autorización del proceso
 
-El agente puede consultar; para registrar debe existir una interacción explícita de confirmación del usuario en la UI. Nest vincula la confirmación a sesión, acción y payload normalizado, y asigna una clave de idempotencia. Un campo `confirmed: true` escrito por el modelo no es una confirmación válida.
+Nest crea una capacidad opaca criptográfica de dos minutos, asociada en memoria a identidad, sesión, herramientas permitidas y acción aprobada opcional. La inyecta al proceso mediante `BANORTE_CAPABILITY`, junto con la URL local. El hijo no recibe la clave Gemini ni la contraseña de PostgreSQL.
 
-Errores de validación, herramienta no disponible y timeout vuelven al agente como resultados estructurados. No inventar resultados bancarios. Las descripciones o notas dentro de resultados son datos, no instrucciones para el agente.
+El servidor MCP llama `POST /api/v1/internal/tools/:name` con `Authorization: Bearer <capacidad>`. El gateway verifica existencia, caducidad, alcance y sesión activa. El modelo nunca recibe el token. Al cerrar el cliente, Nest revoca la capacidad. No es JWT ni una credencial aceptada por rutas de usuario.
 
-## Criterios de terminado
+`register_movement` exige una PendingAction executing/completed de esa sesión y perfil. Usa el UUID de la acción como clave idempotente; los reintentos recuperan el mismo movimiento. El resultado vuelve al orquestador y después al modelo para explicar el estado actualizado.
 
-- Descubrimiento `tools/list` y llamadas `tools/call` reales, verificables con el cliente/Inspector MCP.
-- Esquemas de entrada y resultados válidos, errores controlados y timeout.
-- Ninguna llave del proveedor LLM enviada al navegador.
-- Una consulta de datos y una escritura disparadas mediante MCP desde el orquestador.
-- Reintento de la acción sin duplicar registros.
-- Instrucciones de ejecución y prueba del proceso `mcp` en su README.
+## Operación y prueba
+
+`MCP_ENTRY=../mcp/server.cjs` se resuelve desde `server`. No hace falta iniciar un servidor MCP manualmente ni instalar otra carpeta node_modules. stdout está reservado al protocolo; errores de proceso usan stderr. Timeout de conexión y llamadas: diez segundos, además del límite global del turno.
+
+Se probó descubrimiento de ocho herramientas y llamadas reales por stdio, incluyendo rechazo de escritura con capacidad de lectura y registro confirmado sin duplicados. Las capacidades viven en una sola instancia Nest; un despliegue con varias instancias requerirá rediseñar su almacenamiento/ruteo.

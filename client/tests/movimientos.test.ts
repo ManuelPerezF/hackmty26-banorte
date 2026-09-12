@@ -90,3 +90,56 @@ await test('round-trips manual records and rejects corrupted or duplicate entrie
     decodeMovements(encodeMovements([{ ...item, amountCents: -1 }])),
   );
 });
+
+await test('persists instrument selection and filters associated movements', () => {
+  const card = createMovement(
+    { ...base, instrumentId: 'card-oro' },
+    '2026-09-11',
+  );
+  const account = createMovement(
+    { ...base, instrumentId: 'account-personal' },
+    '2026-09-11',
+  );
+  const stored = decodeMovements(encodeMovements([card, account]));
+  assert.equal(
+    stored.find((item) => item.id === card.id)?.instrumentId,
+    'card-oro',
+  );
+  const filtered = filterMovements(stored, {
+    query: '',
+    type: 'all',
+    category: '',
+    from: '',
+    to: '',
+    instrumentId: 'card-oro',
+  });
+  assert.deepEqual(
+    filtered.map((item) => item.id),
+    [card.id],
+  );
+  assert.throws(() =>
+    createMovement({ ...base, instrumentId: 'unknown-card' }, '2026-09-11'),
+  );
+});
+
+await test('preserves legacy history while adding known instrument associations', () => {
+  const oldManual = createMovement(base, '2026-09-11');
+  delete oldManual.instrumentId;
+  const oldSeed = {
+    ...demoMovements.find((item) => item.id === 'demo-groceries')!,
+  };
+  delete oldSeed.instrumentId;
+  const restored = decodeMovements(encodeMovements([oldManual, oldSeed]));
+  assert.equal(
+    restored.find((item) => item.id === oldManual.id)?.instrumentId,
+    'account-personal',
+  );
+  assert.equal(
+    restored.find((item) => item.id === oldSeed.id)?.instrumentId,
+    'card-clasica',
+  );
+  assert.equal(
+    movementTotals(restored).net,
+    movementTotals([oldManual, oldSeed]).net,
+  );
+});

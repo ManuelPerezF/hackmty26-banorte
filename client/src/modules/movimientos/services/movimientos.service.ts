@@ -1,3 +1,8 @@
+import {
+  instruments,
+  instrumentLabel,
+  personalAccount,
+} from '../../cuentas/data/accounts.ts';
 import { categories, demoMovements } from '../data/demo-movimientos.ts';
 import type {
   Movement,
@@ -43,7 +48,11 @@ export function createMovement(
     throw new Error('Elige una fecha válida que no sea posterior a hoy.');
   if (input.notes.length > 500)
     throw new Error('La nota puede tener hasta 500 caracteres.');
+  const instrumentId = input.instrumentId || personalAccount.id;
+  if (!instruments.some((item) => item.id === instrumentId))
+    throw new Error('Elige una cuenta o tarjeta de tu perfil.');
   return {
+    instrumentId,
     id: crypto.randomUUID(),
     description,
     amountCents: parseAmountCents(input.amount),
@@ -84,8 +93,10 @@ export function filterMovements(
       (item) =>
         (!query ||
           normalize(
-            `${item.description} ${item.category} ${item.notes}`,
+            `${item.description} ${item.category} ${item.notes} ${instrumentLabel(item.instrumentId)}`,
           ).includes(query)) &&
+        (!filters.instrumentId ||
+          (item.instrumentId ?? personalAccount.id) === filters.instrumentId) &&
         (filters.type === 'all' || item.type === filters.type) &&
         (!filters.category || item.category === filters.category) &&
         (!filters.from || item.date >= filters.from) &&
@@ -133,9 +144,22 @@ export function decodeMovements(raw: string | null): Movement[] {
       !['demo', 'manual'].includes(String(item.source))
     )
       throw new Error('Movimiento local inválido.');
+    if (
+      item.instrumentId !== undefined &&
+      !instruments.some((instrument) => instrument.id === item.instrumentId)
+    )
+      throw new Error('Cuenta o tarjeta no reconocida en el historial.');
     ids.add(item.id);
   }
-  return sortMovements(parsed.items as Movement[]);
+  return sortMovements(
+    (parsed.items as Movement[]).map((item) => ({
+      ...item,
+      instrumentId:
+        item.instrumentId ??
+        demoMovements.find((seed) => seed.id === item.id)?.instrumentId ??
+        personalAccount.id,
+    })),
+  );
 }
 export function encodeMovements(items: readonly Movement[]) {
   return JSON.stringify({ version: 1, items });

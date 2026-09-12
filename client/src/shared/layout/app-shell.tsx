@@ -1,12 +1,6 @@
 'use client';
 import type { CSSProperties } from 'react';
-import {
-  ArrowUpRight,
-  ChevronRight,
-  Search,
-  ShieldCheck,
-  X,
-} from 'lucide-react';
+import { ArrowUpRight, ChevronRight, Search, X } from 'lucide-react';
 import {
   SidebarProvider,
   SidebarTrigger,
@@ -68,9 +62,6 @@ function AppShellContent({
               <span>Alex Morgan</span>
               <ChevronRight size={16} />
             </Button>
-            <span className="demo-label">
-              <ShieldCheck size={13} aria-hidden="true" /> Demo
-            </span>
           </div>
         </header>
         {searchOpen && (
@@ -115,7 +106,7 @@ function AppShellContent({
         </ViewTransition>
         <footer className="workspace-footer">
           <span>Banorte · El banco fuerte de México.</span>
-          <span>Datos de ejemplo / Reto Banorte 2026</span>
+          <span>Tu dinero, más claro.</span>
         </footer>
       </main>
     </>

@@ -4,58 +4,42 @@
 
 ```mermaid
 erDiagram
+  User ||--o| Profile : identifica
+  User ||--o{ Session : inicia
+  Profile ||--o| Account : tiene
   Account ||--o{ Movement : registra
-  Account {
-    uuid id PK
-    varchar name
-    char currency
-    bigint openingBalanceCents
-    timestamptz createdAt
-  }
-  Movement {
-    uuid id PK
-    uuid accountId FK
-    varchar description
-    bigint amountCents
-    enum type
-    varchar category
-    date date
-    varchar notes
-    enum source
-    uuid idempotencyKey
-    timestamptz createdAt
-  }
+  Profile ||--o{ Card : posee
+  CardProduct ||--o{ Card : describe
+  Profile ||--o{ Goal : define
+  Profile ||--o{ Conversation : conversa
+  Conversation ||--o{ Message : contiene
+  Conversation ||--o{ AgentTurn : procesa
+  AgentTurn ||--o{ PendingAction : prepara
 ```
 
-La clave `(accountId, idempotencyKey)` es única. Los índices comienzan por cuenta y cubren orden por fecha y filtros por tipo/categoría. La relación impide borrar una cuenta con movimientos. La migración también agrega un `CHECK` para el rango positivo de centavos y otro para moneda MXN.
+User guarda email normalizado, passwordHash y active. Session guarda hash del token, CSRF y vencimientos. Las entidades de negocio pertenecen al perfil, directamente o a través de la cuenta/conversación. Card guarda solo last4, estado y producto; CardProduct contiene nombre, red e imageKey. El email tiene una única fuente de verdad: User.
 
-`saldo = saldoInicial + SUM(ingresos) - SUM(gastos)`. Nunca se calcula dinero mediante floats dentro de la DB. Los `BigInt` se convierten a números JSON solo después de comprobar `Number.isSafeInteger`.
+La clave `(accountId, idempotencyKey)` hace único cada movimiento. Goal y Conversation conservan input original y clave por perfil. AgentTurn tiene clave por conversación y un índice parcial que impide dos turnos queued/running simultáneos en ella. PendingAction guarda payload aprobado, sesión, estado, caducidad y resultado recuperable.
 
-## Seed reproducible
+## Dinero
 
-Una cuenta ficticia y nueve movimientos alineados con el dataset inicial del frontend. El saldo inicial resultante es $284,650.00 MXN. Las fechas son fijas de septiembre de 2026 para que el guion sea reproducible.
+Centavos BigInt, con límites positivos en esquema/DB. `saldo = saldoInicial + SUM(ingresos) - SUM(gastos)`. Convertir a JSON solo si el número es seguro. La simulación usa BigInt y redondeo half-up mensual, sin floats de dinero. Metas y simulaciones no alteran el saldo.
 
-El seed usa una transacción y `upsert` con claves estables: ejecutarlo otra vez no duplica movimientos ni borra registros manuales. No carga usuarios, contraseñas, PAN completos ni datos bancarios reales.
+## Migración y seed
 
-## Flujo de cambios
+La segunda migración crea identidad y entidades del asistente, asocia explícitamente la cuenta original al perfil inicial y conserva su historial. El usuario original queda deshabilitado hasta aprovisionar credenciales privadas mediante seed. No se usa el primer registro público para reclamar esa cuenta.
 
-Desde `server`, con `.env` configurado:
+`db:seed` siembra catálogo Clásica/Oro/Infinite, asigna Clásica y Oro al propietario inicial, conserva preferencia y movimientos existentes. Opcionalmente habilita al usuario mediante BOOTSTRAP_EMAIL/BOOTSTRAP_PASSWORD; no reemplaza credenciales ya activas. Repetir el seed no duplica filas ni borra registros manuales.
+
+El registro de cada usuario crea una cuenta nueva y nueve movimientos de ejemplo con fechas relativas al día de alta, UUID propios y claves estables por cuenta. Su saldo inicial resultante es $284,650.00 MXN. `source: demo` identifica el origen de ejemplo; `manual` identifica los movimientos registrados. No se comparten filas entre usuarios ni se insertan datos al hacer login.
+
+## Comandos
 
 ```sh
+cd server
 npm run prisma:generate
 npm run db:deploy
 npm run db:seed
 ```
 
-Para modificar el modelo durante desarrollo:
-
-```sh
-npm run db:migrate -- --name descripcion_del_cambio
-npm run prisma:generate
-```
-
-Versionar `schema.prisma` y `prisma/migrations`. No versionar `src/generated/prisma`. `migrate deploy` aplica migraciones versionadas; no usar `db push` como sustituto del historial de migración del equipo.
-
-## Siguientes entidades
-
-Solo crear cuando su flujo vaya a implementarse: `Goal` para metas persistentes; `Conversation` y `Message` para contexto; `AgentAction` para resultado y clave de reintento. `User` y sesiones requieren una decisión de autenticación. Las tarjetas actuales son un catálogo visual; no necesitan números sensibles en la base.
+Para cambiar modelo: `npm run db:migrate -- --name descripcion_del_cambio`, luego regenerar Prisma. Versionar schema y migraciones; `src/generated/prisma` queda ignorado. No usar db push ni borrar el volumen para aplicar cambios de código.

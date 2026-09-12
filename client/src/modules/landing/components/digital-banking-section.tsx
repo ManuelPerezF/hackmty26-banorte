@@ -20,13 +20,13 @@ export function DigitalBankingSection() {
         <a className="button" href={bankingUrl}>
           Explora tu banca <ArrowRight size={18} aria-hidden="true" />
         </a>
-        <small>Experiencia demostrativa con datos de ejemplo.</small>
+        <small>Una perspectiva más clara de tu dinero.</small>
       </div>
       <div className="conversation-preview">
         <div className="conversation-heading">
           <MessageCircle size={20} aria-hidden="true" />
           <span>Asistente Banorte</span>
-          <span className="conversation-demo">Demo</span>
+          <span className="conversation-demo">Banorte IA</span>
         </div>
         <p className="conversation-question">¿En qué gasté este mes?</p>
         <div className="conversation-answer">

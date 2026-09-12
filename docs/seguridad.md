@@ -1,32 +1,28 @@
-# Seguridad proporcional al hackathon
+# Seguridad del backend
 
-## Decisión actual
+## Implementado
 
-**Usar una cuenta demo sin contraseñas.** El backend no implementa registro, login, JWT ni almacenamiento de passwords. El acceso visual del frontend abre el panel demo. `DEMO_MODE=true` es el único modo soportado y `NODE_ENV=production` se rechaza para evitar etiquetar este setup como listo para producción.
+- Contraseñas Argon2id (19456 KiB, dos iteraciones, paralelismo uno) y verificación equivalente para usuario desconocido.
+- Sesiones aleatorias revocables; hash SHA-256 del token en DB, cookie HttpOnly/SameSite y caducidad absoluta/inactividad.
+- Guard global con autorización por propietario; origen exacto, JSON y CSRF en mutaciones autenticadas.
+- Rate limit por IP/email para registro/login y por usuario para rutas privadas, en memoria.
+- Zod, límite JSON de 32 KB, Helmet y respuestas sin caché.
+- Herramientas MCP con capacidad breve, sesión revalidada y alcance cerrado; escritura solo con acción aprobada.
+- Idempotencia y restricciones en PostgreSQL para no duplicar movimientos; datos ajenos devuelven 404.
+- Secretos únicamente en .env ignorado; ni hash, token ni credenciales del proveedor salen en los DTO financieros.
 
-Si posteriormente se guardan contraseñas, sí necesitan hash con una librería mantenida, preferentemente Argon2id, o delegar autenticación a un proveedor. Omitir un sistema de identidad durante la demo ahorra trabajo; guardar contraseñas en texto plano no es una simplificación aceptable.
+La API sirve datos sintéticos y registros manuales. No almacena PAN, CVV o PIN ni ejecuta pagos. El registro confirma credenciales de acceso, pero todavía no comprueba propiedad del correo.
 
-## Incluido
+## Límites conocidos
 
-- Datos sintéticos y cuenta fija controlada por el servidor.
-- Zod para configuración, payloads y filtros; campos extra rechazados.
-- Centavos enteros y límites de entrada.
-- CORS con orígenes explícitos y Helmet.
-- Cuerpo JSON limitado a 32 KB.
-- Restricción de idempotencia persistida en PostgreSQL.
-- PostgreSQL publicado en loopback por Compose; NestJS local escucha en `127.0.0.1` por defecto.
-- `.env` excluidos de Git; ejemplos explícitamente locales.
+Una instancia local. Los rate limits y capacidades no se comparten entre procesos. No hay recuperación de contraseña, MFA, verificación de email, gestión de dispositivos ni cola distribuida. La configuración production exige HTTPS y cookies Secure; no equivale a una revisión completa de producción.
 
-CORS no es autenticación. Cualquier proceso con acceso al puerto puede leer y modificar la cuenta demo. Cambiar una variable de entorno no crea controles de identidad.
+SSE revalida la sesión una vez por segundo. Logout cancela acciones pendientes; las escrituras ya iniciadas/confirmadas no se revierten. Si un proceso cae entre escritura y actualización de estado, reintentar conserva el UUID de la acción y recupera el movimiento sin duplicarlo.
 
-## Antes de exponerlo fuera de una demo local
+En la instalación se corrigió el override de multer. La auditoría completa de npm seguía reportando cuatro entradas altas en la cadena del CLI Prisma (mysql2/deepmerge), no resueltas en esta entrega. Revisar antes de desplegar y mantener el lockfile; no ejecutar actualizaciones mayores automáticas sin comprobar compatibilidad.
 
-Autenticar usuarios, derivar la cuenta de la sesión verificada y autorizar acceso por recurso; HTTPS; secretos de despliegue; límite de solicitudes/costo LLM; manejo de sesiones; consentimiento de acciones ligado a payload y sesión; revisión de dependencias. Para una demo compartida, definir explícitamente si todos usarán la misma cuenta o una cuenta aislada por sesión.
+## Evidencia
 
-Las acciones del LLM requerirán una confirmación verificable emitida por la interacción del usuario. El modelo no debe poder autoautorizar una escritura colocando un booleano en sus argumentos.
+Se comprobaron login, hash, CSRF, origen, expiración, aislamiento entre usuarios, idempotencia concurrente y capacidades MCP de lectura/escritura. Las pruebas utilizaron cuentas temporales y las borraron al terminar. No se recreó la carpeta de tests eliminada.
 
-## Dependencias revisadas durante el setup
-
-Se fijó una versión corregida de Multer mediante `overrides`. El backend se ejecuta localmente y no tiene imagen Docker.
-
-La revisión del 11 de septiembre de 2026 encontró cuatro avisos altos asociados a la cadena del CLI Prisma (`deepmerge-ts`, `mysql2` y sus dependientes). Se mantienen documentados sin aplicar el downgrade mayor que sugiere `npm audit fix --force`. Esas herramientas ejecutan migraciones/configuración local controlada. Revisar actualizaciones del CLI antes del despliegue.
+Referencias: [password storage OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html), [session management OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html), [CSRF OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html).

@@ -1,8 +1,11 @@
-import { Controller, Get } from '@nestjs/common';
-import { CuentasService } from '../services/cuentas.service';
+import { CurrentUser, Identity } from "../../autenticacion/auth.types";
+import { Controller, Get } from "@nestjs/common";
+import { CuentasService } from "../services/cuentas.service";
 
-@Controller('account')
+@Controller("account")
 export class CuentasController {
   constructor(private readonly accounts: CuentasService) {}
-  @Get() summary() { return this.accounts.summary(); }
+  @Get() summary(@CurrentUser() identity: Identity) {
+    return this.accounts.summary(identity);
+  }
 }

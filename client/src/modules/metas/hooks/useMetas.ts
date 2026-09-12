@@ -10,7 +10,7 @@ export function useMetas() {
       const goal = createDemoGoal(input);
       setGoals((current) => [...current, goal]);
       setError('');
-      setNotice(`Meta «${goal.name}» creada en esta demo.`);
+      setNotice(`Meta «${goal.name}» creada.`);
       return true;
     } catch (error) {
       setError(

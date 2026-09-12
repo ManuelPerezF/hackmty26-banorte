@@ -1,4 +1,5 @@
 'use client';
+import { instruments, personalAccount } from '@/modules/cuentas/data/accounts';
 import { useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight, Check, ShieldCheck } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
@@ -7,11 +8,13 @@ import { categories } from '../data/demo-movimientos';
 import { localDateKey } from '../services/movimientos.service';
 import type { MovementInput, MovementType } from '../types/movimientos.types';
 export function MovimientoForm({
+  initialInstrument = '',
   onRegister,
   onCancel,
   ready,
   error,
 }: {
+  initialInstrument?: string;
   onRegister: (input: MovementInput) => boolean;
   onCancel: () => void;
   ready: boolean;
@@ -32,6 +35,7 @@ export function MovimientoForm({
               return typeof value === 'string' ? value : '';
             };
             onRegister({
+              instrumentId: text('instrumentId'),
               type,
               description: text('description'),
               amount: text('amount'),
@@ -82,6 +86,25 @@ export function MovimientoForm({
               />
               <span id="amount-currency">MXN</span>
             </div>
+          </div>
+          <div className="movement-field">
+            <label htmlFor="movement-instrument">
+              {type === 'income'
+                ? 'Cuenta o tarjeta de destino'
+                : 'Cuenta o tarjeta utilizada'}
+            </label>
+            <select
+              id="movement-instrument"
+              name="instrumentId"
+              defaultValue={initialInstrument || personalAccount.id}
+              required
+            >
+              {instruments.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.label}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="movement-field">
             <label htmlFor="movement-description">Concepto</label>
@@ -153,13 +176,13 @@ export function MovimientoForm({
         <ShieldCheck size={26} strokeWidth={1.5} />
         <h3>Tus cuentas, más claras.</h3>
         <p>
-          El movimiento aparecerá en tu historial y se reflejará en el saldo de
-          demostración.
+          El movimiento aparecerá en tu historial con la cuenta o tarjeta que
+          selecciones.
         </p>
         <ul>
           <li>Ingreso: suma al saldo.</li>
           <li>Gasto: resta del saldo.</li>
-          <li>Guardado en este navegador.</li>
+          <li>Identifica dónde recibiste o utilizaste tu dinero.</li>
         </ul>
         <p className="movement-disclosure">
           Este registro manual no realiza pagos ni transferencias bancarias.

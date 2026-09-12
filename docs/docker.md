@@ -40,10 +40,14 @@ npm run dev
 | `DATABASE_URL` | `server/.env`: conexión a PostgreSQL en `127.0.0.1:5433` |
 | `HOST`, `PORT` | `server/.env`: NestJS local en `127.0.0.1:3001` |
 | `CORS_ORIGINS` | Orígenes exactos separados por coma |
-| `DEMO_MODE` | Solo `true` está implementado |
-| `DEMO_ACCOUNT_ID` | UUID de cuenta, igual en seed y API |
+| `COOKIE_SECURE` | false solo para HTTP local; true para HTTPS |
+| `SESSION_HOURS`, `SESSION_IDLE_MINUTES` | Vencimiento absoluto/inactividad: 8 horas/30 minutos |
+| `BOOTSTRAP_EMAIL`, `BOOTSTRAP_PASSWORD` | Opcionales privados; habilitan propietario inicial al sembrar |
+| `GEMINI_API_KEY`, `LLM_MODEL` | Clave privada y modelo Gemini configurable |
+| `LLM_TIMEOUT_MS` | 30000 por defecto |
+| `MCP_ENTRY` | ../mcp/server.cjs, lanzado por Nest |
 | `BUSINESS_TIMEZONE` | `America/Monterrey` para validar el día actual |
-| `NODE_ENV` | `development` o `test`; la demo rechaza `production` |
+| `NODE_ENV` | development/test/production; producción exige cookies Secure y orígenes HTTPS |
 
 Si cambias las credenciales demo, actualiza también el `DATABASE_URL` local. Contraseñas con caracteres reservados necesitan codificación URL en la cadena de conexión. Cambiar `POSTGRES_PASSWORD` no actualiza automáticamente la contraseña de una base ya inicializada.
 
@@ -72,6 +76,10 @@ curl http://127.0.0.1:3001/api/v1/health/ready
 
 - No aparece el socket Docker: iniciar Docker Desktop y esperar al motor.
 - Puerto ocupado: ajustar `POSTGRES_PORT` en el `.env` raíz o `PORT` en `server/.env`, según el proceso afectado. Si cambia el puerto de PostgreSQL, actualizar también `DATABASE_URL`.
-- Cuenta no encontrada: ejecutar `db:seed` contra esa misma DB.
+- 401 al consultar datos: registrarse e iniciar sesión; enviar cookie y CSRF en escrituras. Para habilitar el propietario original, configurar BOOTSTRAP_EMAIL/BOOTSTRAP_PASSWORD y ejecutar db:seed.
 - API no inicia: revisar variables, migraciones y la terminal de `npm run dev`. Compose solo inicia PostgreSQL.
 - El panel no muestra el registro API: la conexión frontend–backend sigue pendiente; el panel actual usa `localStorage`.
+
+## Verificación de la ampliación
+
+Login/hash, aislamiento de usuarios, CSRF, expiración, reintentos concurrentes, metas, simulación y MCP por stdio se probaron con scripts temporales contra esta DB. También SSE/A2UI y confirmación con un modelo controlado; falta la llamada real a Gemini. Ver [backend](backend.md).

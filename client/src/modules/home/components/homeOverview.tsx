@@ -1,4 +1,5 @@
 'use client';
+import { instrumentLabel } from '@/modules/cuentas/data/accounts';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -23,7 +24,10 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
         <Button variant="ghost" aria-current="page">
           Cuentas
         </Button>
-        <Button variant="ghost" onClick={() => onNavigate('Tarjetas')}>
+        <Button
+          variant="ghost"
+          onClick={() => onNavigate('Cuentas y tarjetas')}
+        >
           Tarjetas
         </Button>
         <Button
@@ -37,10 +41,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
       </nav>
       <div className="panel-with-chat">
         <div className="panel-account-column">
-          <section
-            className="modern-balance"
-            aria-label="Saldo de demostración"
-          >
+          <section className="modern-balance" aria-label="Saldo disponible">
             <div className="modern-balance-label">
               Saldo total{' '}
               <span>
@@ -54,7 +55,10 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
               <Button onClick={() => onNavigate('Movimientos')}>
                 <Plus size={19} /> Movimientos
               </Button>
-              <Button variant="ghost" onClick={() => onNavigate('Tarjetas')}>
+              <Button
+                variant="ghost"
+                onClick={() => onNavigate('Cuentas y tarjetas')}
+              >
                 <CreditCard size={19} /> Ver tarjetas
               </Button>
               <Button
@@ -79,7 +83,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
                 <CardArtwork cardId={cardId} className="wallet-bank-card" />
                 <div className="wallet-front">
                   <span>
-                    <CreditCard size={16} /> 1 tarjeta
+                    <CreditCard size={16} /> 2 tarjetas
                   </span>
                   <span>BANORTE</span>
                 </div>
@@ -90,7 +94,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
                   <Button
                     variant="ghost"
                     aria-label="Ver tarjetas de tu cuenta"
-                    onClick={() => onNavigate('Tarjetas')}
+                    onClick={() => onNavigate('Cuentas y tarjetas')}
                   >
                     <ChevronRight size={21} />
                   </Button>
@@ -107,9 +111,9 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
                 <Button
                   variant="ghost"
                   className="account-details"
-                  onClick={() => onNavigate('Tarjetas')}
+                  onClick={() => onNavigate('Cuentas y tarjetas')}
                 >
-                  <CreditCard size={16} /> Ver mi tarjeta{' '}
+                  <CreditCard size={16} /> Ver mis cuentas{' '}
                   <ArrowUpRight size={15} />
                 </Button>
               </div>
@@ -122,7 +126,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
                 <span>
                   <Command size={18} /> Banorte IA
                 </span>
-                <span className="concept-pill">Nuevo concepto</span>
+                <span className="concept-pill">Para ti</span>
               </div>
               <h2 id="intelligence-title">
                 Tu dinero habla.
@@ -177,7 +181,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
                   </span>
                   <div className="merchant-copy">
                     <strong>{t.description}</strong>
-                    <span>{t.category}</span>
+                    <span>{instrumentLabel(t.instrumentId)}</span>
                   </div>
                   <div className="transaction-value">
                     <strong className={t.type === 'income' ? 'incoming' : ''}>

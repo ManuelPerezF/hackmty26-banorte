@@ -1,3 +1,7 @@
+import {
+  instrumentLabel,
+  personalAccount,
+} from '@/modules/cuentas/data/accounts';
 import { useEffect, useRef } from 'react';
 import { ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
@@ -63,8 +67,14 @@ export function MovimientoDetail({
           </dd>
         </div>
         <div>
-          <dt>Cuenta</dt>
-          <dd>Cuenta personal · 4281</dd>
+          <dt>{movement.type === 'income' ? 'Destino' : 'Cuenta / tarjeta'}</dt>
+          <dd>{instrumentLabel(movement.instrumentId)}</dd>
+        </div>
+        <div>
+          <dt>Cuenta del historial</dt>
+          <dd>
+            {personalAccount.name} · {personalAccount.currency}
+          </dd>
         </div>
       </dl>
       {movement.notes && (
@@ -73,9 +83,6 @@ export function MovimientoDetail({
           <p>{movement.notes}</p>
         </div>
       )}
-      <p className="movement-disclosure">
-        Información de demostración. No representa una operación bancaria real.
-      </p>
     </aside>
   );
 }

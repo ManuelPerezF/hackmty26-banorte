@@ -1,43 +1,35 @@
-# LLM y orquestación
+# Adaptador LLM
 
-**Estado: pendiente.** El asistente del frontend es simulado. No hay proveedor, modelo, clave ni llamadas LLM configuradas.
+Implementado en `server/src/integrations/llm/llm.service.ts` con `@google/genai`. Modelo configurable mediante `LLM_MODEL`; valor inicial `gemini-3.8-flash`. Configurar `GEMINI_API_KEY` exclusivamente en `server/.env` y reiniciar Nest. Nunca enviarla al cliente ni al proceso MCP.
 
-## Alcance propuesto
+Sin clave, enviar una pregunta devuelve `503 LLM_NOT_CONFIGURED`. La API de banca, login y conversaciones sigue funcionando. No hay respuestas de modelo simuladas dentro del backend normal.
 
-El LLM interpreta la intención, decide herramientas y selecciona componentes. Las sumas de dinero y escrituras siguen siendo responsabilidad de los servicios deterministas. Priorizar banca personal y educación contextual; las inversiones serán una simulación con supuestos visibles.
+## Recorrido
 
-Intenciones iniciales: entender gastos, consultar movimientos, registrar ingreso/gasto y pedir una explicación financiera. Una petición ambigua debe producir una pregunta corta o formulario para completar datos.
+1. Persistir mensaje y turno; responder HTTP 202 con URL de eventos.
+2. Recuperar hasta doce mensajes previos del usuario autenticado.
+3. Dar al modelo las herramientas de lectura y las reglas del sistema; elige qué consultar.
+4. Ejecutar cada llamada mediante el cliente MCP real, usando identidad de la sesión.
+5. Devolver resultados al modelo y pedir un plan JSON validado por Zod: title, explanation y blocks.
+6. Resolver datos de los bloques desde las herramientas y construir mensajes A2UI del catálogo permitido.
+7. Persistir explicación y snapshot; SSE entrega el estado al consumidor.
 
-## Ciclo del orquestador en Nest
+Bloques del plan: balance, movements, spending, movementForm y education. Las cifras de tablas/gráficas/saldo vienen de los servicios, no del texto generado. El modelo puede redactar explicaciones, cuya exactitud debe evaluarse al probar el proveedor real.
 
-1. Recibir mensaje o evento de interfaz y recuperar el contexto de la conversación.
-2. Adjuntar el catálogo de herramientas y componentes permitidos.
-3. Llamar al proveedor LLM mediante un adaptador configurable del servidor.
-4. Validar las llamadas a herramientas y ejecutarlas mediante el cliente MCP.
-5. Dar al modelo los resultados y pedir una interfaz estructurada.
-6. Validar esa interfaz y transmitirla al renderer.
-7. Repetir cuando el usuario interactúe; conservar la relación entre acción, resultado y siguiente interfaz.
+## Escrituras
 
-Propuesta de límites iniciales, a ajustar con mediciones: máximo 6 llamadas a herramientas por turno, timeout de 30 segundos por turno y un intento de reparación de salida estructurada inválida. Al fallar, mostrar un estado recuperable, sin simular una respuesta exitosa.
+El modelo puede sugerir el formulario. El usuario envía valores, el servidor guarda una acción pendiente y genera su confirmación. Confirmar habilita una escritura determinista por MCP con esos valores y una clave idempotente. El resultado guardado se entrega al modelo para explicar el cambio. Si esa explicación falla, el backend conserva y devuelve el éxito real del registro.
 
-## Contexto
+El prompt exige tratar notas/resultados como datos y no instrucciones. La autorización se aplica además en código; el prompt no sustituye guards ni capacidades.
 
-Mensaje actual, eventos recientes, intención, sesión demo, resumen financiero del servidor y resultados de herramientas. No enviar todo el historial cuando bastan filtros y agregados. Las instrucciones del sistema deben distinguir solicitudes del usuario de texto no confiable dentro de notas/documentos/resultados.
+## Límites y fallos
 
-## Elección de modelo pendiente
+Máximo seis llamadas a herramientas solicitadas por el modelo, siete rondas y 4096 tokens de salida por solicitud. El turno tiene un timeout configurable de 30 segundos por defecto. El plan permite como máximo cinco bloques. No se ejecuta HTML, JavaScript o SQL generado.
 
-Evaluar soporte de herramientas, salida estructurada, latencia, calidad en español y costo de tres casos reales del proyecto. Documentar proveedor y versión finalmente elegidos. Las claves vivirán en variables del servidor, nunca en variables públicas del frontend.
+Estados persistidos: queued, running, completed, failed e interrupted. Una instancia reiniciada marca los turnos activos como interrupted. Los errores de turno exponen código seguro; las trazas de herramienta guardan nombre, duración y éxito, sin tokens ni cadenas de razonamiento.
 
-## Evaluación mínima
+## Validación pendiente
 
-| Pregunta / interacción | Debe ocurrir |
-| --- | --- |
-| ¿En qué gasté más este mes? | Consulta por fechas + desglose calculado + gráfica y tabla |
-| Registra un gasto | Solicita campos faltantes con formulario |
-| Confirmación del formulario | Herramienta de escritura, resultado persistido y saldo actualizado |
-| Cambiar fechas | Nueva consulta y UI actualizada, conservando contexto |
-| Datos vacíos | Estado vacío honesto |
-| MCP o LLM caído | Error recuperable y reintento |
-| Nota de movimiento con instrucciones | Se trata como dato y no altera las reglas del agente |
+Se verificó el recorrido con MCP real y un modelo controlado en un proceso temporal de prueba. **No se validó una llamada real a Gemini**, porque no hay clave configurada. Antes de la demo: configurar la clave, comprobar acceso al modelo, ensayar preguntas de gastos/formulario/educación, medir latencia y revisar explicaciones contra los agregados.
 
-Registrar por turno modelo, duración, nombres de herramientas y resultado/error. No registrar cadenas de conexión, llaves ni contenido sensible. Medir latencia y éxito de tareas antes de ampliar el alcance.
+Referencias: [SDK Google Gen AI](https://googleapis.github.io/js-genai/), [function calling](https://ai.google.dev/gemini-api/docs/function-calling), [salida estructurada](https://ai.google.dev/gemini-api/docs/structured-output).

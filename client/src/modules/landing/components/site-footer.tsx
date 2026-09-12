@@ -2,7 +2,7 @@ import { ArrowUpRight } from 'lucide-react';
 export function SiteFooter() {
   return (
     <footer className="footer">
-      <span>Banorte · Concepto demostrativo</span>
+      <span>Banorte · Una nueva perspectiva</span>
       <a
         href="https://www.banorte.com/"
         target="_blank"

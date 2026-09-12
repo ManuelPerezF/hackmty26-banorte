@@ -1,85 +1,73 @@
 # Arquitectura
 
-## Estructura que existe
-
 ```text
-client/                   React + Vinext; UI por dominios
+client/                     React; pantallas todavía con datos locales
 server/
   src/
     modules/
-      cuentas/            Resumen y saldo de la cuenta demo
-      movimientos/        Registro, consultas y reglas del historial
-      salud/              Liveness y readiness
-    config/               Variables validadas con Zod
-    database/             Ciclo de vida de Prisma
-    shared/               Pipe Zod y conversión segura de centavos
-    generated/prisma/     Generado; no se versiona
-  prisma/                 Esquema, migración y seed
-mcp/                      Guía; servidor por implementar
-docs/                     Arquitectura, contratos y backlog
-compose.yaml              Solo PostgreSQL con volumen persistente
+      autenticacion/        Registro, sesiones, guard y aprovisionamiento
+      perfil/               Perfil, tarjetas y catálogo
+      cuentas/              Cuenta y saldo propio
+      movimientos/          Registro e historial
+      analisis/             Agregados por periodo
+      metas/                Objetivos persistentes
+      simulaciones/         Proyecciones educativas
+      asistente/            Conversaciones, turnos, acciones y SSE
+      salud/                Liveness/readiness
+    integrations/llm/       Adaptador Gemini
+    integrations/mcp/       Cliente, capacidades y gateway interno
+    ui-protocol/            Catálogo y mensajes A2UI
+    config/                 Entorno validado con Zod
+    database/               Prisma
+    shared/                 Validación HTTP, idempotencia y dinero
+  prisma/                   Esquema, migraciones y seed
+mcp/server.cjs              Servidor SDK MCP por stdio
+docs/                       Contratos y pendientes
+compose.yaml                Solo PostgreSQL
 ```
 
-Los nombres de los módulos expresan el negocio. `controllers`, `services` y `schemas` viven dentro del dominio; no hay carpetas globales con todos los controladores o servicios.
+Monolito modular por negocio. Los módulos pequeños reúnen servicio/controlador en su archivo de módulo; cuentas y movimientos conservan sus subcarpetas por responsabilidad. No hay microservicios de dominio ni carpetas globales de todos los controllers.
 
-Frontend, NestJS, migraciones y seed se ejecutan como procesos locales. Docker se utiliza únicamente para PostgreSQL.
-
-## Hoy
-
-```mermaid
-flowchart LR
-  UI[Frontend demo] --> Local[localStorage]
-  HTTP[Cliente HTTP / pruebas] --> API[NestJS]
-  API --> Z[Zod]
-  API --> P[Prisma]
-  P --> DB[(PostgreSQL)]
-```
-
-## Objetivo del reto — pendiente
+## Flujo implementado en backend
 
 ```mermaid
 sequenceDiagram
-  participant U as Usuario
-  participant C as Frontend / renderer
-  participant B as NestJS / orquestador
-  participant L as LLM
-  participant M as Servidor MCP
-  participant D as Servicios bancarios / PostgreSQL
-  U->>C: ¿En qué gasté más y cómo puedo ahorrar?
-  C->>B: Mensaje y contexto de sesión
-  B->>L: Intención, catálogo de herramientas y contexto
-  L-->>B: Solicitud de herramienta
-  B->>M: tools/call
-  M->>D: Consultar movimientos y resumen
-  D-->>M: Datos estructurados
-  M-->>B: Resultado de herramienta
-  B->>L: Resultado
-  L-->>B: Interfaz y explicación
-  B-->>C: Descripción A2UI validada
-  C-->>U: Gráfica, tabla y formulario
-  U->>C: Confirmar registro de gasto
-  C->>B: Evento de acción y valores
-  B->>L: Evento como nuevo contexto
-  L-->>B: Herramienta de registro
-  B->>M: Registrar con clave de idempotencia
-  M->>D: Persistir movimiento
-  D-->>B: Resultado a través de MCP
-  B->>L: Estado actualizado
-  L-->>B: Nueva interfaz
-  B-->>C: Actualizar saldo e historial
+  participant C as Consumidor HTTP
+  participant B as Nest / sesión y agente
+  participant L as Gemini
+  participant M as MCP stdio
+  participant D as Servicios / PostgreSQL
+  C->>B: Pregunta autenticada
+  B->>D: Guardar mensaje y turno
+  B-->>C: 202 + URL de eventos
+  B->>L: Contexto y herramientas de lectura
+  L-->>B: Llamadas de herramientas
+  B->>M: tools/call con capacidad del turno
+  M->>B: Gateway interno autorizado
+  B->>D: Consulta del usuario
+  D-->>L: Resultado a través de Nest y MCP
+  L-->>B: Plan de interfaz validado
+  B-->>C: SSE snapshot A2UI
+  C->>B: Valores de formulario
+  B-->>C: Confirmación con acción persistida
+  C->>B: Confirmar actionId
+  B->>M: Registro autorizado e idempotente
+  M->>B: Gateway de escritura
+  B->>D: Guardar movimiento
+  D-->>L: Resultado confirmado
+  L-->>B: Explicación
+  B-->>C: Resultado y nuevo snapshot
 ```
+
+La prueba usó un modelo controlado, con MCP y DB reales. La llamada real a Gemini y el consumidor visual A2UI requieren terminar configuración/integración del frontend.
 
 ## Decisiones
 
-| Decisión | Motivo / límite |
-| --- | --- |
-| Monolito modular NestJS | Menos operación para el hackathon; reglas reutilizables por HTTP y MCP |
-| Prisma + PostgreSQL | Migraciones versionadas, integridad y persistencia de acciones |
-| Zod en límites HTTP y configuración | Tipos inferidos y rechazo de campos desconocidos |
-| Centavos `BigInt` en DB | Sumas exactas; conversión comprobada al responder JSON |
-| Saldo calculado | Evita mantener un segundo saldo mutable que se desincronice |
-| Cuenta demo única | Permite demostrar el flujo sin implementar identidad todavía |
-| Herramientas y UI por catálogo | El agente seleccionará capacidades explícitas del proyecto |
-| MCP como proceso separado | Límite de protocolo claro; inicialmente puede llamar la API interna |
+- Sesión opaca en PostgreSQL: revocación inmediata y guard por propietario sin access/refresh JWT.
+- Capacidades MCP opacas breves por proceso: identidad y permisos fuera del control del modelo.
+- BigInt y saldo calculado: sumas exactas y una sola fuente de verdad.
+- Catálogo visual cerrado: componentes y datos permitidos, sin ejecutar código generado.
+- Turnos persistidos y snapshots: recuperar estado tras desconexión; al reiniciar se marcan interrumpidos los activos.
+- Una instancia Nest local: limita complejidad. Rate limits y capacidades en memoria; falta coordinación distribuida si se escala.
 
-No hacen falta Redis, colas, microservicios, CQRS ni Kubernetes para este alcance. La próxima inversión de ingeniería debe cerrar el ciclo de interacción generativa.
+PostgreSQL es el único proceso en Docker. El frontend aún debe reemplazar localStorage por estas rutas y renderizar el protocolo.

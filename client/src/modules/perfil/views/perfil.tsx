@@ -10,7 +10,7 @@ export function ProfileView({
       <p>Tu información y preferencias, en un mismo lugar.</p>
       <dl>
         <div>
-          <dt>Persona de ejemplo</dt>
+          <dt>Nombre</dt>
           <dd>Alex Morgan</dd>
         </div>
         <div>
@@ -18,19 +18,20 @@ export function ProfileView({
           <dd>Español (México)</dd>
         </div>
         <div>
-          <dt>Entorno</dt>
-          <dd>Demostración</dd>
+          <dt>Moneda principal</dt>
+          <dd>Peso mexicano (MXN)</dd>
         </div>
         <div>
-          <dt>Tarjeta elegida</dt>
-          <dd>{savedCardLabel ? savedCardLabel : 'Sin seleccionar'}</dd>
+          <dt>Tarjeta principal</dt>
+          <dd>{savedCardLabel ? savedCardLabel : 'Banorte Clásica · 4281'}</dd>
         </div>
       </dl>
       <p>
-        Los cambios de esta demo se conservan mientras permaneces en el panel.
+        Esta versión utiliza información de ejemplo y movimientos guardados en
+        este navegador.
       </p>
       <Link className="button" href="/login">
-        Salir de la demo
+        Salir del panel
       </Link>
     </section>
   );
