@@ -1,13 +1,13 @@
 import type { BankCard } from '../types/tarjetas.types';
 export const cardCatalog = [
   {
-    id: 'infinite',
-    name: 'Infinite',
-    image: '/images/cards/banorte-infinite.png',
+    id: 'platinum',
+    name: 'Platinum',
+    image: '/images/cards/banorte-platinum-hd.png',
     network: 'Visa',
-    artwork: 'framed',
+    artwork: 'full',
     caption: 'Una nueva perspectiva.',
-    color: 'Negro Infinite',
+    color: 'Plata Platinum',
   },
   {
     id: 'oro',

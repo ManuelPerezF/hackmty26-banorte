@@ -6,7 +6,7 @@ export const legacyAccountId = "00000000-0000-4000-8000-000000000001";
 export const products = [
   { key: "clasica", name: "Clásica", imageKey: "clasica" },
   { key: "oro", name: "Oro", imageKey: "oro" },
-  { key: "infinite", name: "Infinite", imageKey: "infinite" },
+  { key: "platinum", name: "Platinum", imageKey: "platinum" },
 ];
 export async function seedProducts(tx: Prisma.TransactionClient) {
   for (const p of products)

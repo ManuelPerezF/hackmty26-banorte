@@ -45,8 +45,8 @@
   border-radius: 50%;
   flex-shrink: 0;
 }
-.dot-infinite {
-  background: oklch(0.24 0.01 20);
+.dot-platinum {
+  background: oklch(0.67 0.005 250);
 }
 .dot-oro {
   background: oklch(0.7 0.13 75);

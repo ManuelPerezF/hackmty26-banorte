@@ -110,7 +110,7 @@
   left: -10.0962%;
   top: -49.6154%;
 }
-.showcase-infinite {
+.showcase-platinum {
   left: 30px;
   transform: translate(0, 0) rotate(-11deg);
   z-index: 2;
@@ -120,7 +120,7 @@
   transform: translate(0, 26px) rotate(12deg) scale(0.94);
   z-index: 1;
 }
-.card-showcase[data-selected='oro'] .showcase-infinite {
+.card-showcase[data-selected='oro'] .showcase-platinum {
   transform: translate(-12px, 25px) rotate(-15deg) scale(0.94);
   z-index: 1;
 }
@@ -165,8 +165,8 @@
   height: 12px;
   border-radius: 50%;
 }
-.infinite-dot {
-  background: oklch(0.24 0.01 20);
+.platinum-dot {
+  background: oklch(0.67 0.005 250);
 }
 .oro-dot {
   background: oklch(0.7 0.13 75);
@@ -417,7 +417,7 @@
     width: 60%;
     top: 22px;
   }
-  .showcase-infinite {
+  .showcase-platinum {
     left: 3%;
   }
   .showcase-oro {

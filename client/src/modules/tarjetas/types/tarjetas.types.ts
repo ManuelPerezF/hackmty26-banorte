@@ -1,4 +1,4 @@
-export type CardId = 'infinite' | 'oro' | 'clasica';
+export type CardId = 'platinum' | 'oro' | 'clasica';
 export type CardFormat = 'fisica' | 'digital';
 export type BankCard = {
   id: CardId;

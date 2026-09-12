@@ -76,13 +76,13 @@
   max-width: 470px;
   margin: 30px auto;
 }
-.access-infinite,
+.access-platinum,
 .access-oro {
   position: absolute;
   width: 74%;
   filter: drop-shadow(0 18px 17px oklch(0.22 0.06 20 / 0.26));
 }
-.access-infinite {
+.access-platinum {
   top: 0;
   left: 0;
   transform: rotate(-11deg);
@@ -339,4 +339,12 @@
     gap: 14px;
     font-size: 9px;
   }
+}
+
+.access-platinum .access-supplied-card img {
+  width: 100%;
+  height: 105.8%;
+  left: 0;
+  top: -2.8%;
+  object-fit: fill;
 }

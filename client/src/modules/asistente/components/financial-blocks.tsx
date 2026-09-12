@@ -18,7 +18,7 @@ export function CardList({ data }: { data: unknown }) {
           status: z.string(),
           isPreferred: z.boolean(),
           product: z.object({
-            key: z.enum(['clasica', 'oro', 'infinite']),
+            key: z.enum(['clasica', 'oro', 'platinum', 'infinite']).transform(key => key === 'infinite' ? 'platinum' as const : key),
             name: z.string(),
             network: z.string(),
           }),

@@ -61,13 +61,13 @@ export function AuthPanel({
             </p>
           </div>
           <div className="access-card-pair">
-            <div className="access-infinite">
+            <div className="access-platinum">
               <div className="access-supplied-card">
                 <img
-                  src="/images/cards/banorte-infinite.png"
-                  alt="Tarjeta Banorte Infinite"
-                  width="500"
-                  height="520"
+                  src="/images/cards/banorte-platinum-hd.png"
+                  alt="Tarjeta Banorte Platinum"
+                  width="1072"
+                  height="714"
                 />
               </div>
             </div>
