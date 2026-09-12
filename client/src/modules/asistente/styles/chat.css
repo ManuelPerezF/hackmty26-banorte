@@ -27,10 +27,37 @@
   font-weight: 500;
   color: #55504e;
 }
-.chat-agent-mark {
-  display: grid;
-  place-items: center;
-  color: #b01c34;
+.maya-mark {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.maya-mark-header {
+  width: 38px;
+  height: 38px;
+}
+.bank-chat-header .maya-lockup h2 {
+  font-size: 19px;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.045em;
+  color: oklch(0.3 0.008 20);
+}
+.maya-lockup p {
+  font-size: 10px;
+  color: oklch(0.52 0.009 20);
+  margin-top: 4px;
+}
+.chat-speaker:has(.maya-mark-message) {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.maya-mark-message {
+  width: 24px;
+  height: 24px;
 }
 .chat-history {
   border-left: 1px solid #e8e5e3;
@@ -120,15 +147,10 @@
   text-align: center;
 }
 .chat-welcome-mark {
-  width: 64px;
-  height: 64px;
-  display: grid;
-  place-items: center;
-  margin: 0 auto 23px;
-  border: 1px solid #ead2d5;
-  border-radius: 50%;
-  background: #f7e9eb;
-  color: #b31e38;
+  width: 86px;
+  height: 86px;
+  display: block;
+  margin: 0 auto 18px;
 }
 .chat-welcome h3 {
   font-family: Georgia, 'Times New Roman', serif;
@@ -709,8 +731,8 @@
     margin-bottom: 25px;
   }
   .chat-welcome-mark {
-    width: 53px;
-    height: 53px;
+    width: 72px;
+    height: 72px;
     margin-bottom: 18px;
   }
   .bank-chat-compose {

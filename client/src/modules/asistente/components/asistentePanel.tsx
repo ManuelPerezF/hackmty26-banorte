@@ -5,7 +5,7 @@ import {
   ArrowUpRight,
   MessageSquare,
   Plus,
-  Wallet,
+  PiggyBank,
   Receipt,
   ChartColumn,
   RotateCcw,
@@ -17,6 +17,7 @@ import {
 import { Button } from '@/shared/components/ui/button';
 import { useBank } from '@/modules/cuentas/context/bank-context';
 import type { useAsistente } from '../hooks/useAsistente';
+import { MayaMark } from './maya-mark';
 import { A2uiRenderer } from './a2ui-renderer';
 import '../styles/chat.css';
 export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
@@ -77,10 +78,11 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
     >
       <div className="chat-main">
         <header className="bank-chat-header">
-          <span className="chat-agent-mark">
-            <Wallet size={18} />
-          </span>
-          <h2>Asistente Banorte</h2>
+          <MayaMark className="maya-mark-header" />
+          <div className="maya-lockup">
+            <h2>Maya</h2>
+            <p>Asistente Banorte</p>
+          </div>
           <Button
             variant="ghost"
             className="chat-history-toggle"
@@ -102,7 +104,7 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
           {welcome && (
             <div className="chat-welcome">
               <span className="chat-welcome-mark" aria-hidden="true">
-                <Wallet size={27} strokeWidth={1.35} />
+                <MayaMark />
               </span>
               <h3>Hola, {profile.displayName.split(' ')[0]}.</h3>
               <p>Hagamos espacio para tus planes.</p>
@@ -117,7 +119,7 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
                     text: 'Muéstrame mis cuentas y tarjetas',
                   },
                   { icon: Flag, text: 'Quiero revisar mis metas' },
-                  { icon: Wallet, text: 'Ayúdame a simular mi ahorro' },
+                  { icon: PiggyBank, text: 'Ayúdame a simular mi ahorro' },
                 ].map(({ icon: Icon, text }) => (
                   <button
                     key={text}
@@ -138,7 +140,14 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
           {a.messages.map((m) => (
             <article key={m.id} className={`chat-message ${m.role}`}>
               <span className="chat-speaker">
-                {m.role === 'user' ? 'Tú' : 'Asistente Banorte'}
+                {m.role === 'user' ? (
+                  'Tú'
+                ) : (
+                  <>
+                    <MayaMark className="maya-mark-message" />
+                    Maya
+                  </>
+                )}
               </span>
               {m.role === 'assistant' &&
               m.turnId &&
@@ -156,7 +165,10 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
           ))}
           {standalone && !hasMessage && standalone.uiSnapshot && (
             <article className="chat-message assistant">
-              <span className="chat-speaker">Asistente Banorte</span>
+              <span className="chat-speaker">
+                <MayaMark className="maya-mark-message" />
+                Maya
+              </span>
               <A2uiRenderer
                 turn={standalone}
                 disabled={a.busy}
