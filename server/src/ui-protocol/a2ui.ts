@@ -1,9 +1,11 @@
+import { goalDraftSchema } from "../modules/metas/goal-actions";
 import { movementSchema } from "../modules/movimientos/schemas/movimiento.schema";
 import { z } from "zod";
 export const catalogId = "urn:banorte:a2ui:catalog:1";
 export const uiPlanSchema = z.strictObject({
   title: z.string().min(1).max(120),
   explanation: z.string().max(2000),
+  goalDraft: goalDraftSchema.optional(),
   movementDraft: movementSchema.partial().optional(),
   knowledgeQuotes: z
     .array(
@@ -52,6 +54,7 @@ export const componentSchema = z.discriminatedUnion("component", [
       "BanortePeriodSelector",
       "BanorteCardList",
       "BanorteGoalList",
+      "BanorteGoalConfirmation",
       "BanorteSavingsSimulator",
       "BanorteSources",
       "BanortePeriodComparison",

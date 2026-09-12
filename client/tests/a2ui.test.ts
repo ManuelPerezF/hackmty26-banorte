@@ -88,6 +88,7 @@ void test('accepts RAG and adaptive components across stored snapshots', async (
     'BanorteSources',
     'BanortePeriodComparison',
     'BanorteKnowledgeFacts',
+    'BanorteGoalConfirmation',
   ]) {
     const s = snapshot();
     s.uiSnapshot[1].updateComponents!.components[1].component = name;

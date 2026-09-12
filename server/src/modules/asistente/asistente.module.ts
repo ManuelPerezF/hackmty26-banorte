@@ -1,3 +1,4 @@
+import { MetasModule } from "../metas/metas.module";
 import { Module } from "@nestjs/common";
 import { DatabaseModule } from "../../database/database.module";
 import { McpModule } from "../../integrations/mcp/mcp.module";
@@ -5,7 +6,7 @@ import { LlmService } from "../../integrations/llm/llm.service";
 import { AsistenteService } from "./asistente.service";
 import { AsistenteController } from "./asistente.controller";
 @Module({
-  imports: [DatabaseModule, McpModule],
+  imports: [DatabaseModule, McpModule, MetasModule],
   providers: [LlmService, AsistenteService],
   controllers: [AsistenteController],
 })

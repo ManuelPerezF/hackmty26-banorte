@@ -28,7 +28,7 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
   useEffect(() => {
     const area = scroll.current;
     if (area) area.scrollTop = area.scrollHeight;
-  }, [a.messages, a.latest, a.turns, a.error, a.busy]);
+  }, [a.messages.length, a.error]);
   const standalone = a.latest ? a.turns[a.latest] : undefined;
   const hasMessage =
     standalone &&
@@ -79,7 +79,7 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
       >
         <ArrowUp size={19} />
       </Button>
-      <small>Revisa los datos antes de confirmar un movimiento.</small>
+      <small>Revisa los datos antes de confirmar un cambio.</small>
     </form>
   );
   return (
@@ -167,7 +167,14 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
                 <A2uiRenderer
                   turn={a.turns[m.turnId]}
                   disabled={a.busy}
-                  latest={a.latest === m.turnId}
+                  latest={
+                    a.latest === m.turnId ||
+                    (Boolean(
+                      standalone &&
+                      ['failed', 'interrupted'].includes(standalone.status),
+                    ) &&
+                      standalone?.replacesTurnId === m.turnId)
+                  }
                   onAction={a.act}
                 />
               ) : (

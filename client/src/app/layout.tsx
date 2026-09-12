@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     'Lleva tus planes más lejos con Banorte. Descubre tarjetas, cuentas y banca digital.',
   robots: { index: false, follow: false },
-  icons: { icon: '/images/brand/banorte-logo.png' },
+  icons: { icon: '/images/brand/banorte-mark.png' },
 };
 
 export default function RootLayout({

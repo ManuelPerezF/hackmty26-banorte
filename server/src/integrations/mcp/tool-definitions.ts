@@ -51,6 +51,11 @@ export const toolDefinitions = {
       "Calcula un escenario de ahorro en MXN, sin mover dinero. Importes en centavos, tasa nominal anual en puntos base (500=5%). Usa solo supuestos expresos del usuario; nunca inventes una tasa. Devuelve totales, supuestos y calendario mensual.",
     schema: simulationSchema,
   },
+  apply_goal_change: {
+    description:
+      "Aplica exclusivamente el cambio de meta ya confirmado. No acepta datos ni IDs del modelo.",
+    schema: z.strictObject({}),
+  },
   register_movement: {
     description:
       "Ejecuta exclusivamente el registro ya aprobado por el usuario. No acepta ni cambia sus datos.",
@@ -71,5 +76,6 @@ export const toolMetadata: Record<ToolName, { title: string; readOnly: boolean }
   get_spending_insights: { title: "Analizar gastos", readOnly: true },
   list_goals: { title: "Consultar metas", readOnly: true },
   simulate_savings: { title: "Simular ahorro", readOnly: true },
+  apply_goal_change: { title: "Guardar cambio de meta confirmado", readOnly: false },
   register_movement: { title: "Guardar movimiento confirmado", readOnly: false },
 };

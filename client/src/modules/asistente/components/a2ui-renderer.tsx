@@ -1,7 +1,8 @@
 'use client';
 import { PeriodComparison, KnowledgeFacts } from './adaptive-blocks';
 import { KnowledgeSources } from './knowledge-sources';
-import { CardList, GoalList, SavingsBlock } from './financial-blocks';
+import { GoalList, GoalConfirmation } from './goal-blocks';
+import { CardList, SavingsBlock } from './financial-blocks';
 import { formText } from '@/shared/api/client';
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
@@ -93,7 +94,12 @@ function UiBlock({
   const bank = useBank();
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
-    if (component.component !== 'BanorteConfirmation') return;
+    if (
+      !['BanorteConfirmation', 'BanorteGoalConfirmation'].includes(
+        component.component,
+      )
+    )
+      return;
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, [component.component]);
@@ -115,7 +121,19 @@ function UiBlock({
   if (component.component === 'BanorteCardList')
     return <CardList data={data} />;
   if (component.component === 'BanorteGoalList')
-    return <GoalList data={data} />;
+    return (
+      <GoalList data={data} disabled={disabled || !latest} onAction={action} />
+    );
+  if (component.component === 'BanorteGoalConfirmation')
+    return (
+      <GoalConfirmation
+        data={data}
+        turn={turn}
+        disabled={disabled}
+        now={now}
+        onAction={action}
+      />
+    );
   if (component.component === 'BanorteSavingsSimulator')
     return (
       <SavingsBlock
@@ -149,12 +167,23 @@ function UiBlock({
   }
   if (component.component === 'BanorteMovementTable') {
     const result = z
-      .object({ items: z.array(movement), total: z.number() })
+      .object({
+        items: z.array(movement),
+        total: z.number(),
+        page: z.number().default(1),
+        pageSize: z.number().default(20),
+        drilldown: z
+          .object({ category: z.string().nullable(), label: z.string() })
+          .optional(),
+      })
       .parse(data);
     return (
       <div className="chat-table-wrap">
         <table>
-          <caption>Movimientos · {result.total} en el periodo</caption>
+          <caption>
+            {result.drilldown?.label ?? 'Movimientos'} · {result.total} en el
+            periodo
+          </caption>
           <thead>
             <tr>
               <th>Concepto</th>
@@ -183,6 +212,51 @@ function UiBlock({
           </tbody>
         </table>
         {!result.items.length && <p>No hay movimientos en este periodo.</p>}
+        {result.drilldown && result.total > result.pageSize && (
+          <div className="chat-goal-actions">
+            <Button
+              variant="ghost"
+              disabled={disabled || !latest || result.page <= 1}
+              onClick={() => {
+                void action('select_category', {
+                  values: {
+                    category: result.drilldown!.category,
+                    page: result.page - 1,
+                  },
+                });
+              }}
+            >
+              Anterior
+            </Button>
+            <span>
+              Página {result.page} de{' '}
+              {Math.ceil(result.total / result.pageSize)}
+            </span>
+            <Button
+              variant="ghost"
+              disabled={
+                disabled ||
+                !latest ||
+                result.page * result.pageSize >= result.total
+              }
+              onClick={() => {
+                void action('select_category', {
+                  values: {
+                    category: result.drilldown!.category,
+                    page: result.page + 1,
+                  },
+                });
+              }}
+            >
+              Siguiente
+            </Button>
+          </div>
+        )}
+        {!result.drilldown && result.total > result.items.length && (
+          <small>
+            Mostrando {result.items.length} de {result.total} movimientos.
+          </small>
+        )}
       </div>
     );
   }
@@ -191,6 +265,7 @@ function UiBlock({
       .object({
         period: z.object({ from: z.string(), to: z.string() }),
         totals: z.object({ expenseCents: cents }),
+        selectedCategory: z.string().nullable().optional(),
         categories: z.array(
           z.object({
             category: z.string(),
@@ -210,8 +285,35 @@ function UiBlock({
           </small>
         </figcaption>
         <strong>{formatMoney(result.totals.expenseCents)}</strong>
+        <p className="chat-chart-help">
+          Selecciona una categoría para ver sus movimientos.
+        </p>
+        <Button
+          variant="ghost"
+          disabled={disabled || !latest}
+          aria-pressed={!result.selectedCategory}
+          onClick={() => {
+            void action('select_category', {
+              values: { category: null, page: 1 },
+            });
+          }}
+        >
+          Ver todos los gastos
+        </Button>
         {result.categories.map((c) => (
-          <div className="chat-chart-row" key={c.category}>
+          <button
+            type="button"
+            className="chat-chart-row"
+            key={c.category}
+            disabled={disabled || !latest}
+            aria-pressed={result.selectedCategory === c.category}
+            aria-label={`Ver movimientos de ${c.category}`}
+            onClick={() => {
+              void action('select_category', {
+                values: { category: c.category, page: 1 },
+              });
+            }}
+          >
             <div>
               <span>{c.category}</span>
               <b>{formatMoney(c.expenseCents)}</b>
@@ -222,7 +324,7 @@ function UiBlock({
               value={c.share}
               aria-label={`${c.category}: ${Math.round(c.share * 100)}%`}
             />
-          </div>
+          </button>
         ))}
         {!result.categories.length && (
           <p>No registraste gastos en este periodo.</p>
@@ -426,7 +528,7 @@ export function A2uiRenderer({
     <div className="chat-generated">
       {surface.components.map((component) => (
         <SafeBlock
-          key={`${turn.id}:${component.id}`}
+          key={component.id}
           component={component}
           data={
             'data' in component

@@ -31,6 +31,7 @@ function PanelContent() {
         <AssistantWorkspace
           onChanged={async () => {
             await Promise.all([panel.ledger.refresh(), panel.bank.refresh()]);
+            panel.metas.retry();
           }}
         />
       )}

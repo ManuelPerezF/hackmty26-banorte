@@ -142,7 +142,7 @@ SurfaceId es el UUID del turno que generó el componente; revision es la revisi�
 
 ## Snapshots y SSE
 
-GET turno: `{id,conversationId,status,revision,assistantMessage,uiSnapshot,pendingActions,error,createdAt,updatedAt}`. Estados queued/running/completed/failed/interrupted. UiSnapshot null antes de generarse; después contiene mensajes A2UI validados. PendingActions contiene id,status,expiresAt,result. Error es null o `{code,message}`; un turno failed sigue siendo HTTP 200.
+GET turno: `{id,conversationId,status,revision,assistantMessage,uiSnapshot,replacesTurnId,pendingActions,error,createdAt,updatedAt}`. Estados queued/running/completed/failed/interrupted. UiSnapshot null antes de generarse; después contiene mensajes A2UI validados. PendingActions contiene id,status,expiresAt,result. Error es null o `{code,message}`; un turno failed sigue siendo HTTP 200.
 
 SSE emite snapshot al conectar y al cambiar el estado, done al terminar y error ante pérdida de acceso/fallo de lectura. Heartbeat cada 15 segundos; consulta estado cada segundo. Autorización antes de abrir el stream y durante su vida. `new EventSource(url,{withCredentials:true})`. No hay eventos de tokens individuales ni replay de Last-Event-ID; restaurar desde snapshot.
 
@@ -159,3 +159,14 @@ El frontend debe invalidar saldo/historial/análisis tras registrar, recargar pe
 `GET /api/v1/knowledge/documents/:id/file` requiere sesión. Devuelve PDF `inline`; UUID inválido → 400, documento inexistente → 404, sin sesión → 401. El frontend añade `#page=N` para abrir la página citada. La búsqueda se ofrece mediante la herramienta MCP `search_financial_knowledge` bajo capacidad de lectura; no hay endpoint público de carga ni se aceptan rutas de archivos del modelo.
 
 Un documento retirado de la búsqueda puede seguir abriéndose desde citas históricas mientras se conserve su archivo.
+
+### Nuevas acciones A2UI
+
+Todas usan `POST /assistant/conversations/:id/actions` con sesión, CSRF, Idempotency-Key, `surfaceId` y `revision`.
+
+- `prepare_goal`: values con operation `create` y name/targetCents/deadline; `edit` añade goalId/expectedUpdatedAt; `archive` y `restore` solo requieren goalId/expectedUpdatedAt.
+- `confirm_goal` y `cancel_goal`: actionId emitido por la nueva superficie de confirmación, sin values.
+- `list_goals`: values con status (`active`/`archived`) y page (por defecto 1).
+- `select_category`: values con category (categoría de la gráfica o null para limpiar) y page (por defecto 1). Fechas y alcance se obtienen del snapshot, no del navegador.
+
+`simulate_savings`, `change_period`, `select_category` y `list_goals` devuelven un turno con `replacesTurnId`. Al completarse, sustituyen el contenido del mensaje anterior conservando su ID; el backend mantiene ambos turnos para auditoría. GET conversación restaura la versión visible más reciente. Las metas requieren confirmación explícita y rechazan versiones obsoletas con 409.

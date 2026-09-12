@@ -24,6 +24,7 @@ const component = z.discriminatedUnion('component', [
       'BanortePeriodSelector',
       'BanorteCardList',
       'BanorteGoalList',
+      'BanorteGoalConfirmation',
       'BanorteSavingsSimulator',
       'BanorteSources',
       'BanortePeriodComparison',
@@ -64,6 +65,7 @@ export const turnSchema = z.object({
   revision: z.number(),
   assistantMessage: z.string(),
   uiSnapshot: z.array(envelope).nullable(),
+  replacesTurnId: z.string().nullable().optional(),
   pendingActions: z.array(
     z.object({
       id: z.string(),
@@ -150,6 +152,7 @@ export const supportedComponents = [
   'BanortePeriodSelector',
   'BanorteCardList',
   'BanorteGoalList',
+  'BanorteGoalConfirmation',
   'BanorteSavingsSimulator',
   'BanorteSources',
   'BanortePeriodComparison',

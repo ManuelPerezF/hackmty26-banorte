@@ -21,7 +21,10 @@
     "test:adaptive": "node scripts/verify-adaptive.cjs",
     "test:model-plans": "node scripts/verify-model-plans.cjs",
     "test:rag-plan": "node scripts/verify-rag-plan.cjs",
-    "test:topic-switch": "node scripts/verify-topic-switch.cjs"
+    "test:topic-switch": "node scripts/verify-topic-switch.cjs",
+    "test:a2ui-actions": "node scripts/verify-a2ui-actions.cjs",
+    "test:goal-plans": "node scripts/verify-goal-plans.cjs",
+    "test:llm-tool-guard": "node scripts/verify-llm-tool-guard.cjs"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",

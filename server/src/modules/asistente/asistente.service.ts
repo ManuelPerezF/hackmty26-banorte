@@ -1,3 +1,7 @@
+import { z } from "zod";
+import { MetasService } from "../metas/metas.module";
+import { goalPendingSchema } from "../metas/goal-actions";
+import { readSurface, inlineEvents } from "./surface-state";
 import { documentQuote } from "../conocimiento/document-quote";
 import { interactionContext, toolCacheKey } from "./conversation-context";
 import { knowledgeResultSchema, KnowledgeSource } from "../conocimiento/knowledge.schemas";
@@ -46,6 +50,7 @@ export class AsistenteService implements OnModuleInit {
     private readonly auth: AuthService,
     private readonly mcp: McpService,
     private readonly llm: LlmService,
+    private readonly goals: MetasService,
     @Inject(ENV) private readonly env: Environment,
   ) {}
   async onModuleInit() {
@@ -177,23 +182,57 @@ export class AsistenteService implements OnModuleInit {
       if (!components.some((c) => c.component === "BanortePeriodSelector"))
         throw new ConflictException("Selector no disponible.");
     }
+    if (
+      ["prepare_goal", "list_goals"].includes(action.event) &&
+      !components.some((c) => c.component === "BanorteGoalList")
+    )
+      throw new ConflictException("Metas no disponibles en esta respuesta.");
+    if (action.event === "select_category") {
+      if (!components.some((c) => c.component === "BanorteSpendingChart"))
+        throw new ConflictException("Gráfica no disponible.");
+      const spending = z
+        .object({ categories: z.array(z.object({ category: z.string() })) })
+        .parse(readSurface(origin.uiSnapshot).data.spending);
+      if (
+        action.values.category &&
+        !spending.categories.some((c) => c.category === action.values.category)
+      )
+        throw new BadRequestException("La categoría no pertenece a esta gráfica.");
+    }
+    if (action.event === "prepare_goal") await this.goals.prepare(i, action.values);
     if ("actionId" in action) {
       const pending = await this.db.pendingAction.findFirst({
         where: { id: action.actionId, turnId: origin.id, sessionId: i.sessionId },
       });
       if (!pending) throw new NotFoundException();
+      const goalEvent = action.event === "confirm_goal" || action.event === "cancel_goal";
+      const goalPayload = goalPendingSchema.safeParse(pending.payload);
+      if (goalEvent !== goalPayload.success)
+        throw new ConflictException("La confirmación no corresponde a esta operación.");
+      if (action.event === "confirm_goal" && goalPayload.success && pending.status !== "completed")
+        await this.goals.prepare(i, goalPayload.data.change);
       if (pending.status === "pending" && pending.expiresAt.getTime() < Date.now())
         throw new GoneException("La acción expiró.");
-      if (action.event === "cancel_movement" && pending.status !== "pending")
+      if (["cancel_movement", "cancel_goal"].includes(action.event) && pending.status !== "pending")
         throw new ConflictException("La acción ya inició o terminó.");
-      if (action.event === "confirm_movement" && pending.status === "cancelled")
+      if (
+        ["confirm_movement", "confirm_goal"].includes(action.event) &&
+        pending.status === "cancelled"
+      )
         throw new ConflictException("Acción cancelada.");
     }
     const latest = await this.db.agentTurn.findFirst({
       where: { conversationId: id },
       orderBy: [{ createdAt: "desc" }, { id: "desc" }],
     });
-    if (latest?.id !== origin.id && !("actionId" in action))
+    const lastInput = latest ? turnInputSchema.parse(latest.input) : null;
+    const retryFailed =
+      latest &&
+      ["failed", "interrupted"].includes(latest.status) &&
+      lastInput?.kind === "action" &&
+      inlineEvents.includes(lastInput.event) &&
+      lastInput.surfaceId === origin.id;
+    if (latest?.id !== origin.id && !retryFailed && !("actionId" in action))
       throw new ConflictException({ code: "STALE_UI", message: "Actualiza la interfaz." });
     return this.enqueue(i, id, { kind: "action", ...action }, requestKey);
   }
@@ -247,6 +286,12 @@ export class AsistenteService implements OnModuleInit {
       revision: t.revision,
       assistantMessage: t.assistantMessage,
       uiSnapshot: t.uiSnapshot,
+      replacesTurnId: (() => {
+        const input = turnInputSchema.parse(t.input);
+        return input.kind === "action" && inlineEvents.includes(input.event)
+          ? input.surfaceId
+          : null;
+      })(),
       pendingActions: t.actions.map((a) => ({
         id: a.id,
         status: a.status,
@@ -272,20 +317,49 @@ export class AsistenteService implements OnModuleInit {
     components: unknown[],
     data: Record<string, unknown>,
   ) {
+    const current = await this.db.agentTurn.findUniqueOrThrow({ where: { id } });
+    const input = turnInputSchema.parse(current.input);
+    const replaceId =
+      input.kind === "action" && inlineEvents.includes(input.event) ? input.surfaceId : null;
+    if (replaceId) {
+      const origin = await this.db.agentTurn.findFirstOrThrow({
+        where: {
+          id: replaceId,
+          conversationId: current.conversationId,
+        },
+      });
+      const prior = readSurface(origin.uiSnapshot);
+      const replacements = new Map(
+        components.map((c) => [z.object({ id: z.string() }).parse(c).id, c]),
+      );
+      const previousIds = new Set(prior.components.map((c) => c.id));
+      components = [
+        ...prior.components.map((c) => replacements.get(c.id) ?? c),
+        ...components.filter((c) => !previousIds.has(z.object({ id: z.string() }).parse(c).id)),
+      ];
+      data = { ...prior.data, ...data };
+    }
     const uiSnapshot = json(surface(id, title, explanation, components, data));
     await this.db.$transaction(async (tx) => {
       const t = await tx.agentTurn.update({
         where: { id },
         data: { status: "completed", revision: 1, assistantMessage: explanation, uiSnapshot },
       });
-      await tx.message.create({
-        data: {
-          conversationId: t.conversationId,
-          role: "assistant",
-          content: explanation,
-          turnId: id,
-        },
-      });
+      const replaced = replaceId
+        ? await tx.message.updateMany({
+            where: { conversationId: t.conversationId, turnId: replaceId, role: "assistant" },
+            data: { content: explanation, turnId: id },
+          })
+        : { count: 0 };
+      if (!replaced.count)
+        await tx.message.create({
+          data: {
+            conversationId: t.conversationId,
+            role: "assistant",
+            content: explanation,
+            turnId: id,
+          },
+        });
     });
   }
   private async run(id: string, i: Identity) {
@@ -296,6 +370,35 @@ export class AsistenteService implements OnModuleInit {
       await this.auth.bySessionId(i.sessionId);
       const turn = await this.db.agentTurn.update({ where: { id }, data: { status: "running" } });
       const input = turnInputSchema.parse(turn.input);
+      if (input.kind === "action" && input.event === "prepare_goal") {
+        const prepared = await this.goals.prepare(i, input.values);
+        const payload = goalPendingSchema.parse({ kind: "goal", change: prepared.change });
+        const action = await this.db.pendingAction.create({
+          data: {
+            turnId: id,
+            sessionId: i.sessionId,
+            surfaceId: id,
+            revision: 1,
+            payload: json(payload),
+            expiresAt: new Date(Date.now() + 600000),
+          },
+        });
+        await this.finish(
+          id,
+          "Revisa el cambio de tu meta",
+          "Confirma los datos. Esta acción no mueve dinero.",
+          [
+            {
+              id: "goalConfirmation",
+              component: "BanorteGoalConfirmation",
+              data: { path: "/goalConfirmation" },
+              action: "confirm_goal",
+            },
+          ],
+          { goalConfirmation: { actionId: action.id, ...prepared } },
+        );
+        return;
+      }
       if (input.kind === "action" && input.event === "submit_movement_form") {
         const payload = movementSchema.parse(input.values);
         if (payload.date > todayInTimezone(i.timezone)) throw new Error("INVALID_DATE");
@@ -325,16 +428,32 @@ export class AsistenteService implements OnModuleInit {
         );
         return;
       }
-      if (input.kind === "action" && input.event === "cancel_movement") {
+      if (
+        input.kind === "action" &&
+        ["cancel_movement", "cancel_goal"].includes(input.event) &&
+        "actionId" in input
+      ) {
         const result = await this.db.pendingAction.updateMany({
           where: { id: input.actionId, sessionId: i.sessionId, status: "pending" },
           data: { status: "cancelled" },
         });
         if (!result.count) throw new Error("ACTION_STATE_CONFLICT");
-        await this.finish(id, "Registro cancelado", "No se registró el movimiento.", [], {});
+        await this.finish(
+          id,
+          "Cambio cancelado",
+          input.event === "cancel_goal"
+            ? "No se modificó la meta."
+            : "No se registró el movimiento.",
+          [],
+          {},
+        );
         return;
       }
-      if (input.kind === "action" && input.event === "confirm_movement") {
+      if (
+        input.kind === "action" &&
+        ["confirm_movement", "confirm_goal"].includes(input.event) &&
+        "actionId" in input
+      ) {
         actionId = input.actionId;
         const existing = await this.db.pendingAction.findFirst({
           where: {
@@ -352,8 +471,12 @@ export class AsistenteService implements OnModuleInit {
           data: { status: "executing" },
         });
       }
-      const names = (Object.keys(toolDefinitions) as ToolName[]).filter(
-        (n) => n !== "register_movement" || Boolean(actionId),
+      const names = (Object.keys(toolDefinitions) as ToolName[]).filter((n) =>
+        n === "register_movement"
+          ? Boolean(actionId && input.kind === "action" && input.event === "confirm_movement")
+          : n === "apply_goal_change"
+            ? Boolean(actionId && input.kind === "action" && input.event === "confirm_goal")
+            : true,
       );
       await this.mcp.withClient(i, names, actionId, async (client) => {
         await client.listTools();
@@ -403,6 +526,120 @@ export class AsistenteService implements OnModuleInit {
           cached.set(name, value);
           return value;
         };
+        if (actionId && input.kind === "action" && input.event === "confirm_goal") {
+          const result = await execute("apply_goal_change", {});
+          const goals = await execute("list_goals", {});
+          await this.finish(
+            id,
+            "Meta actualizada",
+            "El cambio quedó guardado. Puedes seguir gestionando tus metas aquí.",
+            [
+              {
+                id: "goals",
+                component: "BanorteGoalList",
+                data: { path: "/goals" },
+                action: "prepare_goal",
+              },
+            ],
+            {
+              goals: { ...(goals as object), today: todayInTimezone(i.timezone) },
+              goalResult: result,
+            },
+          );
+          return;
+        }
+        if (input.kind === "action" && input.event === "list_goals") {
+          const goals = await execute("list_goals", input.values);
+          await this.finish(
+            id,
+            "Tus metas",
+            "Consulta tus objetivos o prepara un cambio para confirmar.",
+            [
+              {
+                id: "goals",
+                component: "BanorteGoalList",
+                data: { path: "/goals" },
+                action: "prepare_goal",
+              },
+            ],
+            {
+              goals: {
+                ...(goals as object),
+                status: input.values.status,
+                today: todayInTimezone(i.timezone),
+              },
+            },
+          );
+          return;
+        }
+        if (input.kind === "action" && ["select_category", "change_period"].includes(input.event)) {
+          const origin = await this.db.agentTurn.findFirstOrThrow({
+            where: { id: input.surfaceId, conversationId: turn.conversationId },
+          });
+          const prior = readSurface(origin.uiSnapshot);
+          const old = z
+            .object({
+              period: z.object({ from: z.string(), to: z.string() }),
+              filters: z.object({ category: z.enum(categories).nullable().optional() }).optional(),
+              selectedCategory: z.enum(categories).nullable().optional(),
+            })
+            .parse(prior.data.spending);
+          const period = input.event === "change_period" ? input.values : old.period;
+          const category =
+            input.event === "select_category"
+              ? input.values.category
+              : (old.selectedCategory ?? null);
+          const spending =
+            input.event === "change_period"
+              ? await execute("get_spending_insights", {
+                  ...period,
+                  ...(old.filters?.category ? { category: old.filters.category } : {}),
+                })
+              : prior.data.spending;
+          const page = input.event === "select_category" ? input.values.page : 1;
+          const effectiveCategory = category ?? old.filters?.category ?? null;
+          const movements = await execute("list_movements", {
+            ...period,
+            type: "expense",
+            ...(effectiveCategory ? { category: effectiveCategory } : {}),
+            page,
+            pageSize: 8,
+          });
+          await this.finish(
+            id,
+            "Tus gastos, en detalle",
+            "Selecciona una categoría para consultar sus movimientos o cambia el periodo.",
+            [
+              {
+                id: "spending",
+                component: "BanorteSpendingChart",
+                data: { path: "/spending" },
+                action: "select_category",
+              },
+              {
+                id: "period",
+                component: "BanortePeriodSelector",
+                data: { path: "/period" },
+                action: "change_period",
+              },
+              {
+                id: "movements",
+                component: "BanorteMovementTable",
+                data: { path: "/movements" },
+                action: "select_category",
+              },
+            ],
+            {
+              spending: { ...(spending as object), selectedCategory: category },
+              period,
+              movements: {
+                ...(movements as object),
+                drilldown: { category, label: effectiveCategory ?? "Todas las categorías" },
+              },
+            },
+          );
+          return;
+        }
         if (actionId) {
           const result = await execute("register_movement", {});
           const balance = await execute("get_account_summary", {});
@@ -523,7 +760,7 @@ export class AsistenteService implements OnModuleInit {
                 "get_spending_insights",
                 input.kind === "action" && input.event === "change_period" ? input.values : {},
               ));
-            add("spending", "BanorteSpendingChart");
+            add("spending", "BanorteSpendingChart", "select_category");
             data.period = (data.spending as { period: { from: string; to: string } }).period;
             add("period", "BanortePeriodSelector", "change_period");
           }
@@ -532,8 +769,20 @@ export class AsistenteService implements OnModuleInit {
             add("cards", "BanorteCardList");
           }
           if (block === "goals") {
-            data.goals = cached.get("list_goals") ?? (await execute("list_goals", {}));
-            add("goals", "BanorteGoalList");
+            const goals = cached.get("list_goals") ?? (await execute("list_goals", {}));
+            let draft = plan.goalDraft;
+            if (draft?.goalId) {
+              const owned = await this.db.goal.findFirst({
+                where: { id: draft.goalId, profileId: i.profileId },
+              });
+              if (!owned) draft = undefined;
+            }
+            data.goals = {
+              ...(goals as object),
+              today: todayInTimezone(i.timezone),
+              ...(draft ? { draft } : {}),
+            };
+            add("goals", "BanorteGoalList", "prepare_goal");
           }
           if (block === "savings") {
             data.savings = { result: cached.get("simulate_savings") ?? null };
@@ -614,7 +863,15 @@ export class AsistenteService implements OnModuleInit {
       const action = actionId
         ? await this.db.pendingAction.findUnique({ where: { id: actionId } })
         : null;
-      if (action?.status === "completed")
+      if (action?.status === "completed" && goalPendingSchema.safeParse(action.payload).success)
+        await this.finish(
+          id,
+          "Meta actualizada",
+          "El cambio se guardó. Consulta Metas para ver el resultado.",
+          [],
+          { goalResult: action.result },
+        );
+      else if (action?.status === "completed")
         await this.finish(
           id,
           "Movimiento guardado",

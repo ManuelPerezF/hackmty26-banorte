@@ -12,7 +12,7 @@ Ayudar a una persona a entender y registrar sus gastos en una misma experiencia.
 | --- | --- | --- |
 | Interpretar intención, generar interfaz y ejecutar acción | Diap. 3 | Probado: Gemini real → UI → confirmar → persistencia → recibo |
 | LLM central: interpreta, decide y orquesta | Diap. 5 | Implementado y validado con Gemini Flash-Lite real |
-| MCP para datos, herramientas y acciones propias | Diap. 5 | Implementado: servidor/cliente stdio y doce herramientas |
+| MCP para datos, herramientas y acciones propias | Diap. 5 | Implementado: servidor/cliente stdio y trece herramientas |
 | A2UI o protocolo equivalente | Diap. 3 y 5 | Implementado: mensajes v0.9.1, catálogo propio y renderer React |
 | Cada interacción vuelve al agente y cambia la experiencia | Diap. 6 | Contexto de acciones/simulaciones incorporado; continuidad probada con MCP y modelo controlado, más proveedor real con datos sintéticos |
 | Componentes propios | Diap. 7 | Implementado: tabla, formulario, gráfica, confirmación, recibo, tarjetas, metas y simulador en el renderer |

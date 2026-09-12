@@ -93,6 +93,10 @@ class ToolGatewayController {
         return this.goals.list(i, parse(goalQuerySchema));
       case "simulate_savings":
         return simulate(parse(simulationSchema));
+      case "apply_goal_change": {
+        if (!cap.actionId) throw new UnauthorizedException();
+        return this.goals.applyConfirmed(i, cap.actionId);
+      }
       case "register_movement": {
         if (!cap.actionId) throw new UnauthorizedException();
         const action = await this.db.pendingAction.findFirst({
@@ -104,6 +108,7 @@ class ToolGatewayController {
           },
         });
         if (!action) throw new UnauthorizedException();
+        movementSchema.parse(action.payload);
         if (action.status === "completed") return action.result;
         const result = await this.movements.create(
           movementSchema.parse(action.payload),

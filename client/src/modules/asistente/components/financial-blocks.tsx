@@ -1,10 +1,10 @@
 'use client';
 import { useState } from 'react';
 import { z } from 'zod';
-import { Flag, CreditCard } from 'lucide-react';
+import { CreditCard } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { formText } from '@/shared/api/client';
-import { formatMoney, formatMovementDate } from '@/shared/utils/money';
+import { formatMoney } from '@/shared/utils/money';
 import { CardArtwork } from '@/modules/tarjetas/components/card-artwork';
 
 const cents = z.number().int().nonnegative().max(Number.MAX_SAFE_INTEGER);
@@ -18,7 +18,11 @@ export function CardList({ data }: { data: unknown }) {
           status: z.string(),
           isPreferred: z.boolean(),
           product: z.object({
-            key: z.enum(['clasica', 'oro', 'platinum', 'infinite']).transform(key => key === 'infinite' ? 'platinum' as const : key),
+            key: z
+              .enum(['clasica', 'oro', 'platinum', 'infinite'])
+              .transform((key) =>
+                key === 'infinite' ? ('platinum' as const) : key,
+              ),
             name: z.string(),
             network: z.string(),
           }),
@@ -53,62 +57,6 @@ export function CardList({ data }: { data: unknown }) {
         <p className="chat-empty">
           <CreditCard size={20} /> Aún no tienes tarjetas asignadas.
         </p>
-      )}
-    </section>
-  );
-}
-export function GoalList({ data }: { data: unknown }) {
-  const { items, total } = z
-    .object({
-      total: z.number().int(),
-      items: z.array(
-        z.object({
-          id: z.string(),
-          name: z.string(),
-          targetCents: cents,
-          deadline: z.string().nullable(),
-          status: z.enum(['active', 'archived']),
-        }),
-      ),
-    })
-    .parse(data);
-  return (
-    <section className="chat-financial-list" aria-label="Tus metas">
-      <h4>
-        Tus metas <span>{total}</span>
-      </h4>
-      {items.length ? (
-        <ul>
-          {items.map((g) => (
-            <li key={g.id}>
-              <Flag size={20} aria-hidden="true" />
-              <div>
-                <strong>{g.name}</strong>
-                <small>
-                  {g.deadline
-                    ? `Para el ${formatMovementDate(g.deadline)}`
-                    : 'Sin fecha objetivo'}
-                  {g.status === 'archived' ? ' · Archivada' : ''}
-                </small>
-              </div>
-              <strong className="chat-item-meta">
-                {formatMoney(g.targetCents)}
-              </strong>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="chat-empty">
-          <Flag size={20} /> No hay metas en esta consulta.
-        </p>
-      )}
-      {items.length > 0 && (
-        <small>
-          Montos objetivo. Crear una meta no aparta dinero.
-          {total > items.length
-            ? ` Mostrando ${items.length} de ${total}.`
-            : ''}
-        </small>
       )}
     </section>
   );

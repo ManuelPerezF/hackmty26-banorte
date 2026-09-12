@@ -15,6 +15,7 @@ import {
   BadRequestException,
 } from "@nestjs/common";
 import { z } from "zod";
+import { goalFields, goalPendingSchema, GoalChange } from "./goal-actions";
 import { DatabaseModule } from "../../database/database.module";
 import { PrismaService } from "../../database/prisma.service";
 import { Prisma, Goal } from "../../generated/prisma/client";
@@ -23,11 +24,7 @@ import { dateSchema, todayInTimezone } from "../movimientos/schemas/movimiento.s
 import { key, pagination, sameJson } from "../../shared/requests";
 import { safeCents } from "../../shared/money";
 import { ZodValidationPipe } from "../../shared/pipes/zod-validation.pipe";
-const createSchema = z.strictObject({
-  name: z.string().trim().min(1).max(80),
-  targetCents: z.number().int().positive().max(99999999999),
-  deadline: dateSchema.nullable().default(null),
-});
+const createSchema = goalFields;
 const patchSchema = z
   .strictObject({
     name: createSchema.shape.name.optional(),
@@ -51,6 +48,75 @@ const serialize = (g: Goal) => ({
 @Injectable()
 export class MetasService {
   constructor(private readonly db: PrismaService) {}
+  async prepare(i: Identity, change: GoalChange) {
+    if ("deadline" in change && change.deadline && change.deadline < todayInTimezone(i.timezone))
+      throw new BadRequestException("Plazo anterior a hoy.");
+    if (change.operation === "create") return { change, before: null };
+    const goal = await this.db.goal.findFirst({
+      where: { id: change.goalId, profileId: i.profileId },
+    });
+    if (!goal) throw new NotFoundException();
+    if (goal.updatedAt.getTime() !== change.expectedUpdatedAt)
+      throw new ConflictException("La meta cambió. Consulta tus metas y vuelve a intentarlo.");
+    return { change, before: serialize(goal) };
+  }
+  async applyConfirmed(i: Identity, actionId: string) {
+    // The mutation and its receipt commit together; retries never reapply an old edit.
+    return this.db.$transaction(
+      async (tx) => {
+        const action = await tx.pendingAction.findFirst({
+          where: {
+            id: actionId,
+            sessionId: i.sessionId,
+            turn: { conversation: { profileId: i.profileId } },
+          },
+        });
+        if (!action) throw new NotFoundException();
+        const { change } = goalPendingSchema.parse(action.payload);
+        if (action.status === "completed") return action.result;
+        if (action.status !== "executing") throw new ConflictException("Acción no autorizada.");
+        let saved: Goal;
+        if (change.operation === "create") {
+          const { operation, ...fields } = change;
+          saved = await tx.goal.create({
+            data: {
+              ...fields,
+              profileId: i.profileId,
+              targetCents: BigInt(fields.targetCents),
+              deadline: fields.deadline ? new Date(fields.deadline) : null,
+              requestKey: action.id,
+              originalInput: fields,
+            },
+          });
+        } else {
+          const goal = await tx.goal.findFirst({
+            where: { id: change.goalId, profileId: i.profileId },
+          });
+          if (!goal) throw new NotFoundException();
+          if (goal.updatedAt.getTime() !== change.expectedUpdatedAt)
+            throw new ConflictException("La meta cambió después de preparar la confirmación.");
+          saved = await tx.goal.update({
+            where: { id: goal.id },
+            data:
+              change.operation === "edit"
+                ? {
+                    name: change.name,
+                    targetCents: BigInt(change.targetCents),
+                    deadline: change.deadline ? new Date(change.deadline) : null,
+                  }
+                : { status: change.operation === "archive" ? "archived" : "active" },
+          });
+        }
+        const result = { operation: change.operation, goal: serialize(saved) };
+        await tx.pendingAction.update({
+          where: { id: action.id },
+          data: { status: "completed", result },
+        });
+        return result;
+      },
+      { isolationLevel: "Serializable" },
+    );
+  }
   async list(i: Identity, q: z.infer<typeof goalQuerySchema>) {
     const where = { profileId: i.profileId, status: q.status };
     const [items, total] = await this.db.$transaction(

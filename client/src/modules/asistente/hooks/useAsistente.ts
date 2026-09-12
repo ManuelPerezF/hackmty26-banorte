@@ -120,6 +120,19 @@ export function useAsistente(onChanged: () => Promise<void>) {
       try {
         const snapshot = parseTurn(JSON.parse(event.data));
         setTurns((t) => ({ ...t, [snapshot.id]: snapshot }));
+        if (snapshot.status === 'completed' && snapshot.replacesTurnId) {
+          setMessages((rows) =>
+            rows.map((m) =>
+              m.role === 'assistant' && m.turnId === snapshot.replacesTurnId
+                ? {
+                    ...m,
+                    turnId: snapshot.id,
+                    content: snapshot.assistantMessage,
+                  }
+                : m,
+            ),
+          );
+        }
         if (['completed', 'failed', 'interrupted'].includes(snapshot.status)) {
           stream.close();
           setActive(null);

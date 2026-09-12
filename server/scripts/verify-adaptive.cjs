@@ -326,7 +326,7 @@ const first = { from: "2026-08-01", to: "2026-08-31" },
       await app
         .get(McpService)
         .withClient(identity, ["compare_spending_periods"], undefined, async (c) => {
-          assert.equal((await c.listTools()).tools.length, 12);
+          assert.equal((await c.listTools()).tools.length, 13);
           assert.equal(
             (await c.callTool({ name: "register_movement", arguments: {} })).isError,
             true,

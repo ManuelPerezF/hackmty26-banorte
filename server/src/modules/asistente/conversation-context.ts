@@ -19,6 +19,8 @@ export function interactionContext(
     if (data?.period) state.period = data.period;
     if (data?.comparison) state.comparison = data.comparison;
     if (data?.form?.draft) state.movementDraft = data.form.draft;
+    if (data?.goalResult) state.savedGoal = data.goalResult;
+    if (data?.goals?.draft) state.goalDraft = data.goals.draft;
     if (data?.result) state.savedMovement = data.result;
     return Object.keys(state).length ? [state] : [];
   });
