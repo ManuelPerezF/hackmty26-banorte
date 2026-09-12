@@ -1,4 +1,12 @@
-import { ArrowRight, ArrowUpRight, MessageCircle } from 'lucide-react';
+import {
+  ArrowRight,
+  ArrowUp,
+  ArrowUpRight,
+  BookOpen,
+  ChartColumn,
+  Receipt,
+} from 'lucide-react';
+import { MayaMark } from '@/modules/asistente/components/maya-mark';
 const bankingUrl = '/login';
 export function DigitalBankingSection() {
   return (
@@ -8,60 +16,69 @@ export function DigitalBankingSection() {
       aria-labelledby="digital-title"
     >
       <div className="digital-copy">
-        <span className="digital-label">Una banca más cercana</span>
+        <span className="digital-label">Conoce a Maya</span>
         <h2 id="digital-title">
           De tus planes
           <br />a tu próximo paso.
         </h2>
         <p>
-          Tus cuentas, tus movimientos y una nueva forma de entender tu dinero.
-          Todo empieza con una conversación.
+          Pregunta por tus gastos, registra movimientos y consulta los
+          documentos de tus tarjetas. Maya adapta la información a lo que
+          necesitas.
         </p>
         <a className="button" href={bankingUrl}>
-          Explora tu banca <ArrowRight size={18} aria-hidden="true" />
+          Habla con Maya <ArrowRight size={18} aria-hidden="true" />
         </a>
-        <small>Una perspectiva más clara de tu dinero.</small>
+        <small>Inicia sesión para conversar sobre tu dinero.</small>
       </div>
-      <div className="conversation-preview">
+      <div className="conversation-preview" aria-label="Conoce el chat de Maya">
         <div className="conversation-heading">
-          <MessageCircle size={20} aria-hidden="true" />
-          <span>Asistente Banorte</span>
-          <span className="conversation-demo">Banorte IA</span>
-        </div>
-        <p className="conversation-question">¿En qué gasté este mes?</p>
-        <div className="conversation-answer">
-          <span>Tu mes, más claro.</span>
-          <p>Así se distribuyen tus gastos.</p>
-          <div className="spend-total">
-            $48,350<span>.00</span>
-          </div>
-          <div
-            className="spend-breakdown"
-            aria-label="Vivienda 38%, compras 29%, servicios 18%, otros 15%"
-          >
-            <i />
-            <i />
-            <i />
-            <i />
-          </div>
-          <div className="spend-legend">
-            <span>
-              Vivienda <b>$18,400</b>
-            </span>
-            <span>
-              Compras <b>$14,200</b>
-            </span>
-            <span>
-              Servicios <b>$8,750</b>
-            </span>
-            <span>
-              Otros <b>$7,000</b>
-            </span>
+          <MayaMark />
+          <div>
+            <strong>Maya</strong>
+            <span>Asistente Banorte</span>
           </div>
         </div>
-        <a href={bankingUrl}>
-          Haz tu primera pregunta <ArrowUpRight size={17} aria-hidden="true" />
+        <div className="maya-preview-welcome">
+          <MayaMark />
+          <h3>
+            Hagamos espacio
+            <br />
+            para tus planes.
+          </h3>
+          <p>Tu siguiente paso empieza con una pregunta.</p>
+        </div>
+        <a
+          className="maya-preview-compose"
+          href={bankingUrl}
+          aria-label="Inicia sesión para hacerle una pregunta a Maya"
+        >
+          <span>Pregunta algo sobre tus cuentas o tus planes…</span>
+          <span className="maya-preview-send">
+            <ArrowUp size={18} aria-hidden="true" />
+          </span>
         </a>
+        <div className="maya-preview-suggestions">
+          <p>Podemos empezar por aquí</p>
+          {[
+            { icon: ChartColumn, label: '¿En qué gasté este mes?' },
+            { icon: Receipt, label: 'Quiero registrar un movimiento' },
+            {
+              icon: BookOpen,
+              label: 'Consultar documentos',
+              detail: 'Elige tu tarjeta, un tema y tu pregunta.',
+            },
+          ].map(({ icon: Icon, label, detail }) => (
+            <a key={label} href={bankingUrl}>
+              <Icon size={17} strokeWidth={1.5} aria-hidden="true" />
+              <span>
+                {label}
+                {detail && <small>{detail}</small>}
+              </span>
+              <ArrowUpRight size={15} aria-hidden="true" />
+            </a>
+          ))}
+        </div>
       </div>
     </section>
   );

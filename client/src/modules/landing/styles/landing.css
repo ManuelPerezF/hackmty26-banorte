@@ -248,96 +248,117 @@
   background: var(--paper);
   color: var(--ink);
   padding: 28px;
+  border: 1px solid oklch(0.92 0.012 20);
   border-radius: 23px;
-  transform: rotate(2deg);
+  min-width: 0;
 }
 .conversation-heading {
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-size: 14px;
+  gap: 10px;
 }
-.conversation-heading svg {
-  color: var(--red);
+.conversation-heading .maya-mark {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
-.conversation-demo {
-  margin-left: auto;
-  font-size: 10px;
-  color: oklch(0.5 0.02 20);
-}
-.conversation-question {
-  background: oklch(0.94 0.018 20);
-  border-radius: 16px 16px 3px 16px;
-  font-size: 14px;
-  padding: 15px 18px;
-  margin: 28px 0 28px 45px;
-}
-.conversation-answer > span {
-  font-size: 22px;
+.conversation-heading strong {
+  display: block;
+  font-size: 17px;
   font-weight: 500;
-  letter-spacing: -0.025em;
 }
-.conversation-answer > p {
-  font-size: 13px;
+.conversation-heading span {
+  display: block;
+  font-size: 10px;
   color: oklch(0.5 0.01 20);
-  margin: 6px 0 20px;
+  margin-top: 1px;
 }
-.spend-total {
-  font-size: 43px;
-  letter-spacing: -0.055em;
+.maya-preview-welcome {
+  text-align: center;
+  padding: 32px 0 24px;
 }
-.spend-total > span {
-  color: oklch(0.55 0.01 20);
+.maya-preview-welcome .maya-mark {
+  width: 54px;
+  height: 54px;
+  margin: 0 auto 15px;
+  object-fit: contain;
 }
-.spend-breakdown {
-  display: flex;
-  gap: 4px;
-  height: 11px;
-  border-radius: 6px;
-  overflow: hidden;
-  margin: 19px 0 22px;
-}
-.spend-breakdown i:nth-child(1) {
-  width: 38%;
-  background: var(--red);
-}
-.spend-breakdown i:nth-child(2) {
-  width: 29%;
-  background: oklch(0.67 0.16 24);
-}
-.spend-breakdown i:nth-child(3) {
-  width: 18%;
-  background: oklch(0.77 0.11 24);
-}
-.spend-breakdown i:nth-child(4) {
-  width: 15%;
-  background: oklch(0.86 0.06 24);
-}
-.spend-legend {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 13px 26px;
-  font-size: 11px;
-  color: oklch(0.45 0.01 20);
-}
-.spend-legend span {
-  display: flex;
-  justify-content: space-between;
-  gap: 6px;
-}
-.spend-legend b {
-  color: var(--ink);
+.maya-preview-welcome h3 {
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: clamp(25px, 2.5vw, 34px);
+  line-height: 1.14;
+  letter-spacing: -0.035em;
   font-weight: 400;
 }
-.conversation-preview > a {
+.maya-preview-welcome p {
+  margin: 10px 0 0;
+  font-size: 12px;
+  color: oklch(0.5 0.01 20);
+}
+.maya-preview-compose {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid oklch(0.22 0.01 20 / 0.1);
-  color: var(--red);
-  margin-top: 25px;
-  padding-top: 20px;
+  gap: 20px;
+  padding: 20px;
+  background: oklch(0.998 0.002 20);
+  border: 1px solid oklch(0.9 0.01 20);
+  border-radius: 20px;
   font-size: 13px;
+  line-height: 1.5;
+  color: oklch(0.5 0.01 20);
+}
+.maya-preview-send {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--red);
+  color: var(--paper);
+  margin-left: auto;
+}
+.maya-preview-suggestions {
+  margin: 24px 0 0;
+}
+.maya-preview-suggestions > p {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 9px;
+  margin: 0 10px 10px;
+  color: oklch(0.5 0.01 20);
+}
+.maya-preview-suggestions a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 10px;
+  border-radius: 9px;
+  font-size: 12px;
+}
+.maya-preview-suggestions a > svg {
+  flex-shrink: 0;
+  color: oklch(0.52 0.1 20);
+}
+.maya-preview-suggestions a > svg:last-child {
+  margin-left: auto;
+  color: oklch(0.6 0.01 20);
+}
+.maya-preview-suggestions small {
+  display: block;
+  color: oklch(0.5 0.01 20);
+  font-size: 10px;
+  margin-top: 3px;
+}
+.maya-preview-suggestions a:hover {
+  background: oklch(0.95 0.01 20);
+}
+.maya-preview-compose:hover {
+  border-color: oklch(0.6 0.1 20);
+}
+.conversation-preview a:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
 }
 .new-perspective .footer {
   background: var(--paper);
@@ -458,9 +479,6 @@
     justify-self: center;
     padding: 24px;
     transform: none;
-  }
-  .conversation-question {
-    margin-left: 12px;
   }
   .new-perspective .footer {
     gap: 16px;
