@@ -1,4 +1,5 @@
 'use client';
+import { PeriodComparison, KnowledgeFacts } from './adaptive-blocks';
 import { KnowledgeSources } from './knowledge-sources';
 import { CardList, GoalList, SavingsBlock } from './financial-blocks';
 import { formText } from '@/shared/api/client';
@@ -105,6 +106,10 @@ function UiBlock({
     ) : (
       <p className="chat-prose">{component.text}</p>
     );
+  if (component.component === 'BanortePeriodComparison')
+    return <PeriodComparison data={data} />;
+  if (component.component === 'BanorteKnowledgeFacts')
+    return <KnowledgeFacts data={data} />;
   if (component.component === 'BanorteSources')
     return <KnowledgeSources data={data} />;
   if (component.component === 'BanorteCardList')
@@ -235,10 +240,39 @@ function UiBlock({
         }}
       />
     );
-  if (component.component === 'BanorteMovementForm')
+  if (component.component === 'BanorteMovementForm') {
+    const { draft = {} } = z
+      .object({
+        draft: z
+          .object({
+            cardId: z.uuid().nullable().optional(),
+            description: z.string().max(80).optional(),
+            amountCents: z
+              .number()
+              .int()
+              .positive()
+              .max(99999999999)
+              .optional(),
+            type: z.enum(['income', 'expense']).optional(),
+            category: z.string().optional(),
+            date: z.iso.date().optional(),
+            notes: z.string().max(500).optional(),
+          })
+          .optional(),
+      })
+      .parse(data);
     return (
       <div className="chat-movement-form">
         <MovimientoForm
+          initialInstrument={draft.cardId ?? ''}
+          requireInstrumentSelection={!draft.cardId}
+          initialValues={{
+            ...draft,
+            amount:
+              draft.amountCents === undefined
+                ? undefined
+                : (draft.amountCents / 100).toFixed(2),
+          }}
           ready={!disabled && latest}
           error={formError}
           onCancel={() => setFormError('Puedes continuar con otra pregunta.')}
@@ -273,6 +307,7 @@ function UiBlock({
         />
       </div>
     );
+  }
   if (component.component === 'BanorteConfirmation') {
     const c = z
       .object({

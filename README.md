@@ -1,4 +1,4 @@
-# Reto Banorte × Tec
+    # Reto Banorte × Tec
 
 Banca personal con historial propio, educación financiera contextual y una interfaz adaptable a la intención.
 

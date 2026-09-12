@@ -252,6 +252,123 @@
 .chat-suggestions button:hover {
   background: #f0ebe8;
 }
+.chat-document-guide {
+  text-align: left;
+  min-width: 0;
+}
+.chat-document-guide summary {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 9px;
+  font-size: 13px;
+  cursor: pointer;
+  list-style: none;
+}
+.chat-document-guide summary::-webkit-details-marker {
+  display: none;
+}
+.chat-document-guide summary > svg:first-child {
+  color: #a35c61;
+}
+.chat-document-guide summary > svg:last-child {
+  margin-left: auto;
+}
+.chat-document-guide[open] summary > svg:last-child {
+  transform: rotate(180deg);
+}
+.chat-document-guide summary:hover {
+  background: #f0ebe8;
+}
+.chat-document-guide form {
+  padding: 4px 12px 16px;
+  font-size: 13px;
+}
+.chat-document-guide form > p {
+  margin: 0 0 16px;
+  color: #77716d;
+  line-height: 1.5;
+}
+.chat-document-guide fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.chat-document-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.chat-document-guide label {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  font-weight: 500;
+}
+.chat-document-guide select,
+.chat-document-guide textarea {
+  width: 100%;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid #dcd4ce;
+  border-radius: 8px;
+  color: #332f2d;
+  background: #fcfaf8;
+  font: inherit;
+  font-weight: 400;
+}
+.chat-document-guide textarea {
+  resize: vertical;
+}
+.chat-document-guide select:focus-visible,
+.chat-document-guide textarea:focus-visible {
+  outline: 2px solid #b31e38;
+  outline-offset: 3px;
+}
+.chat-document-guide fieldset:disabled {
+  opacity: 0.6;
+}
+.chat-document-guide button[type='submit'] {
+  background: #c81735;
+  color: #fff9f7;
+  padding: 10px 14px;
+}
+.chat-document-guide button[type='submit']:hover {
+  background: #aa1530;
+}
+.chat-document-guide button[type='submit']:disabled {
+  opacity: 0.45;
+}
+.chat-document-guide button[type='submit'] > svg {
+  color: inherit;
+  margin-left: 0;
+}
+.chat-compose-area {
+  padding: 0 28px;
+  flex-shrink: 0;
+}
+.chat-compose-area .bank-chat-compose {
+  margin-left: 0;
+  margin-right: 0;
+}
+.chat-compose-area .chat-document-guide {
+  max-height: 65dvh;
+  overflow-y: auto;
+}
+.chat-compose-area:has(.chat-document-guide[open]) .bank-chat-compose {
+  display: none;
+}
+@media (max-width: 600px) {
+  .chat-document-fields {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .chat-compose-area {
+    padding: 0 12px;
+  }
+}
 .bank-chat button:focus-visible,
 .bank-chat input:focus-visible,
 .bank-chat summary:focus-visible {
@@ -868,4 +985,79 @@
   font-size: 0.75rem;
   text-decoration: underline;
   text-underline-offset: 3px;
+}
+
+.chat-comparison,
+.chat-knowledge-facts {
+  padding: 1.2rem 0;
+  border-top: 1px solid #e6e3e1;
+}
+.chat-comparison h4,
+.chat-knowledge-facts h4 {
+  margin: 0 0 0.8rem;
+  font-size: 1rem;
+}
+.chat-comparison-periods {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+}
+.chat-comparison-periods span,
+.chat-comparison small,
+.chat-knowledge-facts small {
+  display: block;
+  font-size: 0.75rem;
+  color: #746c69;
+  line-height: 1.5;
+}
+.chat-comparison-periods strong {
+  display: block;
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  margin: 0.5rem 0;
+}
+.chat-comparison-track {
+  height: 0.5rem;
+  background: #ece7e5;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 0.5rem;
+}
+.chat-comparison-track i {
+  display: block;
+  background: #ad173e;
+  height: 100%;
+}
+.chat-comparison-periods > div:first-child .chat-comparison-track i {
+  background: #998c89;
+}
+.chat-comparison p,
+.chat-knowledge-facts p {
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.chat-comparison details {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+}
+.chat-knowledge-facts td {
+  vertical-align: top;
+  white-space: normal;
+  font-size: 0.78rem;
+  line-height: 1.6;
+  min-width: 100px;
+}
+.chat-knowledge-facts td:first-child {
+  min-width: 220px;
+  max-width: 430px;
+}
+.chat-knowledge-facts a {
+  color: #ad173e;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+@media (max-width: 600px) {
+  .chat-comparison-periods {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
 }

@@ -127,7 +127,7 @@ async function call(route, method = "GET", body, auth, key) {
       .get(McpService)
       .withClient(identity, ["search_financial_knowledge"], undefined, async (client) => {
         const tools = await client.listTools();
-        assert.equal(tools.tools.length, 11);
+        assert.equal(tools.tools.length, 12);
         assert.equal(
           tools.tools.find((t) => t.name === "search_financial_knowledge").annotations.readOnlyHint,
           true,

@@ -12,11 +12,11 @@ Ayudar a una persona a entender y registrar sus gastos en una misma experiencia.
 | --- | --- | --- |
 | Interpretar intención, generar interfaz y ejecutar acción | Diap. 3 | Probado: Gemini real → UI → confirmar → persistencia → recibo |
 | LLM central: interpreta, decide y orquesta | Diap. 5 | Implementado y validado con Gemini Flash-Lite real |
-| MCP para datos, herramientas y acciones propias | Diap. 5 | Implementado: servidor/cliente stdio y once herramientas |
+| MCP para datos, herramientas y acciones propias | Diap. 5 | Implementado: servidor/cliente stdio y doce herramientas |
 | A2UI o protocolo equivalente | Diap. 3 y 5 | Implementado: mensajes v0.9.1, catálogo propio y renderer React |
-| Cada interacción vuelve al agente y cambia la experiencia | Diap. 6 | Flujo visual probado con MCP real y modelo controlado |
+| Cada interacción vuelve al agente y cambia la experiencia | Diap. 6 | Contexto de acciones/simulaciones incorporado; continuidad probada con MCP y modelo controlado, más proveedor real con datos sintéticos |
 | Componentes propios | Diap. 7 | Implementado: tabla, formulario, gráfica, confirmación, recibo, tarjetas, metas y simulador en el renderer |
-| Datos y APIs propios; sintéticos permitidos | Diap. 7 | Implementado: cuenta y movimientos capturados en PostgreSQL; precargas retiradas por decisión del usuario |
+| Datos y APIs propios; sintéticos permitidos | Diap. 7 | Implementado: cuenta y movimientos capturados en PostgreSQL; sin precargas automáticas; historial de prueba agregado posteriormente por petición del usuario |
 | Al menos un flujo accionable con cambio real | Diap. 7 | Probado desde UI generada: confirmar persiste y devuelve recibo/saldo |
 
 **Tener pantallas y un endpoint de escritura no completa por sí solo el requisito del flujo generativo.**
@@ -80,3 +80,7 @@ El detalle técnico y el orden de ejecución están en [plan-backend.md](plan-ba
 ## Guion propuesto de 3 minutos
 
 Iniciar sesión con el usuario del proyecto → preguntar “¿en qué gasté más?” → mostrar desglose y movimientos consultados por MCP → pedir registrar un gasto → completar formulario generado → confirmar → verificar cambio en PostgreSQL y saldo → pedir explicación del nuevo total → cambiar periodo y mostrar adaptación. El flujo de consulta/formulario/confirmación ya pasó con Gemini real. Falta ensayar el guion completo con datos capturados, medir latencia y preparar la presentación final.
+
+## Mejoras posteriores a la revisión
+
+Ver [plan de mejoras](plan-mejoras-reto.md): compatibilidad de fuentes, contexto de acciones, borradores prellenados, comparación de periodos, extractos documentales y 15 casos de integración. La evidencia distingue modelo controlado, proveedor real y navegador. El ensayo final en el equipo de presentación sigue siendo una tarea operativa; no equivale a añadir más funcionalidades.

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   api,
+  ApiError,
   allPages,
   API_BASE,
   mutationKey,
@@ -8,13 +9,18 @@ import {
   type Page,
 } from '@/shared/api/client';
 import {
-  turnSchema,
-  catalogId,
+  parseTurn,
+  assertCatalog,
+  UiCompatibilityError,
   type Turn,
   type UiAction,
   type ChatMessage,
   type Conversation,
 } from '../types/protocol';
+const errorMessage = (e: unknown) =>
+  e instanceof UiCompatibilityError || e instanceof ApiError
+    ? e.message
+    : 'No pudimos completar la consulta. Recupera la conversación para verificar su estado.';
 export function useAsistente(onChanged: () => Promise<void>) {
   const [conversations, setConversations] = useState<Conversation[]>([]);
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -67,7 +73,7 @@ export function useAsistente(onChanged: () => Promise<void>) {
     ];
     const snapshots: Turn[] = [];
     for (const turnId of ids)
-      snapshots.push(turnSchema.parse(await api(`/assistant/turns/${turnId}`)));
+      snapshots.push(parseTurn(await api(`/assistant/turns/${turnId}`)));
     if (ticket !== selection.current) return;
     setConversationId(id);
     setMessages(rows.reverse());
@@ -87,13 +93,12 @@ export function useAsistente(onChanged: () => Promise<void>) {
     ])
       .then(([, catalog]) => {
         if (live) {
-          if (catalog.catalogId !== catalogId)
-            throw new Error('Catálogo de interfaz no compatible.');
+          assertCatalog(catalog);
           setCatalogReady(true);
         }
       })
       .catch((e) => {
-        if (live) setError(e.message);
+        if (live) setError(errorMessage(e));
       })
       .finally(() => {
         if (live) setLoading(false);
@@ -107,26 +112,28 @@ export function useAsistente(onChanged: () => Promise<void>) {
     let closed = false;
     const stream = new EventSource(
       `${API_BASE}/assistant/turns/${active}/events`,
-      { withCredentials: true },
+      {
+        withCredentials: true,
+      },
     );
     const receive = (event: MessageEvent) => {
       try {
-        const snapshot = turnSchema.parse(JSON.parse(event.data));
+        const snapshot = parseTurn(JSON.parse(event.data));
         setTurns((t) => ({ ...t, [snapshot.id]: snapshot }));
         if (['completed', 'failed', 'interrupted'].includes(snapshot.status)) {
           stream.close();
           setActive(null);
           if (snapshot.error) setError(snapshot.error.message);
           void load(snapshot.conversationId).catch((e) => {
-            setError(e.message);
+            setError(errorMessage(e));
             setBusy(false);
           });
           void list().catch(() => {});
           if (snapshot.status === 'completed')
-            void changed.current().catch((e) => setError(e.message));
+            void changed.current().catch((e) => setError(errorMessage(e)));
         }
-      } catch {
-        setError('No pudimos interpretar la respuesta del asistente.');
+      } catch (e) {
+        setError(errorMessage(e));
         stream.close();
         setActive(null);
         setBusy(false);
@@ -169,7 +176,11 @@ export function useAsistente(onChanged: () => Promise<void>) {
       const body = { content: text.trim() };
       const receipt = await api<{ turnId: string }>(
         `/assistant/conversations/${id}/messages`,
-        { method: 'POST', body, key: mutationKey(key, { id, body }) },
+        {
+          method: 'POST',
+          body,
+          key: mutationKey(key, { id, body }),
+        },
       );
       key.current = null;
       setDraft('');
@@ -178,9 +189,7 @@ export function useAsistente(onChanged: () => Promise<void>) {
       await load(id);
       await list();
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'No se pudo enviar el mensaje.',
-      );
+      setError(errorMessage(e));
       setBusy(false);
     } finally {
       lock.current = false;
@@ -205,9 +214,7 @@ export function useAsistente(onChanged: () => Promise<void>) {
       setActive(receipt.turnId);
       return true;
     } catch (e) {
-      setError(
-        e instanceof Error ? e.message : 'No se pudo completar la acción.',
-      );
+      setError(errorMessage(e));
       setBusy(false);
       return false;
     } finally {
@@ -221,7 +228,7 @@ export function useAsistente(onChanged: () => Promise<void>) {
     try {
       await load(id);
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'No se pudo abrir.');
+      setError(errorMessage(e));
     } finally {
       setLoading(false);
     }

@@ -80,3 +80,44 @@ void test('data references cannot traverse prototypes', () => {
   assert.equal(dataAt({}, '/constructor/prototype'), undefined);
   assert.equal(dataAt({ a: null }, '/a/b'), undefined);
 });
+
+void test('accepts RAG and adaptive components across stored snapshots', async () => {
+  const { parseTurn } =
+    await import('../src/modules/asistente/types/protocol.ts');
+  for (const name of [
+    'BanorteSources',
+    'BanortePeriodComparison',
+    'BanorteKnowledgeFacts',
+  ]) {
+    const s = snapshot();
+    s.uiSnapshot[1].updateComponents!.components[1].component = name;
+    assert.equal(decodeSurface(parseTurn(s)).components[0].component, name);
+  }
+});
+void test('reports incompatible snapshots without exposing validation JSON', async () => {
+  const { parseTurn, UiCompatibilityError } =
+    await import('../src/modules/asistente/types/protocol.ts');
+  const s = snapshot();
+  s.uiSnapshot[1].updateComponents!.components[1].component = 'UnknownBlock';
+  assert.throws(
+    () => parseTurn(s),
+    (e: unknown) =>
+      e instanceof UiCompatibilityError &&
+      e.message.includes('Actualiza la página') &&
+      !e.message.includes('invalid_union'),
+  );
+});
+void test('checks actual catalog capabilities, not only its identifier', async () => {
+  const { assertCatalog, supportedComponents } =
+    await import('../src/modules/asistente/types/protocol.ts');
+  assert.doesNotThrow(() =>
+    assertCatalog({
+      catalogId,
+      components: Object.fromEntries(supportedComponents.map((n) => [n, {}])),
+    }),
+  );
+  assert.throws(() =>
+    assertCatalog({ catalogId, components: { UnknownBlock: {} } }),
+  );
+  assert.throws(() => assertCatalog({ catalogId }));
+});

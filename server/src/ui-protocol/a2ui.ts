@@ -1,8 +1,19 @@
+import { movementSchema } from "../modules/movimientos/schemas/movimiento.schema";
 import { z } from "zod";
 export const catalogId = "urn:banorte:a2ui:catalog:1";
 export const uiPlanSchema = z.strictObject({
   title: z.string().min(1).max(120),
   explanation: z.string().max(2000),
+  movementDraft: movementSchema.partial().optional(),
+  knowledgeQuotes: z
+    .array(
+      z.strictObject({
+        citation: z.string().regex(/^S[1-9]\d*$/),
+        quote: z.string().min(15).max(600),
+      }),
+    )
+    .max(5)
+    .optional(),
   blocks: z
     .array(
       z.enum([
@@ -14,10 +25,11 @@ export const uiPlanSchema = z.strictObject({
         "cards",
         "goals",
         "savings",
+        "comparison",
       ]),
     )
     .min(1)
-    .max(8),
+    .max(9),
 });
 export type UiPlan = z.infer<typeof uiPlanSchema>;
 const common = { id: z.string().min(1).max(100) };
@@ -42,6 +54,8 @@ export const componentSchema = z.discriminatedUnion("component", [
       "BanorteGoalList",
       "BanorteSavingsSimulator",
       "BanorteSources",
+      "BanortePeriodComparison",
+      "BanorteKnowledgeFacts",
     ] as const
   ).map((name) =>
     z.strictObject({

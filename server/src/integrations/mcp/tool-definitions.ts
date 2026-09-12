@@ -1,3 +1,4 @@
+import { comparisonSchema } from "../../modules/analisis/comparison";
 import { knowledgeQuerySchema } from "../../modules/conocimiento/knowledge.schemas";
 import { z } from "zod";
 import { movementQuerySchema } from "../../modules/movimientos/schemas/movimiento.schema";
@@ -5,6 +6,11 @@ import { insightsSchema } from "../../modules/analisis/analisis.module";
 import { goalQuerySchema } from "../../modules/metas/metas.module";
 import { simulationSchema } from "../../modules/simulaciones/simulaciones.module";
 export const toolDefinitions = {
+  compare_spending_periods: {
+    description:
+      "Compara gastos de dos periodos explícitos inclusivos (first y second con from/to). Calcula diferencia y porcentaje; porcentaje null si base cero. No equivale al saldo de cuenta. Conserva categoría si el usuario la solicita.",
+    schema: comparisonSchema,
+  },
   search_financial_knowledge: {
     description:
       "Consulta folletos y guías de Clásica, Oro y Platinum. Obligatoria para beneficios, comisiones, seguros, requisitos o condiciones de productos. Filtra product si se conoce; includeHistorical solo para preguntas explícitamente históricas. Devuelve fragmentos con página y vigencia. Si no hay fuentes, reconoce que falta evidencia. No consulta saldos ni datos personales.",
@@ -55,6 +61,7 @@ export type ToolName = keyof typeof toolDefinitions;
 
 export const toolMetadata: Record<ToolName, { title: string; readOnly: boolean }> = {
   search_financial_knowledge: { title: "Consultar documentos bancarios", readOnly: true },
+  compare_spending_periods: { title: "Comparar periodos", readOnly: true },
   get_profile: { title: "Consultar perfil", readOnly: true },
   list_my_cards: { title: "Consultar tarjetas", readOnly: true },
   get_account_summary: { title: "Consultar saldo", readOnly: true },

@@ -1,6 +1,6 @@
 # Verificación — 12 de septiembre de 2026
 
-## Datos del usuario
+## Verificación inicial de datos (estado histórico)
 
 Se retiró el aprovisionamiento financiero ficticio. Los perfiles nuevos reciben una cuenta con apertura cero, sin tarjetas automáticas, metas ni movimientos precargados. El seed conserva datos existentes y solo mantiene catálogo/accesos.
 
@@ -59,3 +59,7 @@ Checks: `server/npm run check` (Nest + MCP), `client/npm run typecheck`, `npm ru
 - Navegador Chromium: fuentes y extractos, enlace con página PDF, restauración de conversación, escritorio y móvil 390 px sin desbordamiento horizontal ni errores de JavaScript.
 - Gemini conversacional real: pregunta documental sobre LoungeKey Platinum, herramienta RAG elegida por el modelo, respuesta `education` con citas a páginas 19 de la guía y 1 del folleto. Tiempo observado: 8.2 segundos (una ejecución, no benchmark). El ejecutor de esta prueba solo permitió la herramienta documental; no envió cuentas ni movimientos a Gemini.
 - Compilación/tipos de Nest y MCP, tipos/lint del cliente y las 9 pruebas existentes del cliente pasan. Pendiente ampliar evaluación de exactitud y correspondencia de citas; una prueba exitosa no garantiza todas las respuestas.
+
+## Evaluación posterior de UI adaptativa
+
+Las referencias anteriores a cuentas vacías corresponden a pruebas anteriores a la carga de ejemplos solicitada después por el usuario. La evaluación actual conserva cuentas y movimientos existentes y usa un usuario temporal. Resultados, tiempos y comandos en [evaluación adaptativa](evaluacion-adaptativa.md).

@@ -17,7 +17,11 @@
     "db:studio": "prisma studio",
     "check": "npm run typecheck && npm run build",
     "mcp:build": "tsc -p ../mcp/tsconfig.json",
-    "rag:ingest": "node dist/modules/conocimiento/ingest.cli.js"
+    "rag:ingest": "node dist/modules/conocimiento/ingest.cli.js",
+    "test:adaptive": "node scripts/verify-adaptive.cjs",
+    "test:model-plans": "node scripts/verify-model-plans.cjs",
+    "test:rag-plan": "node scripts/verify-rag-plan.cjs",
+    "test:topic-switch": "node scripts/verify-topic-switch.cjs"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",

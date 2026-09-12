@@ -1,17 +1,18 @@
 # Arquitectura
 
 ```text
-client/                     React; pantallas todavía con datos locales
+client/                     React; pantallas conectadas a Nest y renderer A2UI
 server/
   src/
     modules/
-      autenticacion/        Registro, sesiones, guard y aprovisionamiento
+      autenticacion/        Login, sesiones, guard y aprovisionamiento privado
       perfil/               Perfil, tarjetas y catálogo
       cuentas/              Cuenta y saldo propio
       movimientos/          Registro e historial
       analisis/             Agregados por periodo
       metas/                Objetivos persistentes
       simulaciones/         Proyecciones educativas
+      conocimiento/         RAG documental, embeddings y fuentes con vigencia
       asistente/            Conversaciones, turnos, acciones y SSE
       salud/                Liveness/readiness
     integrations/llm/       Adaptador Gemini
@@ -71,3 +72,9 @@ La prueba usó un modelo controlado, con MCP y DB reales. El consumidor visual A
 - Una instancia Nest local: limita complejidad. Rate limits y capacidades en memoria; falta coordinación distribuida si se escala.
 
 PostgreSQL es el único proceso en Docker. El frontend consume estas rutas y renderiza el protocolo; localStorage ya no es la fuente de su historial.
+
+## Adaptación y contexto
+
+El plan admite `movementDraft`, `comparison` y `knowledgeQuotes`. Los borradores se validan y requieren revisión y confirmación; la tarjeta debe pertenecer al perfil. `compare_spending_periods` conserva dos consultas y calcula sus diferencias. La caché identifica llamadas por nombre y argumentos. Los seis turnos completados más recientes aportan al siguiente mensaje un contexto compacto de acciones, simulaciones, periodos y borradores, exclusivamente de la conversación propia. Los cálculos y las escrituras siguen siendo deterministas.
+
+El frontend comprueba los componentes anunciados por el catálogo, valida snapshots y muestra errores de compatibilidad legibles. Ver [plan ejecutado](plan-mejoras-reto.md) y [evaluación](evaluacion-adaptativa.md).

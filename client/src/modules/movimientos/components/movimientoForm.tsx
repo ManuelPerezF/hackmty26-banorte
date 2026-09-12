@@ -12,12 +12,16 @@ import { localDateKey } from '../services/movimientos.service';
 import type { MovementInput, MovementType } from '../types/movimientos.types';
 export function MovimientoForm({
   initialInstrument = '',
+  requireInstrumentSelection = false,
+  initialValues = {},
   onRegister,
   onCancel,
   ready,
   error,
 }: {
   initialInstrument?: string;
+  requireInstrumentSelection?: boolean;
+  initialValues?: Partial<MovementInput>;
   onRegister: (input: MovementInput) => Promise<boolean>;
   onCancel: () => void;
   ready: boolean;
@@ -26,7 +30,9 @@ export function MovimientoForm({
   const fieldId = useId();
   const instruments = useInstruments();
   const { account: personalAccount } = useBank();
-  const [type, setType] = useState<MovementType>('expense');
+  const [type, setType] = useState<MovementType>(
+    initialValues.type ?? 'expense',
+  );
   return (
     <div className="movement-create-layout">
       <section
@@ -89,6 +95,7 @@ export function MovimientoForm({
                 disabled={!ready}
                 id={`${fieldId}-movement-amount`}
                 name="amount"
+                defaultValue={initialValues.amount ?? ''}
                 inputMode="decimal"
                 placeholder="0.00"
                 required
@@ -109,9 +116,17 @@ export function MovimientoForm({
               disabled={!ready}
               id={`${fieldId}-movement-instrument`}
               name="instrumentId"
-              defaultValue={initialInstrument || personalAccount.id}
+              defaultValue={
+                initialInstrument ||
+                (requireInstrumentSelection ? '' : personalAccount.id)
+              }
               required
             >
+              {requireInstrumentSelection && (
+                <option value="" disabled>
+                  Selecciona una cuenta o tarjeta
+                </option>
+              )}
               {instruments.map((item) => (
                 <option key={item.id} value={item.id}>
                   {item.label}
@@ -125,6 +140,7 @@ export function MovimientoForm({
               disabled={!ready}
               id={`${fieldId}-movement-description`}
               name="description"
+              defaultValue={initialValues.description ?? ''}
               placeholder="Ej. Supermercado, nómina, renta"
               required
               maxLength={80}
@@ -137,7 +153,7 @@ export function MovimientoForm({
                 disabled={!ready}
                 id={`${fieldId}-movement-category`}
                 name="category"
-                defaultValue=""
+                defaultValue={initialValues.category ?? ''}
                 required
               >
                 <option value="" disabled>
@@ -156,7 +172,7 @@ export function MovimientoForm({
                 name="date"
                 type="date"
                 required
-                defaultValue={localDateKey()}
+                defaultValue={initialValues.date ?? localDateKey()}
                 max={localDateKey()}
               />
             </div>
@@ -169,6 +185,7 @@ export function MovimientoForm({
               disabled={!ready}
               id={`${fieldId}-movement-notes`}
               name="notes"
+              defaultValue={initialValues.notes ?? ''}
               placeholder="Un detalle que quieras recordar…"
               maxLength={500}
               rows={3}

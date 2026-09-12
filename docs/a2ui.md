@@ -14,7 +14,7 @@ Cada snapshot incluye, en orden:
 
 Todos llevan `version: "v0.9.1"`. El surfaceId es el UUID del turno y la revisión final es 1. Cada turno crea una superficie nueva; al restaurar un snapshot, el cliente debe reconstruir o sustituir esa superficie, no emitir createSurface dos veces sobre una existente.
 
-`GET /assistant/catalog` devuelve JSON Schema del catálogo y requiere sesión. Incluye Column, Text, BanorteBalance, BanorteMovementTable, BanorteSpendingChart, BanorteMovementForm, BanorteConfirmation, BanorteActionResult , BanortePeriodSelector, BanorteCardList, BanorteGoalList BanorteSavingsSimulator y BanorteSources. Los componentes Banorte tienen `data: {path: "/..."}` y, cuando corresponde, `action` como nombre del evento del catálogo. El renderer propio debe implementar ese contrato; no son componentes incluidos automáticamente en el catálogo básico de A2UI.
+`GET /assistant/catalog` devuelve JSON Schema del catálogo y requiere sesión. Incluye Column, Text, BanorteBalance, BanorteMovementTable, BanorteSpendingChart, BanorteMovementForm, BanorteConfirmation, BanorteActionResult , BanortePeriodSelector, BanorteCardList, BanorteGoalList BanorteSavingsSimulator BanorteSources, BanortePeriodComparison y BanorteKnowledgeFacts. Los componentes Banorte tienen `data: {path: "/..."}` y, cuando corresponde, `action` como nombre del evento del catálogo. El renderer propio debe implementar ese contrato; no son componentes incluidos automáticamente en el catálogo básico de A2UI.
 
 ## Acciones de la aplicación
 
@@ -55,3 +55,11 @@ Se conserva el identificador del catálogo para restaurar conversaciones existen
 ## Fuentes RAG
 
 `BanorteSources` se añade automáticamente al consultar `search_financial_knowledge`. No depende de un bloque inventado por el modelo. `/sources.items` contiene fragmentos recuperados, documento, página PDF, producto, vigencia y marcador S1/S2. Los marcadores se asignan por turno y se deduplican entre llamadas. El renderer ofrece acordeones accesibles, texto original y un enlace autenticado al PDF; construye la URL con el UUID validado, nunca con un enlace generado por Gemini. Sin resultados o con error de recuperación, el servidor muestra un mensaje de evidencia insuficiente. Ver [RAG](rag.md).
+
+## Adaptación del plan
+
+`movementDraft` prellena campos de un movimiento sin escribir. `comparison` muestra el resultado de `compare_spending_periods` mediante `BanortePeriodComparison`: dos periodos, gasto, diferencia, porcentaje nullable y advertencia de duración distinta. `knowledgeQuotes` propone hasta cinco citas literales; el backend exige que cada cita esté dentro del fragmento recuperado (tolerando únicamente diferencias de espacios/saltos de línea y devolviendo siempre el texto original) y que su marcador exista en el turno antes de emitir `BanorteKnowledgeFacts`.
+
+El cliente compara los nombres del catálogo con sus capacidades. Un mensaje incompatible muestra una instrucción de actualizar y recuperar la conversación, sin exponer JSON de validación. Las conversaciones existentes conservan su catálogo y se validan al recuperarlas. El despliegue debe actualizar backend y frontend juntos; una pestaña con código antiguo necesita recargarse.
+
+Cuando el borrador no trae una tarjeta válida, el formulario requiere elegir explícitamente cuenta o tarjeta antes de enviarlo. La tabla documental exige citas en la salida del LLM cuando hubo evidencia, pero renderiza únicamente las que coinciden con los fragmentos recuperados.

@@ -2,7 +2,7 @@
 
 ## Estado actual
 
-El backend ya implementa login real, hash Argon2id, sesiones revocables, autorización por propietario, tarjetas, historial, análisis, metas, simulaciones y conversaciones. Los perfiles nuevos comienzan con saldo cero e historial vacío. Las dos cuentas de prueba existentes conservan sus tarjetas asignadas; se retiraron saldos y movimientos precargados.
+El backend ya implementa login real, hash Argon2id, sesiones revocables, autorización por propietario, tarjetas, historial, análisis, metas, simulaciones y conversaciones. Los perfiles nuevos comienzan con saldo cero e historial vacío. Los perfiles nuevos no reciben precargas. Las cuentas existentes conservan sus datos; a petición del usuario se cargó posteriormente historial de ejemplo en su cuenta para las pruebas.
 
 El servidor MCP por stdio y el cliente Nest están implementados y probados. El adaptador Gemini y la generación de mensajes A2UI v0.9.1 están implementados. La integración se verificó también con Gemini real (Flash-Lite), desde el navegador hasta PostgreSQL. La clave local está configurada únicamente en server/.env; no se versiona.
 
@@ -10,6 +10,8 @@ El frontend ya consume login, cuenta, tarjetas, movimientos, metas, simulación 
 
 | Documento | Contenido |
 | --- | --- |
+| [Plan de mejoras](plan-mejoras-reto.md) | Prioridades, criterios y avance ejecutado |
+| [Evaluación adaptativa](evaluacion-adaptativa.md) | Casos reproducibles, mediciones y límites |
 | [Verificación](verificacion.md) | Prueba con Gemini real y datos vacíos |
 | [Backend](backend.md) | Implementación, arranque y verificaciones |
 | [Endpoints](endpoints.md) | Contrato HTTP actual y conexión del cliente |

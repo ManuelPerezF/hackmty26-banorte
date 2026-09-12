@@ -1,3 +1,4 @@
+import { comparisonSchema, comparePeriods } from "../../modules/analisis/comparison";
 import { KnowledgeModule } from "../../modules/conocimiento/knowledge.module";
 import { KnowledgeService } from "../../modules/conocimiento/knowledge.service";
 import { knowledgeQuerySchema } from "../../modules/conocimiento/knowledge.schemas";
@@ -64,6 +65,14 @@ class ToolGatewayController {
     parse(toolDefinitions[name].schema);
     const i = cap.identity;
     switch (name) {
+      case "compare_spending_periods": {
+        const q = parse(comparisonSchema);
+        const [first, second] = await Promise.all([
+          this.insights.spending({ ...q.first, category: q.category }, i),
+          this.insights.spending({ ...q.second, category: q.category }, i),
+        ]);
+        return comparePeriods(first, second);
+      }
       case "search_financial_knowledge":
         return this.knowledge.search(parse(knowledgeQuerySchema));
       case "get_profile":

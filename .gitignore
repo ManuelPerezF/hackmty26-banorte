@@ -10,3 +10,6 @@ dist/
 server/src/generated/
 coverage/
 .codegraph
+/docs
+.docs
+docs/

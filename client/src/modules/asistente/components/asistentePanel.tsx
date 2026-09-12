@@ -19,6 +19,7 @@ import { useBank } from '@/modules/cuentas/context/bank-context';
 import type { useAsistente } from '../hooks/useAsistente';
 import { MayaMark } from './maya-mark';
 import { A2uiRenderer } from './a2ui-renderer';
+import { DocumentConsultation } from './document-consultation';
 import '../styles/chat.css';
 export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
   const { profile } = useBank();
@@ -35,6 +36,16 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
       (m) => m.role === 'assistant' && m.turnId === standalone.id,
     );
   const welcome = !a.loading && !a.messages.length && !a.busy && !standalone;
+  const documents = (
+    <DocumentConsultation
+      key={a.conversationId ?? 'new'}
+      disabled={!a.catalogReady || a.busy || a.loading}
+      onConsult={(question) => {
+        a.setDraft(question);
+        void a.send(question);
+      }}
+    />
+  );
   const composer = (
     <form
       className="bank-chat-compose"
@@ -111,6 +122,7 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
               {composer}
               <div className="chat-suggestions">
                 <span>PODEMOS EMPEZAR POR AQUÍ</span>
+                {documents}
                 {[
                   { icon: ChartColumn, text: '¿En qué gasté este mes?' },
                   { icon: Receipt, text: 'Quiero registrar un movimiento' },
@@ -193,7 +205,12 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
             </div>
           )}
         </div>
-        {!welcome && composer}
+        {!welcome && (
+          <div className="chat-compose-area">
+            {documents}
+            {composer}
+          </div>
+        )}
       </div>
       <aside
         className="chat-history"

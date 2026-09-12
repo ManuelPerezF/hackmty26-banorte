@@ -26,6 +26,8 @@ const component = z.discriminatedUnion('component', [
       'BanorteGoalList',
       'BanorteSavingsSimulator',
       'BanorteSources',
+      'BanortePeriodComparison',
+      'BanorteKnowledgeFacts',
     ]),
     data: z.object({ path: z.string().regex(/^\//) }),
     action: z.string().optional(),
@@ -134,4 +136,60 @@ export function dataAt(data: Record<string, unknown>, path: string): unknown {
     value = (value as Record<string, unknown>)[key];
   }
   return value;
+}
+
+export const supportedComponents = [
+  'Column',
+  'Text',
+  'BanorteBalance',
+  'BanorteMovementTable',
+  'BanorteSpendingChart',
+  'BanorteMovementForm',
+  'BanorteConfirmation',
+  'BanorteActionResult',
+  'BanortePeriodSelector',
+  'BanorteCardList',
+  'BanorteGoalList',
+  'BanorteSavingsSimulator',
+  'BanorteSources',
+  'BanortePeriodComparison',
+  'BanorteKnowledgeFacts',
+] as const;
+export class UiCompatibilityError extends Error {
+  constructor() {
+    super(
+      'Actualiza la página para cargar la nueva interfaz y vuelve a abrir esta conversación. No necesitas repetir la operación.',
+    );
+    this.name = 'UiCompatibilityError';
+  }
+}
+export function assertCatalog(input: unknown) {
+  const parsed = z
+    .object({
+      catalogId: z.literal(catalogId),
+      components: z.record(z.string(), z.unknown()),
+    })
+    .safeParse(input);
+  if (
+    !parsed.success ||
+    Object.keys(parsed.data.components).some(
+      (name) =>
+        !supportedComponents.includes(
+          name as (typeof supportedComponents)[number],
+        ),
+    )
+  )
+    throw new UiCompatibilityError();
+}
+export function parseTurn(input: unknown): Turn {
+  const parsed = turnSchema.safeParse(input);
+  if (!parsed.success) throw new UiCompatibilityError();
+  if (parsed.data.uiSnapshot) {
+    try {
+      decodeSurface(parsed.data);
+    } catch {
+      throw new UiCompatibilityError();
+    }
+  }
+  return parsed.data;
 }
