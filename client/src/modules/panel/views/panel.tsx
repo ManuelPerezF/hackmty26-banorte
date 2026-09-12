@@ -1,4 +1,5 @@
 'use client';
+import { Movimientos } from '@/modules/movimientos/views/movimientos';
 import AppShell from '@/shared/layout/app-shell';
 import { AccountsOverview } from '@/modules/home/views/home';
 import { AssistantWorkspace } from '@/modules/asistente/views/asistente';
@@ -15,10 +16,14 @@ export default function Panel() {
       {section === 'Inicio' && (
         <AccountsOverview
           cardId={savedCard?.cardId}
+          ledger={panel.ledger}
           onNavigate={changeSection}
         />
       )}
-      {section === 'Asistente' && <AssistantWorkspace />}
+      {section === 'Movimientos' && <Movimientos ledger={panel.ledger} />}
+      {section === 'Asistente' && (
+        <AssistantWorkspace movements={panel.ledger.movements} />
+      )}
       {section === 'Tarjetas' && (
         <CardSelection
           saved={savedCard}

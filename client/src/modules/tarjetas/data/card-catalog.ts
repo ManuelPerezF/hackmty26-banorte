@@ -27,13 +27,4 @@ export const cardCatalog = [
     caption: 'Contigo, en tu día a día.',
     color: 'Rojo Clásica',
   },
-  {
-    id: 'roja',
-    name: 'Roja',
-    image: '/images/cards/banorte-card-original.png',
-    network: 'Mastercard',
-    artwork: 'original',
-    caption: 'Tu siguiente paso, en tus manos.',
-    color: 'Rojo Banorte',
-  },
 ] as const satisfies readonly BankCard[];

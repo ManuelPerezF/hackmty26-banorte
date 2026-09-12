@@ -5,7 +5,7 @@ import type {
   CardSelectionValue,
 } from '../types/tarjetas.types';
 // Local demo catalog. This service does not call a bank or persist requests.
-export const showcaseCards = cardCatalog.filter((card) => card.id !== 'roja');
+export const showcaseCards = cardCatalog;
 export function getCard(id: CardId) {
   return cardCatalog.find((card) => card.id === id)!;
 }

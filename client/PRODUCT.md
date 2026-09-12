@@ -18,4 +18,6 @@ La referencia estructural indicada por el usuario es kent/client: src/modules co
 
 ## Pantallas del MVP
 
-Inicio, Asistente, Tarjetas, Metas y Perfil. Landing y Acceso son las páginas públicas. Perfil integra configuración, Inicio integra movimientos y Asistente será el lugar de educación e inversiones. Metas guarda objetivos de demostración durante la sesión del panel.
+Inicio, Movimientos, Asistente, Tarjetas, Metas y Perfil. Landing y Acceso son las páginas públicas. Perfil integra configuración, Inicio integra movimientos y Asistente será el lugar de educación e inversiones. Metas guarda objetivos de demostración durante la sesión del panel.
+
+Los movimientos manuales persisten en el navegador y alimentan el saldo, el historial y los cálculos del asistente simulado. El catálogo incluye solo Clásica, Oro e Infinite.

@@ -1,7 +1,11 @@
 'use client';
 import { AsistentePanel } from '../components/asistentePanel';
 import { useAsistente } from '../hooks/useAsistente';
-export function AssistantWorkspace() {
+import type { Movement } from '@/modules/movimientos/types/movimientos.types';
+import { getMovementInsights } from '../services/asistente.service';
+export function AssistantWorkspace({ movements }: { movements: Movement[] }) {
   const assistant = useAsistente();
-  return <AsistentePanel {...assistant} />;
+  return (
+    <AsistentePanel {...assistant} insights={getMovementInsights(movements)} />
+  );
 }

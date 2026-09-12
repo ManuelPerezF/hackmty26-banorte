@@ -16,7 +16,8 @@ import { Input } from '@/shared/components/ui/input';
 
 import { ViewTransition } from '@/shared/components/view-transition';
 
-import { spending } from '../data/demo-spending';
+import type { getMovementInsights } from '../services/asistente.service';
+import { formatMoney } from '@/shared/utils/money';
 export function AsistentePanel({
   scenario,
   draft,
@@ -26,7 +27,11 @@ export function AsistentePanel({
   lastPrompt,
   choosePrompt,
   submitPrompt,
-}: ReturnType<typeof useAsistente>) {
+  insights,
+}: ReturnType<typeof useAsistente> & {
+  insights: ReturnType<typeof getMovementInsights>;
+}) {
+  const { totals, spending } = insights;
   return (
     <div className="finance-workspace chat-page">
       <div className="finance-assistant-sheet finance-embedded-chat">
@@ -64,12 +69,12 @@ export function AsistentePanel({
               <p>
                 {scenario === 'expenses' ? (
                   <>
-                    Claro. Organicé tus movimientos de septiembre para que veas{' '}
+                    Claro. Organicé tu historial de movimientos para que veas{' '}
                     <strong>a dónde va tu dinero.</strong>
                   </>
                 ) : (
                   <>
-                    Tus ingresos superan tus gastos. Preparé una vista de{' '}
+                    Preparé una vista de{' '}
                     <strong>lo que entra y lo que sale.</strong>
                   </>
                 )}
@@ -129,10 +134,11 @@ export function AsistentePanel({
                     ? 'Así se distribuyen tus gastos'
                     : 'Tu flujo de efectivo'}
                 </h4>
-                <p>01 — 09 sept 2026 · MXN</p>
+                <p>Todo tu historial · MXN</p>
                 <div className="insight-total">
-                  {scenario === 'expenses' ? '$48,350' : '+ $38,050'}
-                  <span>.00</span>
+                  {formatMoney(
+                    scenario === 'expenses' ? totals.expense : totals.net,
+                  )}
                 </div>
                 {scenario === 'expenses' ? (
                   <div className="spending-bars">
@@ -140,13 +146,13 @@ export function AsistentePanel({
                       <div className="spending-row" key={item.name}>
                         <div>
                           <span>{item.name}</span>
-                          <strong>{item.value}</strong>
+                          <strong>{formatMoney(item.amount)}</strong>
                         </div>
                         <span className="spending-track">
                           <span
                             style={{
                               width: `${item.width}%`,
-                              opacity: 1 - i * 0.17,
+                              opacity: Math.max(0.3, 1 - i * 0.1),
                             }}
                           />
                         </span>
@@ -157,17 +163,17 @@ export function AsistentePanel({
                   <div className="cashflow-insight">
                     <div>
                       <span>Ingresos</span>
-                      <strong>$86,400</strong>
-                      <i style={{ width: '100%' }} />
+                      <strong>{formatMoney(totals.income)}</strong>
+                      <i style={{ width: `${insights.incomeWidth}%` }} />
                     </div>
                     <div>
                       <span>Gastos</span>
-                      <strong>$48,350</strong>
-                      <i style={{ width: '56%' }} />
+                      <strong>{formatMoney(totals.expense)}</strong>
+                      <i style={{ width: `${insights.expenseWidth}%` }} />
                     </div>
                     <p>
-                      <TrendingUp size={15} /> El 44% de tus ingresos permanece
-                      disponible.
+                      <TrendingUp size={15} /> Balance neto:{' '}
+                      {formatMoney(totals.net)}.
                     </p>
                   </div>
                 )}
@@ -177,14 +183,20 @@ export function AsistentePanel({
               </section>
               <p className="assistant-takeaway">
                 {scenario === 'expenses' ? (
-                  <>
-                    La vivienda representa el <strong>38% de tus gastos</strong>
-                    . Es tu categoría principal este mes.
-                  </>
+                  spending[0] ? (
+                    <>
+                      {spending[0].name} representa el{' '}
+                      <strong>{spending[0].share}% de tus gastos</strong> en
+                      este historial.
+                    </>
+                  ) : (
+                    'Todavía no hay gastos registrados.'
+                  )
                 ) : (
                   <>
-                    Tus ingresos superan tus gastos en <strong>$38,050</strong>{' '}
-                    durante este periodo.
+                    La diferencia entre ingresos y gastos es{' '}
+                    <strong>{formatMoney(totals.net)}</strong> en este
+                    historial.
                   </>
                 )}
               </p>

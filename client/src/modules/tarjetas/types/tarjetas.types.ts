@@ -1,11 +1,11 @@
-export type CardId = 'infinite' | 'oro' | 'clasica' | 'roja';
+export type CardId = 'infinite' | 'oro' | 'clasica';
 export type CardFormat = 'fisica' | 'digital';
 export type BankCard = {
   id: CardId;
   name: string;
   image: string;
-  network: 'Visa' | 'Mastercard';
-  artwork: 'framed' | 'full' | 'original';
+  network: 'Visa';
+  artwork: 'framed' | 'full';
   caption: string;
   color: string;
 };

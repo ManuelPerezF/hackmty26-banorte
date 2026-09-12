@@ -3,7 +3,7 @@ import type { CardId } from '../types/tarjetas.types';
 import '../styles/cards.css';
 export function CardArtwork({
   className = '',
-  cardId = 'roja',
+  cardId = 'clasica',
   priority = false,
 }: {
   className?: string;

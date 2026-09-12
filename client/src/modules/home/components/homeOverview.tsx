@@ -5,20 +5,17 @@ import {
   ChevronDown,
   ChevronRight,
   Command,
-  Target,
+  Plus,
   TrendingUp,
   CreditCard,
 } from 'lucide-react';
+import { formatMoney, formatMovementDate } from '@/shared/utils/money';
 import { Button } from '@/shared/components/ui/button';
 
 import { CardArtwork } from '@/modules/tarjetas/components/card-artwork';
 
-import type { HomeProps, DemoTransaction } from '../types/home.types';
-export function HomeOverview({
-  onNavigate,
-  cardId,
-  transactions,
-}: HomeProps & { transactions: readonly DemoTransaction[] }) {
+import type { HomeProps } from '../types/home.types';
+export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
   return (
     <div className="finance-workspace account-home">
       {' '}
@@ -51,11 +48,11 @@ export function HomeOverview({
               </span>
             </div>
             <div className="modern-balance-amount">
-              $284,650<span>.00</span>
+              {formatMoney(ledger.balanceCents)}
             </div>
             <div className="modern-balance-actions">
-              <Button onClick={() => onNavigate('Metas')}>
-                <Target size={19} /> Mis metas
+              <Button onClick={() => onNavigate('Movimientos')}>
+                <Plus size={19} /> Movimientos
               </Button>
               <Button variant="ghost" onClick={() => onNavigate('Tarjetas')}>
                 <CreditCard size={19} /> Ver tarjetas
@@ -105,7 +102,7 @@ export function HomeOverview({
                     <strong>Peso mexicano</strong>
                     <span>MXN · •••• 4281</span>
                   </div>
-                  <strong>$284,650.00</strong>
+                  <strong>{formatMoney(ledger.balanceCents)}</strong>
                 </div>
                 <Button
                   variant="ghost"
@@ -144,8 +141,8 @@ export function HomeOverview({
                   Conoce tu asistente <ArrowRight size={17} />
                 </Button>
                 <div className="insight-mini" aria-hidden="true">
-                  <span>Tu flujo este mes</span>
-                  <strong>+$38,050</strong>
+                  <span>Balance del historial</span>
+                  <strong>{formatMoney(ledger.totals.net)}</strong>
                   <div>
                     <i />
                     <i />
@@ -165,28 +162,29 @@ export function HomeOverview({
           >
             <div className="finance-section-title">
               <h3 id="recent-title">Movimientos</h3>
-              <Button variant="ghost" onClick={() => onNavigate('Asistente')}>
-                Analizar gastos <ArrowUpRight size={16} />
+              <Button variant="ghost" onClick={() => onNavigate('Movimientos')}>
+                Ver historial <ArrowUpRight size={16} />
               </Button>
             </div>
-            <span className="transaction-day">Septiembre</span>
+            <span className="transaction-day">Actividad reciente · MXN</span>
             <div className="transaction-list">
-              {transactions.map((t) => (
-                <div className="transaction-row" key={t.name}>
+              {ledger.movements.slice(0, 3).map((t) => (
+                <div className="transaction-row" key={t.id}>
                   <span
-                    className={`merchant-avatar ${t.incoming ? 'incoming' : ''}`}
+                    className={`merchant-avatar ${t.type === 'income' ? 'incoming' : ''}`}
                   >
-                    {t.initials}
+                    {t.description.slice(0, 1)}
                   </span>
                   <div className="merchant-copy">
-                    <strong>{t.name}</strong>
+                    <strong>{t.description}</strong>
                     <span>{t.category}</span>
                   </div>
                   <div className="transaction-value">
-                    <strong className={t.incoming ? 'incoming' : ''}>
-                      {t.amount}
+                    <strong className={t.type === 'income' ? 'incoming' : ''}>
+                      {t.type === 'income' ? '+' : '−'}{' '}
+                      {formatMoney(t.amountCents)}
                     </strong>
-                    <span>{t.date}</span>
+                    <span>{formatMovementDate(t.date)}</span>
                   </div>
                 </div>
               ))}

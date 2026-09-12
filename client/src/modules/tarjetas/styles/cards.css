@@ -8,12 +8,6 @@
   top: -49.6154%;
   height: auto;
 }
-.bank-card-artwork[data-artwork='original'] img {
-  width: 111.111%;
-  left: -5.555%;
-  top: -41.05%;
-  height: auto;
-}
 .bank-card-artwork[data-artwork='full'] img {
   width: 100%;
   left: 0;
@@ -57,8 +51,7 @@
 .dot-oro {
   background: oklch(0.7 0.13 75);
 }
-.dot-clasica,
-.dot-roja {
+.dot-clasica {
   background: oklch(0.56 0.22 22);
 }
 .card-selection > h2 {

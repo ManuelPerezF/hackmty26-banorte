@@ -1,13 +1,7 @@
 import type { CardId } from '@/modules/tarjetas/types/tarjetas.types';
-export type DemoTransaction = {
-  name: string;
-  category: string;
-  date: string;
-  amount: string;
-  incoming: boolean;
-  initials: string;
-};
+import type { useMovimientos } from '@/modules/movimientos/hooks/useMovimientos';
 export type HomeProps = {
   onNavigate: (section: string) => void;
   cardId?: CardId;
+  ledger: ReturnType<typeof useMovimientos>;
 };

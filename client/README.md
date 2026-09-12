@@ -17,6 +17,7 @@ Abrir http://127.0.0.1:3000. La cuenta de acceso está precargada con datos fict
 ```sh
 npm run typecheck
 npm run lint
+npm test
 npm run build
 npm run start
 ```
@@ -43,9 +44,7 @@ client/src/
 │   ├── home/
 │   │   ├── views/home.tsx
 │   │   ├── components/homeOverview.tsx
-│   │   ├── services/home.service.ts
 │   │   ├── types/home.types.ts
-│   │   └── data/
 │   ├── tarjetas/
 │   │   ├── views/tarjetas.tsx
 │   │   ├── components/
@@ -61,6 +60,14 @@ client/src/
 │   │   ├── services/asistente.service.ts
 │   │   ├── types/asistente.types.ts
 │   │   └── data/
+│   ├── movimientos/
+│   │   ├── views/movimientos.tsx
+│   │   ├── components/          # Tabla, registro y detalle
+│   │   ├── hooks/               # Historial, filtros y estado compartido
+│   │   ├── services/            # Validación, centavos y almacenamiento local
+│   │   ├── types/
+│   │   ├── data/
+│   │   └── styles/
 │   ├── metas/
 │   │   ├── views/metas.tsx
 │   │   ├── components/metasPanel.tsx
@@ -105,7 +112,7 @@ Las credenciales del LLM y la ejecución de herramientas MCP pertenecen al servi
 
 ## Pantallas básicas
 
-La experiencia tiene cinco pantallas dentro del panel, además de las dos páginas públicas existentes.
+La experiencia tiene seis pantallas dentro del panel, además de las dos páginas públicas existentes.
 
 | Pantalla        | Responsabilidad                                       | Módulo      |
 | --------------- | ----------------------------------------------------- | ----------- |
@@ -117,24 +124,41 @@ La experiencia tiene cinco pantallas dentro del panel, además de las dos págin
 | Metas           | Crear y consultar objetivos de ahorro de demostración | `metas`     |
 | Perfil          | Datos, tarjeta elegida y salida de la demo            | `perfil`    |
 
-El módulo `panel` compone las cinco pantallas dentro de `/panel`. Mantienen navegación en memoria, sin rutas independientes. El perfil incluye configuración. Los movimientos permanecen en Inicio. Educación e inversiones se contemplan como experiencias dentro del Asistente, pendientes de implementación.
+El módulo `panel` compone las seis pantallas dentro de `/panel`. Mantienen navegación en memoria, sin rutas independientes. El perfil incluye configuración. Inicio muestra los movimientos recientes y el saldo. Movimientos reúne el registro y el historial completo. Educación e inversiones se contemplan como experiencias dentro del Asistente, pendientes de implementación.
 
 Las metas aceptan nombre y monto objetivo, se validan y permanecen durante la navegación del panel. Recargar o salir del panel reinicia metas y selección de tarjeta. No se mueven fondos ni se reservan saldos.
 
 ## Tarjetas
 
-`modules/tarjetas/data/card-catalog.ts` es la fuente única de producto, imagen, red y presentación. El catálogo contiene Infinite Visa, Oro Visa, la Clásica Visa adjunta y la tarjeta roja Mastercard del origen. “Roja” es una etiqueta visual de demostración, no una identificación comercial verificada.
+`modules/tarjetas/data/card-catalog.ts` es la fuente única de producto, imagen, red y presentación. El catálogo contiene exclusivamente Clásica Visa, Oro Visa e Infinite Visa. Clásica es la tarjeta predeterminada.
 
-La landing muestra Infinite, Oro y Clásica. El panel permite elegir las cuatro, con presentación física o digital. La selección se refleja en Inicio y Perfil durante la sesión del panel. No se solicitan tarjetas ni se generan cargos.
+La landing muestra Infinite, Oro y Clásica. El panel permite elegir las tres, con presentación física o digital. La selección se refleja en Inicio y Perfil durante la sesión del panel. No se solicitan tarjetas ni se generan cargos.
 
 Las imágenes se copian sin modificar. `CardArtwork` aplica recortes CSS según la composición de cada archivo.
 
 ## Alcance actual
 
 - El acceso es una demostración, no autenticación real.
-- El asistente conserva dos escenarios simulados del origen: gastos y flujo de efectivo. No tiene conexión a un LLM, MCP o A2UI real.
-- El menú se redujo a cinco destinos; se retiraron las secciones vacías del origen.
+- El asistente conserva dos escenarios simulados: gastos y flujo de efectivo. Sus cifras se calculan a partir del historial compartido, pero no tiene conexión a un LLM, MCP o A2UI real.
+- El menú se redujo a seis destinos; se retiraron las secciones vacías del origen.
 - Metas permite crear objetivos locales. Aportaciones, apartados bancarios y persistencia del backend están pendientes.
 - Los enlaces externos de productos siguen apuntando al sitio oficial de Banorte.
 
 No se copiaron el repositorio Git de origen, videos, builds ni configuración de hosting. Solo se importaron los componentes UI necesarios para las páginas, junto con sus dependencias.
+
+## Registro e historial
+
+Los movimientos comparten un estado entre Inicio, Historial y Asistente. Se validan concepto, tipo, categoría, fecha, nota y monto. Los importes se almacenan en centavos enteros. El saldo parte de una base de demostración y suma ingresos/resta gastos.
+
+Los registros se guardan en `localStorage` bajo `banorte.demo.movements.v1`. Persisten al recargar dentro del mismo navegador/origen. No existe sincronización con servidor ni entre sesiones abiertas en distintas pestañas. Un fallo de guardado no se anuncia como éxito. Un historial inválido no se sobrescribe automáticamente.
+
+Historial incluye búsqueda sin distinción de acentos, filtro de tipo/categoría/fechas, paginación y detalle. Registrar abre un formulario dentro de la misma pantalla. Son anotaciones de demostración: no realizan transferencias ni pagos.
+
+## Referencias visuales consultadas con MCP de Mobbin
+
+- [Revolut Business: tabla de gastos](https://mobbin.com/screens/45d6266f-7729-4554-a483-7f7182b66731): barra de herramientas y filas con importes alineados.
+- [Revolut Business: detalle lateral](https://mobbin.com/screens/294b3412-6700-42f7-b1b4-2a24e1d1a1b5): inspección de la operación junto al listado.
+- [Wise: historial](https://mobbin.com/screens/2930c3d1-40a7-45ac-95a1-b9dea8652ea2): fondo claro, separación por filas y búsqueda discreta.
+- [Wise: detalle](https://mobbin.com/screens/1a4d823e-2938-4a00-857b-e61751930663): concepto, importe, metadatos y nota.
+
+Se adaptan estos patrones a la identidad Banorte; no se copian capturas ni activos de terceros al producto.
