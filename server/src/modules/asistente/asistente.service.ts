@@ -25,6 +25,12 @@ import {
 } from "../movimientos/schemas/movimiento.schema";
 import { insightsSchema } from "../analisis/analisis.module";
 const json = (value: unknown) => JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+const agentErrors: Record<string, string> = {
+  LLM_QUOTA_EXCEEDED: "El asistente alcanzó su límite de uso. Intenta más tarde; puedes seguir usando tus cuentas y movimientos.",
+  LLM_UNAVAILABLE: "El servicio de IA está ocupado temporalmente. Intenta de nuevo en unos momentos.",
+  LLM_AUTH_FAILED: "El asistente no puede conectarse al servicio de IA. La configuración de acceso requiere revisión.",
+  LLM_TIMEOUT: "El asistente tardó demasiado en responder. Consulta el estado de tu movimiento antes de reintentar.",
+};
 const terminal = (s: string) => ["completed", "failed", "interrupted"].includes(s);
 @Injectable()
 export class AsistenteService implements OnModuleInit {
@@ -236,7 +242,7 @@ export class AsistenteService implements OnModuleInit {
       error: t.errorCode
         ? {
             code: t.errorCode,
-            message:
+            message: agentErrors[t.errorCode] ??
               "No se pudo completar la respuesta. Consulta el resultado de la acción antes de reintentar.",
           }
         : null,
@@ -441,15 +447,19 @@ export class AsistenteService implements OnModuleInit {
             add("period", "BanortePeriodSelector", "change_period");
           }
           if (block === "movementForm") {
-            data.form = { categories, today: todayInTimezone(i.timezone), currency: "MXN" };
+            data.form = { categories, today: todayInTimezone(i.timezone), currency: "MXN", cards: await execute("list_my_cards", {}) };
             add("form", "BanorteMovementForm", "submit_movement_form");
           }
         }
         await this.finish(id, plan.title, plan.explanation, components, data);
       });
     } catch (e) {
+      const providerStatus = e && typeof e === "object" && "status" in e ? e.status : undefined;
       const code = signal.aborted
         ? "LLM_TIMEOUT"
+        : providerStatus === 429 ? "LLM_QUOTA_EXCEEDED"
+        : providerStatus === 503 || providerStatus === 502 ? "LLM_UNAVAILABLE"
+        : providerStatus === 401 || providerStatus === 403 ? "LLM_AUTH_FAILED"
         : e instanceof Error &&
             ["LLM_INVALID_OUTPUT", "TOOL_LIMIT", "INVALID_DATE"].includes(e.message)
           ? e.message

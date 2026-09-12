@@ -1,4 +1,5 @@
 'use client';
+import { useBank } from '@/modules/cuentas/context/bank-context';
 import type { CSSProperties } from 'react';
 import { ArrowUpRight, ChevronRight, Search, X } from 'lucide-react';
 import {
@@ -22,6 +23,13 @@ function AppShellContent({
   setQuery,
   results,
 }: AppShellProps) {
+  const bank = useBank();
+  const initials = bank.profile.displayName
+    .split(/\s+/)
+    .map((s) => s[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
   const { setOpenMobile } = useSidebar();
   const changeSection = (title: string) => {
     onNavigate(title);
@@ -58,8 +66,8 @@ function AppShellContent({
               className="company-switch"
               onClick={() => changeSection('Perfil')}
             >
-              <span className="company-avatar">AM</span>
-              <span>Alex Morgan</span>
+              <span className="company-avatar">{initials}</span>
+              <span>{bank.profile.displayName}</span>
               <ChevronRight size={16} />
             </Button>
           </div>

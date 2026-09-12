@@ -11,7 +11,9 @@ import { Movement, Prisma } from "../../../generated/prisma/client";
 import { safeCents } from "../../../shared/money";
 import { CreateMovement, MovementQuery, todayInTimezone } from "../schemas/movimiento.schema";
 
-export function serializeMovement(item: Movement) {
+const movementRelations = { account: { select: { id: true, name: true, currency: true } }, card: { select: { id: true, last4: true, product: { select: { key: true, name: true, imageKey: true } } } } } satisfies Prisma.MovementInclude;
+type MovementWithRelations = Prisma.MovementGetPayload<{ include: typeof movementRelations }>;
+export function serializeMovement(item: MovementWithRelations) {
   const { accountId, idempotencyKey, ...record } = item;
   return {
     ...record,
@@ -28,6 +30,7 @@ export class MovimientosService {
   async list(query: MovementQuery, identity: Identity) {
     const where: Prisma.MovementWhereInput = {
       accountId: identity.accountId,
+      cardId: query.accountOnly === "true" ? null : query.cardId,
       type: query.type,
       category: query.category,
       date:
@@ -47,6 +50,7 @@ export class MovimientosService {
       [
         this.prisma.movement.findMany({
           where,
+          include: movementRelations,
           orderBy: [{ date: "desc" }, { createdAt: "desc" }, { id: "desc" }],
           skip: (query.page - 1) * query.pageSize,
           take: query.pageSize,
@@ -79,6 +83,7 @@ export class MovimientosService {
   async findOne(id: string, identity: Identity) {
     const item = await this.prisma.movement.findFirst({
       where: { id, accountId: identity.accountId },
+      include: movementRelations,
     });
     if (!item) throw new NotFoundException("Movimiento no encontrado.");
     return serializeMovement(item);
@@ -87,8 +92,14 @@ export class MovimientosService {
   async create(input: CreateMovement, idempotencyKey: string, identity: Identity) {
     if (input.date > todayInTimezone(identity.timezone))
       throw new BadRequestException("La fecha no puede ser posterior a hoy.");
+    if (input.cardId) {
+      const card = await this.prisma.card.findFirst({where:{id:input.cardId,profileId:identity.profileId}});
+      if (!card) throw new NotFoundException("Tarjeta no encontrada.");
+      if (card.status !== "active") throw new ConflictException("Tarjeta inactiva.");
+    }
     try {
       const item = await this.prisma.movement.create({
+        include: movementRelations,
         data: {
           ...input,
           date: new Date(`${input.date}T00:00:00Z`),
@@ -104,9 +115,11 @@ export class MovimientosService {
         throw error;
       const existing = await this.prisma.movement.findUnique({
         where: { accountId_idempotencyKey: { accountId: identity.accountId, idempotencyKey } },
+        include: movementRelations,
       });
       if (
         !existing ||
+        existing.cardId !== input.cardId ||
         existing.description !== input.description ||
         existing.amountCents !== BigInt(input.amountCents) ||
         existing.type !== input.type ||

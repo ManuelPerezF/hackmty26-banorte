@@ -1,4 +1,7 @@
 'use client';
+import { useState } from 'react';
+import { formText } from '@/shared/api/client';
+import type { Goal } from '@/shared/api/types';
 import { Flag, Plus } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
@@ -14,6 +17,10 @@ export function MetasPanel({
   addGoal,
   error,
   notice,
+  busy,
+  loading,
+  archive,
+  editGoal,
 }: ReturnType<typeof useMetas>) {
   return (
     <section className="goals-view" aria-labelledby="goals-title">
@@ -26,13 +33,13 @@ export function MetasPanel({
       </div>
       <form
         className="goal-form"
-        onSubmit={(event) => {
+        onSubmit={async (event) => {
           event.preventDefault();
           const form = event.currentTarget;
           const data = new FormData(form);
           const name = data.get('name');
           if (
-            addGoal({
+            await addGoal({
               name: typeof name === 'string' ? name : '',
               target: Number(data.get('target')),
             })
@@ -64,7 +71,7 @@ export function MetasPanel({
             required
           />
         </div>
-        <Button type="submit" className="button">
+        <Button type="submit" className="button" disabled={busy}>
           <Plus size={17} /> Crear meta
         </Button>
       </form>
@@ -82,7 +89,9 @@ export function MetasPanel({
           {goals.length} {goals.length === 1 ? 'meta' : 'metas'}
         </span>
       </div>
-      {goals.length ? (
+      {loading ? (
+        <p>Cargando tus metas…</p>
+      ) : goals.length ? (
         <ul className="goals-list">
           {goals.map((goal) => (
             <li key={goal.id}>
@@ -93,7 +102,16 @@ export function MetasPanel({
                 <h4>{goal.name}</h4>
                 <p>Objetivo de ahorro · Sin aportaciones</p>
               </div>
-              <strong>{money.format(goal.target)}</strong>
+              <strong>{money.format(goal.targetCents / 100)}</strong>
+              <GoalEditor goal={goal} save={editGoal} />
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  void archive(goal.id);
+                }}
+              >
+                Archivar
+              </Button>
             </li>
           ))}
         </ul>
@@ -105,9 +123,91 @@ export function MetasPanel({
         </div>
       )}
       <p className="goals-note">
-        Los objetivos se conservan mientras permaneces en el panel. Crear una
-        meta no aparta ni mueve dinero.
+        Los objetivos se guardan en tu cuenta. Crear una meta no aparta ni mueve
+        dinero.
       </p>
     </section>
+  );
+}
+
+function GoalEditor({
+  goal,
+  save,
+}: {
+  goal: Goal;
+  save: (
+    id: string,
+    body: { name: string; targetCents: number; deadline: string | null },
+  ) => Promise<boolean>;
+}) {
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  if (!editing)
+    return (
+      <Button variant="ghost" onClick={() => setEditing(true)}>
+        Editar
+      </Button>
+    );
+  return (
+    <form
+      className="goal-edit"
+      aria-label={`Editar ${goal.name}`}
+      onSubmit={async (event) => {
+        event.preventDefault();
+        if (saving) return;
+        const data = new FormData(event.currentTarget);
+        setSaving(true);
+        try {
+          if (
+            await save(goal.id, {
+              name: formText(data, 'name'),
+              targetCents: Math.round(Number(formText(data, 'target')) * 100),
+              deadline: formText(data, 'deadline') || null,
+            })
+          )
+            setEditing(false);
+        } finally {
+          setSaving(false);
+        }
+      }}
+    >
+      <label htmlFor={`edit-name-${goal.id}`}>
+        Nombre
+        <Input
+          id={`edit-name-${goal.id}`}
+          name="name"
+          defaultValue={goal.name}
+          maxLength={60}
+          required
+        />
+      </label>
+      <label htmlFor={`edit-target-${goal.id}`}>
+        Monto objetivo
+        <Input
+          id={`edit-target-${goal.id}`}
+          name="target"
+          type="number"
+          min="1"
+          max="1000000000"
+          step="0.01"
+          defaultValue={goal.targetCents / 100}
+          required
+        />
+      </label>
+      <label>
+        Fecha objetivo
+        <input name="deadline" type="date" defaultValue={goal.deadline ?? ''} />
+      </label>
+      <Button className="button" type="submit" disabled={saving}>
+        Guardar cambios
+      </Button>
+      <Button
+        variant="ghost"
+        disabled={saving}
+        onClick={() => setEditing(false)}
+      >
+        Cancelar
+      </Button>
+    </form>
   );
 }

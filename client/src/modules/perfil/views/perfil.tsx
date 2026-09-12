@@ -1,38 +1,49 @@
-import Link from 'next/link';
+'use client';
+import { useBank } from '@/modules/cuentas/context/bank-context';
 export function ProfileView({
   savedCardLabel,
 }: {
   savedCardLabel: string | null;
 }) {
+  const bank = useBank();
   return (
     <section className="settings-view">
-      <h2>Tu perfil Banorte</h2>
+      <h2>Tu perfil</h2>
       <p>Tu información y preferencias, en un mismo lugar.</p>
       <dl>
         <div>
           <dt>Nombre</dt>
-          <dd>Alex Morgan</dd>
+          <dd>{bank.profile.displayName}</dd>
+        </div>
+        <div>
+          <dt>Correo</dt>
+          <dd>{bank.profile.email}</dd>
         </div>
         <div>
           <dt>Idioma</dt>
-          <dd>Español (México)</dd>
+          <dd>{bank.profile.locale}</dd>
         </div>
         <div>
-          <dt>Moneda principal</dt>
-          <dd>Peso mexicano (MXN)</dd>
+          <dt>Zona horaria</dt>
+          <dd>{bank.profile.timezone}</dd>
         </div>
         <div>
           <dt>Tarjeta principal</dt>
-          <dd>{savedCardLabel ? savedCardLabel : 'Banorte Clásica · 4281'}</dd>
+          <dd>{savedCardLabel ?? 'Sin seleccionar'}</dd>
         </div>
       </dl>
       <p>
-        Esta versión utiliza información de ejemplo y movimientos guardados en
-        este navegador.
+        Tu historial se construye con los movimientos que registres. Tus datos
+        se conservan en tu cuenta.
       </p>
-      <Link className="button" href="/login">
-        Salir del panel
-      </Link>
+      <button
+        className="button"
+        onClick={() => {
+          void bank.logout().catch(() => {});
+        }}
+      >
+        Cerrar sesión
+      </button>
     </section>
   );
 }

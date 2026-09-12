@@ -1,47 +1,38 @@
-# Frontend
+# Frontend conectado
 
-## Existe
+React 19 + Vinext + TypeScript. Rutas `/`, `/login` y `/panel`; las seis secciones del panel conservan navegación interna. Organización por dominio en `src/modules`, componentes compartidos en `src/shared`.
 
-React 19 + Vinext + TypeScript. Rutas públicas `/`, `/login` y `/panel`; el panel cambia de sección mediante estado interno. Organización `src/modules/<dominio>` con `views`, `components`, `hooks`, `services`, `types`, `data` y `styles` solo donde se necesitan. Layout en `src/shared/layout`, primitivas en `src/shared/components/ui`.
-
-| Sección | Estado |
+| Sección | Integración |
 | --- | --- |
-| Landing | Presentación del concepto y acceso demo |
-| Inicio | Saldo, tarjeta y actividad local reciente |
-| Movimientos | Registro, historial, filtros, detalle y paginación; `localStorage` |
-| Asistente | Respuestas y gráficas simuladas a partir de los movimientos locales |
-| Cuentas y tarjetas | Cuenta MXN, saldo disponible, Clásica y Oro asignadas, detalle y actividad por tarjeta |
-| Metas | Creación durante la sesión del panel |
-| Perfil | Perfil/configuración de demostración |
+| Landing y acceso | Solo inicio de sesión. Sin formulario ni endpoint público de registro |
+| Inicio | Perfil, saldo, tarjetas y actividad obtenidos de Nest |
+| Movimientos | GET/POST, cuenta o tarjeta propia, filtros, paginación y detalle |
+| Cuentas y tarjetas | Cuenta MXN y Clásica/Oro del usuario; preferencia persistida |
+| Metas | Crear, editar, archivar y recuperar objetivos de PostgreSQL |
+| Simulación dentro de Metas | POST savings, tasa aportada por el usuario y calendario mensual |
+| Asistente | Conversaciones persistidas, SSE, renderer A2UI y acciones confirmadas |
+| Perfil | Usuario autenticado, preferencia y cierre de sesión |
 
-El diseño conserva la identidad Banorte; historial y detalle toman referencias consultadas mediante MCP de Mobbin de Revolut Business y Wise. Este MCP de diseño **no sustituye** el servidor de herramientas financieras requerido por el reto.
+## Sesión y datos
 
-## Conexión pendiente con Nest
+`shared/api/client.ts` centraliza URL, cookies, CSRF, errores y claves idempotentes. Por defecto consume el puerto 3001 del mismo hostname; `VITE_API_BASE_URL` permite configurarlo. Usa `127.0.0.1` para ambos procesos en desarrollo.
 
-El backend ya implementa estas rutas, autenticación y generación A2UI. La pantalla de acceso actual sigue siendo demo hasta conectarla. El contrato vigente está en [endpoints.md](endpoints.md).
+`cuentas/context/bank-context.tsx` recupera `/auth/session`, `/me`, `/account` y `/me/cards` antes de montar las pantallas privadas. Un 401 lleva al login; cerrar sesión revoca la cookie y desmonta los datos del panel. CSRF se mantiene en memoria, nunca la contraseña o el token de sesión.
 
-El alcance ahora incluye login y registro reales. Conectar `/auth/register`, `/auth/login`, `/auth/session` y `/auth/logout`, proteger el panel y enviar cookies con `credentials: 'include'`. Obtener CSRF de la sesión para escrituras. Limpiar estado y cachés al cerrar sesión o cambiar de usuario. Los datos financieros se conservan en PostgreSQL y no se vuelven a sembrar al hacer login. Ver [autenticacion.md](autenticacion.md).
+Movimientos, metas y conversaciones cargan todas las páginas de la API. Los filtros/paginación visual de movimientos operan sobre esa colección completa; el saldo global se consulta a `/account`. Para volúmenes grandes, trasladar los filtros a consultas por página y evitar descargar el historial completo.
 
-1. Agregar un cliente HTTP compartido con URL de API configurable y manejo de errores.
-2. Cambiar `movimientos/services` de `localStorage` a `GET/POST /api/v1/movements`. No mezclar automáticamente historiales: el dataset local y el seed API son copias independientes.
-3. Convertir el string de pesos del formulario a `amountCents` con la utilidad existente. Crear un UUID por envío lógico y conservarlo si se reintenta.
-4. Leer `/account` para saldo y recargarlo junto con el historial después de un registro.
-5. Pasar filtros y paginación al backend. No calcular totales globales usando solo una página; usar `totals` de la API.
-6. Mostrar carga, error, vacío y reintento; conservar los valores del formulario ante un error.
-7. Implementar el renderer y retorno de eventos descritos en [A2UI](a2ui.md).
+No se usa localStorage como fuente de datos financieros. Se eliminaron los datasets de cuentas/movimientos y las funciones de almacenamiento local. No se importan historiales locales automáticamente a PostgreSQL. Los nuevos movimientos envían `cardId` UUID o null para cuenta personal, y el servidor valida la titularidad. Tabla y detalle muestran la asociación devuelta por la API.
 
-Las formas JSON de movimiento conservan los campos de la UI: `date` de calendario, `createdAt` en milisegundos y centavos enteros. La API envuelve el historial en `{items,total,page,pageSize,totals}`. La búsqueda local ignora acentos; la de PostgreSQL todavía no.
+Un UUID estable representa cada envío lógico; se conserva al reintentar una petición fallida. Si la escritura funciona y falla la recarga posterior, la UI informa que ya fue guardada y evita reenviar la operación como nueva.
 
-## Por hacer para la demo
+## Asistente y A2UI
 
-Un formulario invocado por el agente debe usar los mismos componentes y validaciones de la pantalla de movimientos. El usuario necesita ver el resultado persistido y una UI nueva que responda a su acción. No se requieren más pantallas para lograrlo; completar Inicio, Movimientos y Asistente tiene prioridad.
+`asistente/hooks/useAsistente.ts` consume conversaciones, mensajes, acciones y snapshots. EventSource lleva la cookie; la UI restaura conversaciones al seleccionarlas y presenta el estado de trabajo, error o confirmación.
 
-Ver [README del cliente](../client/README.md) para comandos y organización de las pantallas.
+`types/protocol.ts` valida el catálogo y las envolturas v0.9.1 con Zod. `components/a2ui-renderer.tsx` resuelve únicamente los componentes permitidos: saldo, tabla, gráfica por categoría, selector de periodo, formulario, confirmación y recibo. Nunca ejecuta HTML/JS/JSX producido por el modelo. Cada bloque valida además sus datos.
 
-## Vista de cuentas y asociación de movimientos
+El formulario reutiliza el módulo Movimientos. Preparar muestra el monto, fecha y cuenta/tarjeta; confirmar devuelve `actionId` al backend. Al terminar se actualizan saldo e historial. Los formularios históricos quedan inactivos y las confirmaciones obedecen su estado/vencimiento.
 
-La sección Cuentas y tarjetas reemplaza el selector de productos. Ofrece una cuenta personal, saldo calculado con el ledger local, dos tarjetas asignadas, ocultar saldos, preferencia de tarjeta principal y navegación al historial filtrado. El gasto mostrado por tarjeta es la suma de registros, no una deuda o un límite de crédito. El catálogo comercial sigue teniendo Clásica, Oro e Infinite.
+La prueba en navegador recorrió Nest → MCP real por stdio → respuesta de modelo controlada → A2UI → confirmación → PostgreSQL y restauración. También se probaron crear/editar/archivar metas, cambiar periodo y cancelar un registro sin escritura. **También pasó la prueba con Gemini real (gemini-3.1-flash-lite)**: perfil vacío, saldo cero, formulario generado, ingreso confirmado de $10.55, recibo y conversación restaurada. El perfil temporal se eliminó al terminar. Sin clave se muestra el error del servicio, no una respuesta simulada.
 
-Los movimientos locales incluyen instrumentId, elegible al registrar y visible en tabla/detalle. Los registros anteriores se conservan: los manuales sin asociación quedan en Cuenta personal; los ejemplos conocidos reciben asociaciones explícitas. No cambia el saldo al agregar esa referencia.
-
-La UI elimina insignias y mensajes demo repetidos del panel y conserva la procedencia en Perfil/detalle. El login conserva su comportamiento y explicación actuales. La integración API sigue pendiente: estos IDs son del dataset de presentación; al conectar, resolver Card.id del usuario autenticado y ampliar el contrato de movimientos del backend para esa relación. No enviar estos IDs locales como UUID de tarjeta.
+Referencias: [chatbot y Mobbin](chatbot-referencias.md). Comandos y estructura: [README del cliente](../client/README.md).

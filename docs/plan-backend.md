@@ -2,7 +2,7 @@
 
 Estado actualizado: **backend implementado**. Este documento conserva el plan original como referencia; las secciones futuras describen el punto de partida y no el estado actual. Los contratos vigentes están en [backend.md](backend.md) y [endpoints.md](endpoints.md).
 
-Se completaron autenticación, perfiles/tarjetas, historial aislado, análisis, metas, simulación, conversaciones, MCP y generación A2UI del lado servidor. El adaptador Gemini requiere configurar la clave y validar una llamada real. Falta conectar el frontend y su renderer. Tarjetas se agrupan en el módulo perfil; MCP usa capacidades opacas en memoria, no JWT firmado; SSE envía snapshots y no deltas de texto. No se recreó server/test.
+Se completaron autenticación, perfiles/tarjetas, historial aislado, análisis, metas, simulación, conversaciones, MCP y generación A2UI del lado servidor. Gemini Flash-Lite ya se validó en una prueba real desde navegador. Los datos precargados se retiraron; los perfiles nuevos empiezan en cero. El frontend y su renderer están conectados y probados con MCP real y modelo controlado. El registro público se retiró: solo dos cuentas de prueba aprovisionadas. El resto de este documento conserva el plan histórico; consultar endpoints.md y frontend.md para el contrato vigente. Tarjetas se agrupan en el módulo perfil; MCP usa capacidades opacas en memoria, no JWT firmado; SSE envía snapshots y no deltas de texto. No se recreó server/test.
 
 ## 1. Alcance y decisiones
 

@@ -1,6 +1,6 @@
-# A2UI en el backend
+# A2UI: backend y renderer React
 
-El backend genera mensajes A2UI **v0.9.1** usando un catálogo propio identificado por `urn:banorte:a2ui:catalog:1`. La generación y validación están implementadas; el renderer React que convierte estos mensajes en componentes visuales sigue pendiente.
+El backend genera mensajes A2UI **v0.9.1** usando un catálogo propio identificado por `urn:banorte:a2ui:catalog:1`. La generación, validación y renderer React están implementados. Se verificaron en navegador con MCP real y un plan de modelo controlado; también se validó el ciclo de saldo, formulario y confirmación con Gemini real (Flash-Lite).
 
 No se genera JSX, HTML ni código ejecutable. El LLM propone bloques permitidos; Nest obtiene sus datos y construye un árbol validado con Zod.
 
@@ -37,8 +37,8 @@ El cliente abre EventSource con `{withCredentials: true}`, muestra estado de tra
 
 Los mensajes generados se validaron también contra el JSON Schema oficial server-to-client y el catálogo propio con Ajv. Un componente ajeno al catálogo fue rechazado.
 
-## Trabajo del frontend
+## Renderer del frontend
 
-Registrar componentes del catálogo, resolver rutas del data model, validar datos antes de renderizar, implementar formularios/confirmaciones y enviar acciones con cookies, CSRF e idempotencia. Mostrar errores, restaurar snapshots sin duplicar superficies y limpiar todo al cambiar de usuario.
+`client/src/modules/asistente` registra los componentes del catálogo, resuelve rutas del data model y valida datos con Zod antes de renderizar. Formularios y confirmaciones envían acciones con cookies, CSRF e idempotencia. La interfaz muestra errores, restaura snapshots y se desmonta al cerrar sesión. Ver [frontend](frontend.md).
 
 Referencia del protocolo: [esquema server-to-client v0.9.1](https://a2ui.org/specification/v0_9_1/server_to_client.json). El alcance actual es el subconjunto de mensajes descrito arriba, con catálogo propio.

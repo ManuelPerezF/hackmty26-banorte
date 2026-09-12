@@ -1,4 +1,5 @@
 'use client';
+import { formText } from '@/shared/api/client';
 
 import type { useAuth } from '../hooks/useAuth';
 import Link from 'next/link';
@@ -9,7 +10,6 @@ import {
   Eye,
   EyeOff,
   LockKeyhole,
-  Check,
 } from 'lucide-react';
 import { Input } from '@/shared/components/ui/input';
 import { Button } from '@/shared/components/ui/button';
@@ -20,7 +20,9 @@ export function AuthPanel({
   setShowPassword,
   showHelp,
   setShowHelp,
-  enterDemo,
+  error,
+  busy,
+  submit,
 }: ReturnType<typeof useAuth>) {
   return (
     <main className="access-page refined-access">
@@ -34,7 +36,7 @@ export function AuthPanel({
           />
         </Link>
         <div className="access-header-links">
-          <span className="demo-label">Experiencia demo</span>
+          <span className="demo-label">Banca personal</span>
           <Link href="/">
             Explorar Banorte <ArrowUpRight size={15} aria-hidden="true" />
           </Link>
@@ -102,53 +104,50 @@ export function AuthPanel({
               <br />
               Todo en un mismo lugar.
             </p>
-            <div className="access-demo-ready">
-              <span>
-                <Check size={15} aria-hidden="true" />
-              </span>
-              <p>
-                Todo listo para explorar.
-                <small>Usa los datos de prueba que preparamos para ti.</small>
-              </p>
-            </div>
             <form
               className="login-form"
-              autoComplete="off"
+              autoComplete="on"
               onSubmit={(event) => {
                 event.preventDefault();
-                enterDemo();
+                const form = new FormData(event.currentTarget);
+                void submit({
+                  email: formText(form, 'email'),
+                  password: formText(form, 'password'),
+                });
               }}
               aria-describedby="demo-notice"
             >
               <div className="login-field">
-                <label htmlFor="demo-user">Usuario de prueba</label>
+                <label htmlFor="demo-user">Correo electrónico</label>
                 <Input
                   id="demo-user"
                   className="login-input"
-                  value="demo.banorte"
-                  readOnly
-                  autoComplete="off"
+                  name="email"
+                  type="email"
+                  required
+                  maxLength={254}
+                  autoComplete="email"
                 />
               </div>
               <div className="login-field">
-                <label htmlFor="demo-password">Contraseña de prueba</label>
+                <label htmlFor="demo-password">Contraseña</label>
                 <div className="password-wrapper">
                   <Input
                     id="demo-password"
                     className="login-input"
                     type={showPassword ? 'text' : 'password'}
-                    value="Demo2026!"
-                    readOnly
-                    autoComplete="off"
+                    name="password"
+                    required
+                    minLength={1}
+                    maxLength={128}
+                    autoComplete="current-password"
                   />
                   <Button
                     variant="ghost"
                     type="button"
                     className="password-toggle"
                     aria-label={
-                      showPassword
-                        ? 'Ocultar contraseña de prueba'
-                        : 'Mostrar contraseña de prueba'
+                      showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'
                     }
                     aria-pressed={showPassword}
                     onClick={() => setShowPassword(!showPassword)}
@@ -171,19 +170,29 @@ export function AuthPanel({
               </div>
               {showHelp && (
                 <output id="demo-help" className="login-help">
-                  Los datos de prueba ya están preparados. Entra a la demo para
-                  explorar el panel y elegir una tarjeta de ejemplo.
+                  Usa el correo y la contraseña de una de tus dos cuentas de
+                  prueba. Si no recuerdas los datos de acceso, consulta la
+                  configuración local del proyecto.
                 </output>
               )}
-              <Button type="submit" className="button login-primary">
-                Entrar a la demo <ArrowRight size={17} aria-hidden="true" />
+              {error && (
+                <p className="movement-error" role="alert">
+                  {error}
+                </p>
+              )}
+              <Button
+                type="submit"
+                className="button login-primary"
+                disabled={busy}
+              >
+                {busy ? 'Un momento…' : 'Iniciar sesión'}{' '}
+                <ArrowRight size={17} aria-hidden="true" />
               </Button>
               <p id="demo-notice" className="demo-notice">
                 <LockKeyhole size={17} aria-hidden="true" />
                 <span>
-                  Esta demo usa datos ficticios.
-                  <br />
-                  No solicita ni guarda credenciales reales.
+                  Acceso con tu correo y contraseña. Tus movimientos y
+                  preferencias se guardan en tu cuenta.
                 </span>
               </p>
             </form>

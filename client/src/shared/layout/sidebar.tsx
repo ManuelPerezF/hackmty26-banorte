@@ -1,4 +1,5 @@
 'use client';
+import { useBank } from '@/modules/cuentas/context/bank-context';
 import Link from 'next/link';
 import { LogOut } from 'lucide-react';
 import {
@@ -20,6 +21,13 @@ export function BankSidebar({
   section: string;
   changeSection: (title: string) => void;
 }) {
+  const bank = useBank();
+  const initials = bank.profile.displayName
+    .split(/\s+/)
+    .map((s) => s[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
   return (
     <Sidebar className="business-sidebar">
       <SidebarHeader className="business-brand">
@@ -55,15 +63,20 @@ export function BankSidebar({
       </SidebarContent>
       <SidebarFooter className="business-sidebar-footer">
         <div className="sidebar-profile">
-          <span className="company-avatar">AM</span>
+          <span className="company-avatar">{initials}</span>
           <div>
-            <strong>Alex Morgan</strong>
+            <strong>{bank.profile.displayName}</strong>
             <span>Cuenta personal</span>
           </div>
         </div>
-        <Link href="/login">
-          <LogOut size={18} strokeWidth={1.7} /> Salir del panel
-        </Link>
+        <button
+          type="button"
+          onClick={() => {
+            void bank.logout().catch(() => {});
+          }}
+        >
+          <LogOut size={18} strokeWidth={1.7} /> Cerrar sesión
+        </button>
       </SidebarFooter>
     </Sidebar>
   );

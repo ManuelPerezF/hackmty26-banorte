@@ -64,7 +64,10 @@ export function Movimientos({
               {ledger.error}
             </p>
           )}
-          <MovimientosTable history={history} ready={ledger.ready} />
+          <MovimientosTable
+            history={history}
+            ready={ledger.ready && !ledger.saving}
+          />
           <p className="movement-disclosure">
             Importes en pesos mexicanos (MXN).
           </p>
@@ -72,14 +75,14 @@ export function Movimientos({
       ) : (
         <MovimientoForm
           initialInstrument={initialInstrument}
-          ready={ledger.ready}
+          ready={ledger.ready && !ledger.saving}
           error={ledger.error}
           onCancel={() => {
             ledger.clearError();
             setView('history');
           }}
-          onRegister={(input) => {
-            if (!ledger.registerMovement(input)) return false;
+          onRegister={async (input) => {
+            if (!(await ledger.registerMovement(input))) return false;
             history.clearFilters();
             setView('history');
             return true;

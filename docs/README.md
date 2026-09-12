@@ -2,21 +2,23 @@
 
 ## Estado actual
 
-El backend ya implementa registro/login real, hash Argon2id, sesiones revocables, autorización por propietario, tarjetas, historial, análisis, metas, simulaciones y conversaciones. Cada usuario tiene dos tarjetas e historial inicial de ejemplo independiente, más los movimientos que registre.
+El backend ya implementa login real, hash Argon2id, sesiones revocables, autorización por propietario, tarjetas, historial, análisis, metas, simulaciones y conversaciones. Los perfiles nuevos comienzan con saldo cero e historial vacío. Las dos cuentas de prueba existentes conservan sus tarjetas asignadas; se retiraron saldos y movimientos precargados.
 
-El servidor MCP por stdio y el cliente Nest están implementados y probados. El adaptador Gemini y la generación de mensajes A2UI v0.9.1 están implementados. La prueba de integración usó un modelo controlado; falta configurar la clave y validar una llamada real a Gemini.
+El servidor MCP por stdio y el cliente Nest están implementados y probados. El adaptador Gemini y la generación de mensajes A2UI v0.9.1 están implementados. La integración se verificó también con Gemini real (Flash-Lite), desde el navegador hasta PostgreSQL. La clave local está configurada únicamente en server/.env; no se versiona.
 
-El frontend sigue con datos locales. Falta conectar login/API y construir el renderer del catálogo A2UI para completar la demo visual. Docker ejecuta únicamente PostgreSQL.
+El frontend ya consume login, cuenta, tarjetas, movimientos, metas, simulación y asistente. El renderer del catálogo A2UI y el flujo confirmado se probaron desde navegador. Solo hay login y dos cuentas de prueba; registro público cerrado. Docker ejecuta únicamente PostgreSQL.
 
 | Documento | Contenido |
 | --- | --- |
+| [Verificación](verificacion.md) | Prueba con Gemini real y datos vacíos |
 | [Backend](backend.md) | Implementación, arranque y verificaciones |
 | [Endpoints](endpoints.md) | Contrato HTTP actual y conexión del cliente |
 | [Autenticación](autenticacion.md) | Sesiones, hash, CSRF e historial por usuario |
 | [Arquitectura](arquitectura.md) | Módulos y recorrido de una interacción |
 | [Base de datos](base-de-datos.md) | Modelos, migración, seed y dinero |
 | [Docker](docker.md) | Arranque local y variables |
-| [Frontend](frontend.md) | Pantallas y trabajo de integración pendiente |
+| [Chatbot y Mobbin](chatbot-referencias.md) | Referencias y decisiones visuales |
+| [Frontend](frontend.md) | Pantallas, sesión y flujos integrados |
 | [MCP](mcp.md) | Herramientas, stdio y capacidades |
 | [LLM](llm.md) | Proveedor, contexto y límites |
 | [A2UI](a2ui.md) | Mensajes, catálogo propio y eventos |

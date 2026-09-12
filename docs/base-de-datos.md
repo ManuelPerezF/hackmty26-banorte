@@ -29,9 +29,9 @@ Centavos BigInt, con límites positivos en esquema/DB. `saldo = saldoInicial + S
 
 La segunda migración crea identidad y entidades del asistente, asocia explícitamente la cuenta original al perfil inicial y conserva su historial. El usuario original queda deshabilitado hasta aprovisionar credenciales privadas mediante seed. No se usa el primer registro público para reclamar esa cuenta.
 
-`db:seed` siembra catálogo Clásica/Oro/Infinite, asigna Clásica y Oro al propietario inicial, conserva preferencia y movimientos existentes. Opcionalmente habilita al usuario mediante BOOTSTRAP_EMAIL/BOOTSTRAP_PASSWORD; no reemplaza credenciales ya activas. Repetir el seed no duplica filas ni borra registros manuales.
+`db:seed` siembra solo el catálogo Clásica/Oro/Infinite y aprovisiona los accesos privados. No asigna tarjetas automáticamente ni crea actividad financiera. Opcionalmente habilita al usuario mediante BOOTSTRAP_EMAIL/BOOTSTRAP_PASSWORD; no reemplaza credenciales ya activas. Repetir el seed no duplica filas ni borra registros manuales.
 
-El registro de cada usuario crea una cuenta nueva y nueve movimientos de ejemplo con fechas relativas al día de alta, UUID propios y claves estables por cuenta. Su saldo inicial resultante es $284,650.00 MXN. `source: demo` identifica el origen de ejemplo; `manual` identifica los movimientos registrados. No se comparten filas entre usuarios ni se insertan datos al hacer login.
+El aprovisionamiento crea una cuenta con apertura cero e historial vacío. Los movimientos nuevos tienen `source: manual`. El enum demo se conserva únicamente por compatibilidad con migraciones anteriores; ninguna ruta ni seed lo genera.
 
 ## Comandos
 
@@ -43,3 +43,15 @@ npm run db:seed
 ```
 
 Para cambiar modelo: `npm run db:migrate -- --name descripcion_del_cambio`, luego regenerar Prisma. Versionar schema y migraciones; `src/generated/prisma` queda ignorado. No usar db push ni borrar el volumen para aplicar cambios de código.
+
+## Asociación con tarjeta y dos accesos
+
+La migración `20260912020000_movement_cards` añade `Movement.cardId` nullable, relación a Card e índice. Asocia los ejemplos conocidos del historial inicial sin cambiar importes ni fechas; los manuales anteriores quedan en cuenta personal. Las altas nuevas validan la titularidad de la tarjeta y las consultas incluyen su producto y last4.
+
+El seed puede crear la segunda cuenta con `SECOND_TEST_EMAIL`/`SECOND_TEST_PASSWORD` si todavía hay menos de dos usuarios. Conserva usuarios, credenciales y movimientos existentes. La interfaz no expone registro público.
+
+## Retiro de datos precargados
+
+`20260912030000_remove_sample_history` elimina únicamente movimientos `source = demo` y pone en cero la apertura fija del aprovisionamiento antiguo en las cuentas identificadas. No borra movimientos manuales, credenciales, tarjetas, metas ni conversaciones. En la base local, Manuel y Alex tenían nueve ejemplos y ningún movimiento manual; ambos quedaron en cero.
+
+El catálogo de productos, las categorías, MXN y la configuración regional son metadatos del producto. No representan dinero, historial ni titularidad de tarjetas del usuario. Los snapshots antiguos de conversaciones son históricos; una consulta nueva obtiene los datos actuales mediante MCP.

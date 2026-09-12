@@ -1,6 +1,6 @@
 # Backend Banorte
 
-NestJS + Zod + Prisma + PostgreSQL. Registro/login real, datos aislados por usuario y orquestación de asistente con MCP y A2UI.
+NestJS + Zod + Prisma + PostgreSQL. Login real, datos aislados por usuario y orquestación de asistente con MCP y A2UI.
 
 ```sh
 # Desde la raíz
@@ -16,7 +16,7 @@ npm run dev
 
 API: `http://127.0.0.1:3001/api/v1`. `cp -n` conserva la configuración existente. Solo la base de datos usa Docker.
 
-Crear usuarios con `POST /auth/register` y luego iniciar sesión. Opcionalmente configurar `BOOTSTRAP_EMAIL` y `BOOTSTRAP_PASSWORD` antes del seed para habilitar el propietario del historial original. El seed no cambia la contraseña de un usuario ya habilitado. Nunca versionar `.env`.
+Los perfiles nuevos empiezan en cero, sin movimientos ni tarjetas precargadas. El registro público está deshabilitado. En una base nueva, configurar `BOOTSTRAP_EMAIL`/`BOOTSTRAP_PASSWORD` y `SECOND_TEST_EMAIL`/`SECOND_TEST_PASSWORD` antes del seed para aprovisionar dos cuentas. Si ya hay dos usuarios, el seed los conserva; no cambia credenciales ni elimina historial. Nunca versionar `.env`.
 
 Configurar `GEMINI_API_KEY` para el asistente. MCP utiliza las dependencias y el código compilado de este backend; `npm run dev` compila antes de arrancar. Para ejecutar sin watch: `npm run build && npm start`.
 
@@ -27,4 +27,4 @@ Configurar `GEMINI_API_KEY` para el asistente. MCP utiliza las dependencias y el
 - [Docker y variables](../docs/docker.md)
 - [MCP](../docs/mcp.md), [LLM](../docs/llm.md), [A2UI](../docs/a2ui.md)
 
-`npm run check` valida TypeScript y compilación. Se verificaron flujos HTTP y MCP con scripts temporales; no se recreó la carpeta `server/test` eliminada por decisión del usuario. El frontend aún no consume esta API.
+`npm run check` valida TypeScript y compilación. Se verificaron flujos HTTP y MCP con scripts temporales; no se recreó la carpeta `server/test` eliminada por decisión del usuario. El frontend consume esta API, incluido SSE y el catálogo A2UI. Ver [integración](../docs/frontend.md).

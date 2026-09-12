@@ -5,13 +5,13 @@
 - Contraseñas Argon2id (19456 KiB, dos iteraciones, paralelismo uno) y verificación equivalente para usuario desconocido.
 - Sesiones aleatorias revocables; hash SHA-256 del token en DB, cookie HttpOnly/SameSite y caducidad absoluta/inactividad.
 - Guard global con autorización por propietario; origen exacto, JSON y CSRF en mutaciones autenticadas.
-- Rate limit por IP/email para registro/login y por usuario para rutas privadas, en memoria.
+- Rate limit por IP/email para login y por usuario para rutas privadas, en memoria.
 - Zod, límite JSON de 32 KB, Helmet y respuestas sin caché.
 - Herramientas MCP con capacidad breve, sesión revalidada y alcance cerrado; escritura solo con acción aprobada.
 - Idempotencia y restricciones en PostgreSQL para no duplicar movimientos; datos ajenos devuelven 404.
 - Secretos únicamente en .env ignorado; ni hash, token ni credenciales del proveedor salen en los DTO financieros.
 
-La API sirve datos sintéticos y registros manuales. No almacena PAN, CVV o PIN ni ejecuta pagos. El registro confirma credenciales de acceso, pero todavía no comprueba propiedad del correo.
+La API sirve datos sintéticos y registros manuales. No almacena PAN, CVV o PIN ni ejecuta pagos. El login comprueba las credenciales de las cuentas aprovisionadas; no existe registro público ni verificación de propiedad del correo.
 
 ## Límites conocidos
 

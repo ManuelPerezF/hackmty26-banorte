@@ -10,14 +10,14 @@ Ayudar a una persona a entender y registrar sus gastos en una misma experiencia.
 
 | Requisito del reto | Fuente | Estado / evidencia de terminado |
 | --- | --- | --- |
-| Interpretar intención, generar interfaz y ejecutar acción | Diap. 3 | Pendiente: turno completo con LLM real |
-| LLM central: interpreta, decide y orquesta | Diap. 5 | Adaptador backend implementado; falta validar Gemini real y conectar frontend |
+| Interpretar intención, generar interfaz y ejecutar acción | Diap. 3 | Probado: Gemini real → UI → confirmar → persistencia → recibo |
+| LLM central: interpreta, decide y orquesta | Diap. 5 | Implementado y validado con Gemini Flash-Lite real |
 | MCP para datos, herramientas y acciones propias | Diap. 5 | Implementado: servidor/cliente stdio y ocho herramientas probadas |
-| A2UI o protocolo equivalente | Diap. 3 y 5 | Parcial: mensajes v0.9.1 y catálogo propio; falta renderer frontend |
-| Cada interacción vuelve al agente y cambia la experiencia | Diap. 6 | Backend probado con modelo controlado; falta completar experiencia visual |
-| Componentes propios | Diap. 7 | Parcial: tabla, formulario y gráficas existentes; catálogo backend listo, falta registrarlo en renderer |
-| Datos y APIs propios; sintéticos permitidos | Diap. 7 | Implementado: seed, cuenta y movimientos en PostgreSQL |
-| Al menos un flujo accionable con cambio real | Diap. 7 | Parcial: POST persiste; falta dispararlo desde UI generada y cerrar el ciclo |
+| A2UI o protocolo equivalente | Diap. 3 y 5 | Implementado: mensajes v0.9.1, catálogo propio y renderer React |
+| Cada interacción vuelve al agente y cambia la experiencia | Diap. 6 | Flujo visual probado con MCP real y modelo controlado |
+| Componentes propios | Diap. 7 | Implementado: tabla, formulario, gráfica, confirmación y recibo en el renderer |
+| Datos y APIs propios; sintéticos permitidos | Diap. 7 | Implementado: cuenta y movimientos capturados en PostgreSQL; precargas retiradas por decisión del usuario |
+| Al menos un flujo accionable con cambio real | Diap. 7 | Probado desde UI generada: confirmar persiste y devuelve recibo/saldo |
 
 **Tener pantallas y un endpoint de escritura no completa por sí solo el requisito del flujo generativo.**
 
@@ -28,16 +28,16 @@ El detalle técnico y el orden de ejecución están en [plan-backend.md](plan-ba
 - [x] Backend NestJS modular, Prisma, Zod y PostgreSQL.
 - [x] PostgreSQL en Docker Compose; backend, migraciones y seed reproducible ejecutados localmente.
 - [x] API de movimientos, historial, saldo e idempotencia.
-- [x] Registro/login reales, hash de contraseña, sesiones, CSRF y autorización por propietario.
-- [x] Perfil con dos tarjetas asignadas e historial inicial de ejemplo independiente por usuario, más sus movimientos propios.
-- [ ] Conectar frontend a la API; eliminar la divergencia con `localStorage`.
+- [x] Login real (registro público retirado), dos cuentas de prueba, hash de contraseña, sesiones, CSRF y autorización por propietario.
+- [x] Historial aislado por usuario, sin precargas: apertura cero y movimientos capturados. Las tarjetas existentes se conservan; no hay asignación ficticia automática.
+- [x] Conectar frontend a la API; dejar de usar `localStorage` para datos financieros.
 - [x] Implementar servidor MCP financiero y probar descubrimiento/llamadas.
 - [x] Adaptador LLM en Nest con herramientas, contexto y límites.
-- [ ] Configurar clave y verificar el modelo real.
+- [x] Configurar clave privada y verificar Gemini Flash-Lite real desde el navegador.
 - [x] Adoptar una versión A2UI y definir el catálogo de componentes propios.
-- [ ] Generar al menos tabla, gráfica y formulario según intención.
-- [ ] Devolver eventos del usuario al agente y actualizar la interfaz.
-- [ ] Registrar un gasto desde ese formulario, persistirlo y mostrar saldo/historial nuevos.
+- [x] Renderizar tabla, gráfica y formulario desde el plan del backend; probado con modelo controlado.
+- [x] Devolver eventos del usuario al agente y actualizar la interfaz.
+- [x] Registrar un gasto desde ese formulario, persistirlo y mostrar saldo/historial nuevos.
 - [ ] Probar reintentos, fallos del modelo/MCP, estados vacíos y navegación móvil.
 - [ ] Ensayar desde un arranque limpio y guardar evidencia de la demo.
 
@@ -77,4 +77,4 @@ El detalle técnico y el orden de ejecución están en [plan-backend.md](plan-ba
 
 ## Guion propuesto de 3 minutos
 
-Iniciar sesión con el usuario del proyecto → preguntar “¿en qué gasté más?” → mostrar desglose y movimientos consultados por MCP → pedir registrar un gasto → completar formulario generado → confirmar → verificar cambio en PostgreSQL y saldo → pedir explicación del nuevo total → cambiar periodo y mostrar adaptación. El backend del flujo está implementado; falta ejecutar el guion con Gemini real y el renderer frontend conectado.
+Iniciar sesión con el usuario del proyecto → preguntar “¿en qué gasté más?” → mostrar desglose y movimientos consultados por MCP → pedir registrar un gasto → completar formulario generado → confirmar → verificar cambio en PostgreSQL y saldo → pedir explicación del nuevo total → cambiar periodo y mostrar adaptación. El flujo de consulta/formulario/confirmación ya pasó con Gemini real. Falta ensayar el guion completo con datos capturados, medir latencia y preparar la presentación final.

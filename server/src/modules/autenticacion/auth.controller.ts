@@ -5,7 +5,7 @@ import { ENV, Environment } from "../../config/env";
 import { ZodValidationPipe } from "../../shared/pipes/zod-validation.pipe";
 import { AuthRequest, Public } from "./auth.types";
 import { AuthService, sessionCookie } from "./auth.service";
-import { loginSchema, registerSchema, Registration } from "./auth.schemas";
+import { loginSchema } from "./auth.schemas";
 @Controller("auth")
 export class AuthController {
   constructor(
@@ -14,11 +14,6 @@ export class AuthController {
   ) {}
   private options() {
     return { httpOnly: true, secure: this.env.COOKIE_SECURE, sameSite: "lax" as const, path: "/" };
-  }
-  @Public() @Post("register") register(
-    @Body(new ZodValidationPipe(registerSchema)) body: Registration,
-  ) {
-    return this.auth.register(body);
   }
   @Public() @Post("login") @HttpCode(200) async login(
     @Body(new ZodValidationPipe(loginSchema)) body: { email: string; password: string },

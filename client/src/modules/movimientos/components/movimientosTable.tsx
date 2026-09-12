@@ -1,4 +1,5 @@
-import { instruments, instrumentLabel } from '@/modules/cuentas/data/accounts';
+import { useInstruments } from '@/modules/cuentas/context/bank-context';
+import { movementLabel } from '../services/movement-label';
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -11,7 +12,7 @@ import {
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
 import { formatMoney, formatMovementDate } from '@/shared/utils/money';
-import { categories } from '../data/demo-movimientos';
+import { categories } from '../data/categories';
 import type { useHistorial } from '../hooks/useHistorial';
 import { MovimientoDetail } from './movimientoDetail';
 export function MovimientosTable({
@@ -21,6 +22,7 @@ export function MovimientosTable({
   history: ReturnType<typeof useHistorial>;
   ready: boolean;
 }) {
+  const instruments = useInstruments();
   const {
     filters,
     updateFilter,
@@ -225,7 +227,7 @@ export function MovimientosTable({
                             <strong>{item.description}</strong>
                             <small>
                               {item.type === 'income' ? 'Ingreso' : 'Gasto'} ·{' '}
-                              {instrumentLabel(item.instrumentId)}
+                              {movementLabel(item)}
                               <span className="movement-mobile-date">
                                 {' '}
                                 · {formatMovementDate(item.date)}
@@ -241,7 +243,7 @@ export function MovimientosTable({
                       </td>
                       <td className="movement-instrument-col">
                         <span className="movement-instrument-label">
-                          {instrumentLabel(item.instrumentId)}
+                          {movementLabel(item)}
                         </span>
                       </td>
                       <td className="movement-date-col">

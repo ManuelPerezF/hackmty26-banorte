@@ -13,11 +13,8 @@ import {
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { formatMoney, formatMovementDate } from '@/shared/utils/money';
-import {
-  personalAccount,
-  ownedCards,
-  instrumentLabel,
-} from '@/modules/cuentas/data/accounts';
+import { useBank } from '@/modules/cuentas/context/bank-context';
+import { movementLabel } from '@/modules/movimientos/services/movement-label';
 import type { useMovimientos } from '@/modules/movimientos/hooks/useMovimientos';
 import type { CardSelectionValue } from '../types/tarjetas.types';
 import { CardArtwork } from './card-artwork';
@@ -28,14 +25,27 @@ export function TarjetasPanel({
   onMovements,
 }: {
   saved: CardSelectionValue | null;
-  onSave: (value: CardSelectionValue) => void;
+  onSave: (value: CardSelectionValue) => Promise<void>;
   ledger: ReturnType<typeof useMovimientos>;
   onMovements: (instrumentId?: string) => void;
 }) {
+  const bank = useBank();
+  const personalAccount = { ...bank.account, holder: bank.profile.displayName };
+  const ownedCards = bank.cards.map((c) => ({
+    id: c.id,
+    productId: c.product.key,
+    name: c.product.name,
+    last4: c.last4,
+    network: c.product.network,
+    format: 'Física',
+    status: c.status,
+  }));
+  const [saveError, setSaveError] = useState('');
+  const [saving, setSaving] = useState(false);
   const [selectedId, setSelectedId] = useState<string>(personalAccount.id);
   const [hidden, setHidden] = useState(false);
   const card = ownedCards.find((item) => item.id === selectedId);
-  const preferred = saved?.cardId ?? 'clasica';
+  const preferred = saved?.cardId;
   const activity = ledger.movements.filter(
     (item) => !card || item.instrumentId === card.id,
   );
@@ -75,14 +85,17 @@ export function TarjetasPanel({
             </span>
             <span>
               <strong>Cuenta personal</strong>
-              <small>MXN · •••• {personalAccount.last4}</small>
+              <small>MXN</small>
               <b>{money(ledger.balanceCents)}</b>
             </span>
             {!card && <Check className="account-selected-check" size={16} />}
           </button>
           <h2 className="cards-index-heading">
-            Mis tarjetas <span>2</span>
+            Mis tarjetas <span>{ownedCards.length}</span>
           </h2>
+          {!ownedCards.length && (
+            <p className="accounts-index-note">No tienes tarjetas asignadas.</p>
+          )}
           {ownedCards.map((item) => (
             <button
               key={item.id}
@@ -107,6 +120,7 @@ export function TarjetasPanel({
           </p>
         </aside>
         <div className="accounts-content">
+          {saveError && <p role="alert">{saveError}</p>}
           <section
             className={`account-overview ${card ? 'is-card-overview' : ''}`}
             aria-labelledby="account-detail-title"
@@ -116,7 +130,12 @@ export function TarjetasPanel({
                 {card ? 'TU TARJETA' : 'TU CUENTA EN PESOS'}
               </span>
               <span className="account-active">
-                <i /> Activa
+                <i />{' '}
+                {card
+                  ? card.status === 'active'
+                    ? 'Activa'
+                    : 'Inactiva'
+                  : 'Activa'}
               </span>
             </div>
             <div className="account-detail-main">
@@ -127,7 +146,7 @@ export function TarjetasPanel({
                 <p className="account-detail-subtitle">
                   {card
                     ? `${card.network} · ${card.format} · •••• ${card.last4}`
-                    : `Peso mexicano · •••• ${personalAccount.last4}`}
+                    : `${personalAccount.currency} · ${personalAccount.name}`}
                 </p>
                 <p className="account-amount-label">
                   {card
@@ -161,14 +180,24 @@ export function TarjetasPanel({
               {card && (
                 <Button
                   variant="ghost"
-                  disabled={preferred === card.productId}
-                  onClick={() =>
-                    onSave({
-                      cardId: card.productId,
-                      format: 'fisica',
-                      label: `Banorte ${card.name} · ${card.last4}`,
-                    })
-                  }
+                  disabled={saving || preferred === card.productId}
+                  onClick={async () => {
+                    setSaving(true);
+                    setSaveError('');
+                    try {
+                      await onSave({
+                        cardId: card.productId,
+                        format: 'fisica',
+                        label: `Banorte ${card.name} · ${card.last4}`,
+                      });
+                    } catch (e) {
+                      setSaveError(
+                        e instanceof Error ? e.message : 'No se pudo guardar.',
+                      );
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
                 >
                   <Star size={16} />
                   {preferred === card.productId
@@ -190,7 +219,12 @@ export function TarjetasPanel({
               </div>
               <div>
                 <dt>{card ? 'Formato' : 'Tarjetas en tu perfil'}</dt>
-                <dd>{card ? 'Tarjeta física' : 'Clásica y Oro'}</dd>
+                <dd>
+                  {card
+                    ? 'Tarjeta física'
+                    : ownedCards.map((c) => c.name).join(' y ') ||
+                      'Sin tarjetas asignadas'}
+                </dd>
               </div>
             </dl>
           </section>
@@ -227,8 +261,7 @@ export function TarjetasPanel({
                     <div>
                       <strong>{item.description}</strong>
                       <small>
-                        {instrumentLabel(item.instrumentId)} ·{' '}
-                        {formatMovementDate(item.date)}
+                        {movementLabel(item)} · {formatMovementDate(item.date)}
                       </small>
                     </div>
                     <b className={item.type}>
@@ -241,7 +274,11 @@ export function TarjetasPanel({
             ) : (
               <div className="account-activity-empty">
                 <CreditCard size={25} />
-                <p>Aún no hay movimientos con esta tarjeta.</p>
+                <p>
+                  {card
+                    ? 'Aún no hay movimientos con esta tarjeta.'
+                    : 'Aún no hay movimientos en tu cuenta.'}
+                </p>
                 <Button variant="ghost" onClick={() => onMovements(card?.id)}>
                   Ir al historial <ArrowRight size={16} />
                 </Button>

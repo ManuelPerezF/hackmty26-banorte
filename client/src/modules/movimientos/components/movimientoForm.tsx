@@ -1,10 +1,13 @@
 'use client';
-import { instruments, personalAccount } from '@/modules/cuentas/data/accounts';
-import { useState } from 'react';
+import {
+  useBank,
+  useInstruments,
+} from '@/modules/cuentas/context/bank-context';
+import { useId, useState } from 'react';
 import { ArrowDownLeft, ArrowUpRight, Check, ShieldCheck } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { Input } from '@/shared/components/ui/input';
-import { categories } from '../data/demo-movimientos';
+import { categories } from '../data/categories';
 import { localDateKey } from '../services/movimientos.service';
 import type { MovementInput, MovementType } from '../types/movimientos.types';
 export function MovimientoForm({
@@ -15,26 +18,32 @@ export function MovimientoForm({
   error,
 }: {
   initialInstrument?: string;
-  onRegister: (input: MovementInput) => boolean;
+  onRegister: (input: MovementInput) => Promise<boolean>;
   onCancel: () => void;
   ready: boolean;
   error: string;
 }) {
+  const fieldId = useId();
+  const instruments = useInstruments();
+  const { account: personalAccount } = useBank();
   const [type, setType] = useState<MovementType>('expense');
   return (
     <div className="movement-create-layout">
-      <section className="movement-form-main" aria-labelledby="register-title">
-        <h2 id="register-title">Registrar movimiento</h2>
+      <section
+        className="movement-form-main"
+        aria-labelledby={`${fieldId}-register-title`}
+      >
+        <h2 id={`${fieldId}-register-title`}>Registrar movimiento</h2>
         <p>Añade un ingreso o gasto para llevar tus cuentas al día.</p>
         <form
-          onSubmit={(event) => {
+          onSubmit={async (event) => {
             event.preventDefault();
             const data = new FormData(event.currentTarget);
             const text = (name: string) => {
               const value = data.get(name);
               return typeof value === 'string' ? value : '';
             };
-            onRegister({
+            await onRegister({
               instrumentId: text('instrumentId'),
               type,
               description: text('description'),
@@ -49,6 +58,7 @@ export function MovimientoForm({
             <legend>Tipo de movimiento</legend>
             <label className={type === 'expense' ? 'is-selected' : ''}>
               <input
+                disabled={!ready}
                 type="radio"
                 name="type"
                 value="expense"
@@ -60,6 +70,7 @@ export function MovimientoForm({
             </label>
             <label className={type === 'income' ? 'is-selected' : ''}>
               <input
+                disabled={!ready}
                 type="radio"
                 name="type"
                 value="income"
@@ -71,30 +82,32 @@ export function MovimientoForm({
             </label>
           </fieldset>
           <div className="movement-field">
-            <label htmlFor="movement-amount">Monto</label>
+            <label htmlFor={`${fieldId}-movement-amount`}>Monto</label>
             <div className="movement-amount-field">
               <span aria-hidden="true">$</span>
               <Input
-                id="movement-amount"
+                disabled={!ready}
+                id={`${fieldId}-movement-amount`}
                 name="amount"
                 inputMode="decimal"
                 placeholder="0.00"
                 required
                 maxLength={12}
                 autoComplete="off"
-                aria-describedby="amount-currency"
+                aria-describedby={`${fieldId}-amount-currency`}
               />
-              <span id="amount-currency">MXN</span>
+              <span id={`${fieldId}-amount-currency`}>MXN</span>
             </div>
           </div>
           <div className="movement-field">
-            <label htmlFor="movement-instrument">
+            <label htmlFor={`${fieldId}-movement-instrument`}>
               {type === 'income'
                 ? 'Cuenta o tarjeta de destino'
                 : 'Cuenta o tarjeta utilizada'}
             </label>
             <select
-              id="movement-instrument"
+              disabled={!ready}
+              id={`${fieldId}-movement-instrument`}
               name="instrumentId"
               defaultValue={initialInstrument || personalAccount.id}
               required
@@ -107,9 +120,10 @@ export function MovimientoForm({
             </select>
           </div>
           <div className="movement-field">
-            <label htmlFor="movement-description">Concepto</label>
+            <label htmlFor={`${fieldId}-movement-description`}>Concepto</label>
             <Input
-              id="movement-description"
+              disabled={!ready}
+              id={`${fieldId}-movement-description`}
               name="description"
               placeholder="Ej. Supermercado, nómina, renta"
               required
@@ -118,9 +132,10 @@ export function MovimientoForm({
           </div>
           <div className="movement-form-row">
             <div className="movement-field">
-              <label htmlFor="movement-category">Categoría</label>
+              <label htmlFor={`${fieldId}-movement-category`}>Categoría</label>
               <select
-                id="movement-category"
+                disabled={!ready}
+                id={`${fieldId}-movement-category`}
                 name="category"
                 defaultValue=""
                 required
@@ -134,9 +149,10 @@ export function MovimientoForm({
               </select>
             </div>
             <div className="movement-field">
-              <label htmlFor="movement-date">Fecha</label>
+              <label htmlFor={`${fieldId}-movement-date`}>Fecha</label>
               <Input
-                id="movement-date"
+                disabled={!ready}
+                id={`${fieldId}-movement-date`}
                 name="date"
                 type="date"
                 required
@@ -146,11 +162,12 @@ export function MovimientoForm({
             </div>
           </div>
           <div className="movement-field">
-            <label htmlFor="movement-notes">
+            <label htmlFor={`${fieldId}-movement-notes`}>
               Nota <span>Opcional</span>
             </label>
             <textarea
-              id="movement-notes"
+              disabled={!ready}
+              id={`${fieldId}-movement-notes`}
               name="notes"
               placeholder="Un detalle que quieras recordar…"
               maxLength={500}
@@ -166,7 +183,12 @@ export function MovimientoForm({
             <Button type="submit" className="button" disabled={!ready}>
               <Check size={17} /> Guardar movimiento
             </Button>
-            <Button type="button" variant="ghost" onClick={onCancel}>
+            <Button
+              type="button"
+              variant="ghost"
+              disabled={!ready}
+              onClick={onCancel}
+            >
               Cancelar
             </Button>
           </div>

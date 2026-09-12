@@ -1,19 +1,4 @@
-import {
-  instruments,
-  instrumentLabel,
-  personalAccount,
-} from '../../cuentas/data/accounts.ts';
-import { categories, demoMovements } from '../data/demo-movimientos.ts';
-import type {
-  Movement,
-  MovementInput,
-  MovementFilters,
-} from '../types/movimientos.types';
-export const MOVEMENTS_STORAGE_KEY = 'banorte.demo.movements.v1';
-export const signedAmount = (movement: Movement) =>
-  movement.type === 'income' ? movement.amountCents : -movement.amountCents;
-export const OPENING_BALANCE_CENTS =
-  28465000 - demoMovements.reduce((sum, item) => sum + signedAmount(item), 0);
+import type { Movement, MovementFilters } from '../types/movimientos.types';
 export function localDateKey(date = new Date()) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
@@ -32,37 +17,6 @@ export function parseAmountCents(value: string) {
   const cents = Number(whole) * 100 + Number(fraction.padEnd(2, '0'));
   if (cents <= 0) throw new Error('El monto debe ser mayor a cero.');
   return cents;
-}
-export function createMovement(
-  input: MovementInput,
-  today = localDateKey(),
-): Movement {
-  const description = input.description.trim();
-  if (!description || description.length > 80)
-    throw new Error('Escribe un concepto de hasta 80 caracteres.');
-  if (!['income', 'expense'].includes(input.type))
-    throw new Error('Elige ingreso o gasto.');
-  if (!(categories as readonly string[]).includes(input.category))
-    throw new Error('Elige una categoría de la lista.');
-  if (!validDate(input.date) || input.date > today)
-    throw new Error('Elige una fecha válida que no sea posterior a hoy.');
-  if (input.notes.length > 500)
-    throw new Error('La nota puede tener hasta 500 caracteres.');
-  const instrumentId = input.instrumentId || personalAccount.id;
-  if (!instruments.some((item) => item.id === instrumentId))
-    throw new Error('Elige una cuenta o tarjeta de tu perfil.');
-  return {
-    instrumentId,
-    id: crypto.randomUUID(),
-    description,
-    amountCents: parseAmountCents(input.amount),
-    type: input.type,
-    category: input.category,
-    date: input.date,
-    notes: input.notes.trim(),
-    createdAt: Date.now(),
-    source: 'manual',
-  };
 }
 export function sortMovements(items: readonly Movement[]) {
   return [...items].sort(
@@ -93,80 +47,15 @@ export function filterMovements(
       (item) =>
         (!query ||
           normalize(
-            `${item.description} ${item.category} ${item.notes} ${instrumentLabel(item.instrumentId)}`,
+            `${item.description} ${item.category} ${item.notes} ${item.card ? `${item.card.product.name} ${item.card.last4}` : (item.account?.name ?? '')}`,
           ).includes(query)) &&
         (!filters.instrumentId ||
-          (item.instrumentId ?? personalAccount.id) === filters.instrumentId) &&
+          (item.instrumentId ?? item.card?.id ?? item.account?.id) ===
+            filters.instrumentId) &&
         (filters.type === 'all' || item.type === filters.type) &&
         (!filters.category || item.category === filters.category) &&
         (!filters.from || item.date >= filters.from) &&
         (!filters.to || item.date <= filters.to),
     ),
   );
-}
-export function decodeMovements(raw: string | null): Movement[] {
-  if (raw === null) return [...demoMovements];
-  const parsed: unknown = JSON.parse(raw);
-  if (
-    !parsed ||
-    typeof parsed !== 'object' ||
-    !('version' in parsed) ||
-    parsed.version !== 1 ||
-    !('items' in parsed) ||
-    !Array.isArray(parsed.items)
-  )
-    throw new Error('Historial local inválido.');
-  const ids = new Set<string>();
-  for (const value of parsed.items as unknown[]) {
-    if (!value || typeof value !== 'object')
-      throw new Error('Movimiento local inválido.');
-    const item = value as Record<string, unknown>;
-    if (
-      typeof item.id !== 'string' ||
-      !item.id ||
-      ids.has(item.id) ||
-      typeof item.description !== 'string' ||
-      !item.description.trim() ||
-      item.description.length > 80 ||
-      typeof item.amountCents !== 'number' ||
-      !Number.isSafeInteger(item.amountCents) ||
-      item.amountCents <= 0 ||
-      item.amountCents > 99999999999 ||
-      !['income', 'expense'].includes(String(item.type)) ||
-      typeof item.category !== 'string' ||
-      !(categories as readonly string[]).includes(item.category) ||
-      typeof item.date !== 'string' ||
-      !validDate(item.date) ||
-      typeof item.notes !== 'string' ||
-      item.notes.length > 500 ||
-      typeof item.createdAt !== 'number' ||
-      !Number.isFinite(item.createdAt) ||
-      !['demo', 'manual'].includes(String(item.source))
-    )
-      throw new Error('Movimiento local inválido.');
-    if (
-      item.instrumentId !== undefined &&
-      !instruments.some((instrument) => instrument.id === item.instrumentId)
-    )
-      throw new Error('Cuenta o tarjeta no reconocida en el historial.');
-    ids.add(item.id);
-  }
-  return sortMovements(
-    (parsed.items as Movement[]).map((item) => ({
-      ...item,
-      instrumentId:
-        item.instrumentId ??
-        demoMovements.find((seed) => seed.id === item.id)?.instrumentId ??
-        personalAccount.id,
-    })),
-  );
-}
-export function encodeMovements(items: readonly Movement[]) {
-  return JSON.stringify({ version: 1, items });
-}
-export async function loadMovements(): Promise<Movement[]> {
-  return decodeMovements(localStorage.getItem(MOVEMENTS_STORAGE_KEY));
-}
-export function saveMovements(items: readonly Movement[]) {
-  localStorage.setItem(MOVEMENTS_STORAGE_KEY, encodeMovements(items));
 }

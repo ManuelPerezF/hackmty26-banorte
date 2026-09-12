@@ -1,5 +1,6 @@
 'use client';
-import { instrumentLabel } from '@/modules/cuentas/data/accounts';
+import { useBank } from '@/modules/cuentas/context/bank-context';
+import { movementLabel } from '@/modules/movimientos/services/movement-label';
 import {
   ArrowRight,
   ArrowUpRight,
@@ -17,6 +18,7 @@ import { CardArtwork } from '@/modules/tarjetas/components/card-artwork';
 
 import type { HomeProps } from '../types/home.types';
 export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
+  const bank = useBank();
   return (
     <div className="finance-workspace account-home">
       {' '}
@@ -78,12 +80,14 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
             >
               <div className="wallet-art">
                 <div className="wallet-back">
-                  <span>ALEX MORGAN</span>
+                  <span>{bank.profile.displayName.toUpperCase()}</span>
                 </div>
-                <CardArtwork cardId={cardId} className="wallet-bank-card" />
+                {cardId && (
+                  <CardArtwork cardId={cardId} className="wallet-bank-card" />
+                )}
                 <div className="wallet-front">
                   <span>
-                    <CreditCard size={16} /> 2 tarjetas
+                    <CreditCard size={16} /> {bank.cards.length} tarjetas
                   </span>
                   <span>BANORTE</span>
                 </div>
@@ -104,7 +108,9 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
                   <span className="peso-symbol">$</span>
                   <div>
                     <strong>Peso mexicano</strong>
-                    <span>MXN · •••• 4281</span>
+                    <span>
+                      {bank.account.currency} · {bank.account.name}
+                    </span>
                   </div>
                   <strong>{formatMoney(ledger.balanceCents)}</strong>
                 </div>
@@ -147,15 +153,6 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
                 <div className="insight-mini" aria-hidden="true">
                   <span>Balance del historial</span>
                   <strong>{formatMoney(ledger.totals.net)}</strong>
-                  <div>
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                    <i />
-                  </div>
                 </div>
               </div>
             </section>
@@ -172,6 +169,16 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
             </div>
             <span className="transaction-day">Actividad reciente · MXN</span>
             <div className="transaction-list">
+              {ledger.ready && !ledger.movements.length && (
+                <p className="movement-empty">
+                  Aún no tienes movimientos. Registra tu primer ingreso o gasto.
+                </p>
+              )}
+              {ledger.error && (
+                <p role="alert" className="movement-error">
+                  {ledger.error}
+                </p>
+              )}
               {ledger.movements.slice(0, 3).map((t) => (
                 <div className="transaction-row" key={t.id}>
                   <span
@@ -181,7 +188,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
                   </span>
                   <div className="merchant-copy">
                     <strong>{t.description}</strong>
-                    <span>{instrumentLabel(t.instrumentId)}</span>
+                    <span>{movementLabel(t)}</span>
                   </div>
                   <div className="transaction-value">
                     <strong className={t.type === 'income' ? 'incoming' : ''}>

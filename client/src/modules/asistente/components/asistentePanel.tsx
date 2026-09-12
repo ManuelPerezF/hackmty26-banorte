@@ -1,254 +1,196 @@
 'use client';
-import type { useAsistente } from '../hooks/useAsistente';
+import { useEffect, useRef } from 'react';
 import {
   ArrowUp,
-  Check,
-  ChevronDown,
-  Command,
-  Database,
-  LayoutDashboard,
-  Link2,
+  MessageSquare,
+  Plus,
+  Wallet,
   Receipt,
-  TrendingUp,
+  ChartColumn,
+  RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
-
-import { ViewTransition } from '@/shared/components/view-transition';
-
-import type { getMovementInsights } from '../services/asistente.service';
-import { formatMoney } from '@/shared/utils/money';
-export function AsistentePanel({
-  scenario,
-  draft,
-  setDraft,
-  activityOpen,
-  setActivityOpen,
-  lastPrompt,
-  choosePrompt,
-  submitPrompt,
-  insights,
-}: ReturnType<typeof useAsistente> & {
-  insights: ReturnType<typeof getMovementInsights>;
-}) {
-  const { totals, spending } = insights;
+import { useBank } from '@/modules/cuentas/context/bank-context';
+import type { useAsistente } from '../hooks/useAsistente';
+import { A2uiRenderer } from './a2ui-renderer';
+import '../styles/chat.css';
+export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
+  const { profile } = useBank();
+  const scroll = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const area = scroll.current;
+    if (area) area.scrollTop = area.scrollHeight;
+  }, [a.messages, a.latest, a.turns, a.error, a.busy]);
+  const standalone = a.latest ? a.turns[a.latest] : undefined;
+  const hasMessage =
+    standalone &&
+    a.messages.some(
+      (m) => m.role === 'assistant' && m.turnId === standalone.id,
+    );
   return (
-    <div className="finance-workspace chat-page">
-      <div className="finance-assistant-sheet finance-embedded-chat">
-        <aside className="assistant-panel" aria-labelledby="assistant-title">
-          <header className="assistant-header">
-            <span className="assistant-avatar">
-              <Command size={22} strokeWidth={1.7} />
-            </span>
-            <div>
-              <h3 id="assistant-title">Asistente Banorte</h3>
-              <span>Una nueva forma de hacer banca</span>
-            </div>
-            <span className="ai-pill">IA</span>
-          </header>
-          <div className="assistant-context">
-            <span>
-              <Link2 size={13} /> Análisis de movimientos
-            </span>
-            <span>
-              <span className="context-dot" /> 3 herramientas
-            </span>
-          </div>
-          <div className="conversation">
-            <div className="conversation-date">
-              Tu dinero, en una conversación
-            </div>
-            <div className="user-message">{lastPrompt}</div>
-            <ViewTransition
-              stateKey={scenario + lastPrompt}
-              className="assistant-response"
-            >
-              <div className="response-label">
-                <Command size={14} /> ASISTENTE BANORTE
-              </div>
-              <p>
-                {scenario === 'expenses' ? (
-                  <>
-                    Claro. Organicé tu historial de movimientos para que veas{' '}
-                    <strong>a dónde va tu dinero.</strong>
-                  </>
-                ) : (
-                  <>
-                    Preparé una vista de{' '}
-                    <strong>lo que entra y lo que sale.</strong>
-                  </>
-                )}
-              </p>
-              <div className="tool-activity">
-                <Button
-                  variant="ghost"
-                  aria-expanded={activityOpen}
-                  onClick={() => setActivityOpen(!activityOpen)}
+    <section className="bank-chat" aria-label="Asistente financiero">
+      <aside className="chat-history">
+        <Button variant="ghost" disabled={a.busy} onClick={a.newChat}>
+          <Plus size={17} /> Nueva conversación
+        </Button>
+        <h2>Conversaciones</h2>
+        {a.conversations.length ? (
+          <ul>
+            {a.conversations.map((c) => (
+              <li key={c.id}>
+                <button
+                  disabled={a.busy}
+                  aria-current={a.conversationId === c.id ? 'page' : undefined}
+                  onClick={() => {
+                    void a.open(c.id);
+                  }}
                 >
-                  <span className="activity-check">
-                    <Check size={12} />
-                  </span>
-                  <span>3 herramientas consultadas</span>
-                  <ChevronDown
-                    size={14}
-                    className={activityOpen ? 'is-open' : ''}
-                  />
-                </Button>
-                {activityOpen && (
-                  <ol>
-                    <li>
-                      <Database size={13} />
-                      <span>
-                        Consultar cuentas<code>accounts.get_summary</code>
-                      </span>
-                      <Check size={12} />
-                    </li>
-                    <li>
-                      <Receipt size={13} />
-                      <span>
-                        Leer movimientos<code>transactions.list</code>
-                      </span>
-                      <Check size={12} />
-                    </li>
-                    <li>
-                      <LayoutDashboard size={13} />
-                      <span>
-                        Generar interfaz<code>ui.render_insight</code>
-                      </span>
-                      <Check size={12} />
-                    </li>
-                  </ol>
-                )}
-              </div>
-              <section
-                className="generated-insight"
-                aria-label="Interfaz generada de ejemplo"
-              >
-                <div className="insight-label">
-                  <LayoutDashboard size={13} />
-                  <span>VISTA GENERADA</span>
-                  <span>01</span>
-                </div>
-                <h4>
-                  {scenario === 'expenses'
-                    ? 'Así se distribuyen tus gastos'
-                    : 'Tu flujo de efectivo'}
-                </h4>
-                <p>Todo tu historial · MXN</p>
-                <div className="insight-total">
-                  {formatMoney(
-                    scenario === 'expenses' ? totals.expense : totals.net,
-                  )}
-                </div>
-                {scenario === 'expenses' ? (
-                  <div className="spending-bars">
-                    {spending.map((item, i) => (
-                      <div className="spending-row" key={item.name}>
-                        <div>
-                          <span>{item.name}</span>
-                          <strong>{formatMoney(item.amount)}</strong>
-                        </div>
-                        <span className="spending-track">
-                          <span
-                            style={{
-                              width: `${item.width}%`,
-                              opacity: Math.max(0.3, 1 - i * 0.1),
-                            }}
-                          />
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="cashflow-insight">
-                    <div>
-                      <span>Ingresos</span>
-                      <strong>{formatMoney(totals.income)}</strong>
-                      <i style={{ width: `${insights.incomeWidth}%` }} />
-                    </div>
-                    <div>
-                      <span>Gastos</span>
-                      <strong>{formatMoney(totals.expense)}</strong>
-                      <i style={{ width: `${insights.expenseWidth}%` }} />
-                    </div>
-                    <p>
-                      <TrendingUp size={15} /> Balance neto:{' '}
-                      {formatMoney(totals.net)}.
-                    </p>
-                  </div>
-                )}
-                <div className="insight-footer">
-                  <Database size={12} /> Movimientos de la cuenta ••4281
-                </div>
-              </section>
-              <p className="assistant-takeaway">
-                {scenario === 'expenses' ? (
-                  spending[0] ? (
-                    <>
-                      {spending[0].name} representa el{' '}
-                      <strong>{spending[0].share}% de tus gastos</strong> en
-                      este historial.
-                    </>
-                  ) : (
-                    'Todavía no hay gastos registrados.'
-                  )
-                ) : (
-                  <>
-                    La diferencia entre ingresos y gastos es{' '}
-                    <strong>{formatMoney(totals.net)}</strong> en este
-                    historial.
-                  </>
-                )}
+                  <MessageSquare size={14} />
+                  <span>{c.title}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Tus conversaciones aparecerán aquí.</p>
+        )}
+      </aside>
+      <div className="chat-main">
+        <header className="bank-chat-header">
+          <span className="chat-agent-mark">
+            <Wallet size={20} />
+          </span>
+          <div>
+            <h2>Tu asistente financiero</h2>
+            <p>Consulta, entiende y organiza tu dinero.</p>
+          </div>
+        </header>
+        <div
+          ref={scroll}
+          className="chat-scroll"
+          aria-busy={a.busy || a.loading}
+        >
+          {a.loading ? (
+            <p className="chat-loading">Cargando conversaciones…</p>
+          ) : !a.messages.length && !a.busy ? (
+            <div className="chat-welcome">
+              <span>UN POCO MÁS DE CLARIDAD</span>
+              <h3>
+                ¿Qué quieres entender
+                <br />
+                de tu dinero, {profile.displayName.split(' ')[0]}?
+              </h3>
+              <p>
+                Podemos revisar tus gastos, registrar un movimiento o pensar en
+                tu próxima meta.
               </p>
-            </ViewTransition>
-          </div>
-          <div className="assistant-compose">
-            <div className="prompt-suggestions">
-              <Button
-                variant="ghost"
-                onClick={() =>
-                  choosePrompt('cashflow', 'Muéstrame mi flujo de efectivo.')
-                }
-              >
-                <TrendingUp size={13} /> Ver flujo de efectivo
-              </Button>
-              <Button
-                variant="ghost"
-                onClick={() =>
-                  choosePrompt('expenses', '¿En qué gasté este mes?')
-                }
-              >
-                <Receipt size={13} /> Analizar gastos
-              </Button>
+              <div className="chat-suggestions">
+                {[
+                  { icon: ChartColumn, text: '¿En qué gasté este mes?' },
+                  { icon: Receipt, text: 'Quiero registrar un gasto' },
+                  { icon: Wallet, text: '¿Cómo puedo empezar a ahorrar?' },
+                ].map(({ icon: Icon, text }) => (
+                  <button
+                    key={text}
+                    disabled={!a.catalogReady || a.busy}
+                    onClick={() => {
+                      a.setDraft(text);
+                      void a.send(text);
+                    }}
+                  >
+                    <Icon size={18} />
+                    {text}
+                    <span>↗</span>
+                  </button>
+                ))}
+              </div>
             </div>
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                submitPrompt();
-              }}
-            >
-              <label className="sr-only" htmlFor="assistant-prompt">
-                Mensaje al asistente
-              </label>
-              <Input
-                id="assistant-prompt"
-                placeholder="¿Qué quieres entender de tu dinero?"
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                maxLength={160}
+          ) : null}
+          {a.messages.map((m) => (
+            <article key={m.id} className={`chat-message ${m.role}`}>
+              <span className="chat-speaker">
+                {m.role === 'user' ? 'Tú' : 'Asistente Banorte'}
+              </span>
+              {m.role === 'assistant' &&
+              m.turnId &&
+              a.turns[m.turnId]?.uiSnapshot ? (
+                <A2uiRenderer
+                  turn={a.turns[m.turnId]}
+                  disabled={a.busy}
+                  latest={a.latest === m.turnId}
+                  onAction={a.act}
+                />
+              ) : (
+                <p>{m.content}</p>
+              )}
+            </article>
+          ))}
+          {standalone && !hasMessage && standalone.uiSnapshot && (
+            <article className="chat-message assistant">
+              <span className="chat-speaker">Asistente Banorte</span>
+              <A2uiRenderer
+                turn={standalone}
+                disabled={a.busy}
+                latest
+                onAction={a.act}
               />
-              <Button
-                type="submit"
-                aria-label="Enviar mensaje"
-                disabled={!draft.trim()}
-              >
-                <ArrowUp size={17} />
-              </Button>
-            </form>
-            <p>Explora tus gastos y encuentra oportunidades de ahorro.</p>
-          </div>
-        </aside>
+            </article>
+          )}
+          {a.busy && (
+            <output className="chat-working">
+              <i /> Consultando tu información…
+            </output>
+          )}
+          {a.error && (
+            <div className="chat-error" role="alert">
+              <p>{a.error}</p>
+              {a.conversationId && (
+                <Button variant="ghost" disabled={a.busy} onClick={a.recover}>
+                  <RotateCcw size={15} /> Recuperar conversación
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+        <form
+          className="bank-chat-compose"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void a.send();
+          }}
+        >
+          <label className="sr-only" htmlFor="chat-input">
+            Mensaje al asistente
+          </label>
+          <textarea
+            id="chat-input"
+            value={a.draft}
+            onChange={(e) => a.setDraft(e.target.value)}
+            placeholder="Pregunta algo sobre tus cuentas o tus planes…"
+            maxLength={4000}
+            rows={2}
+            disabled={a.busy}
+            onKeyDown={(e) => {
+              if (
+                e.key === 'Enter' &&
+                !e.shiftKey &&
+                !e.nativeEvent.isComposing
+              ) {
+                e.preventDefault();
+                void a.send();
+              }
+            }}
+          />
+          <Button
+            type="submit"
+            aria-label="Enviar mensaje"
+            disabled={a.busy || !a.catalogReady || !a.draft.trim()}
+          >
+            <ArrowUp size={19} />
+          </Button>
+          <small>Revisa los datos antes de confirmar un movimiento.</small>
+        </form>
       </div>
-    </div>
+    </section>
   );
 }

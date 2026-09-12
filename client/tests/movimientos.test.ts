@@ -1,145 +1,94 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  createMovement,
   parseAmountCents,
   validDate,
   filterMovements,
   movementTotals,
-  OPENING_BALANCE_CENTS,
-  decodeMovements,
-  encodeMovements,
 } from '../src/modules/movimientos/services/movimientos.service.ts';
-import { demoMovements } from '../src/modules/movimientos/data/demo-movimientos.ts';
-const base = {
-  description: 'Café de prueba',
-  amount: '0.10',
-  type: 'expense' as const,
+import type { Movement } from '../src/modules/movimientos/types/movimientos.types';
+const row: Movement = {
+  id: 'movement-test',
+  description: 'Café capturado',
+  amountCents: 10,
+  type: 'expense',
   category: 'Alimentación',
   date: '2026-09-11',
-  notes: 'Reunión',
+  notes: '',
+  createdAt: 1,
+  source: 'manual',
+  instrumentId: 'account-test',
+  account: { id: 'account-test', name: 'Cuenta propia', currency: 'MXN' },
+};
+const filters = {
+  query: '',
+  type: 'all' as const,
+  category: '',
+  from: '',
+  to: '',
 };
 await test('uses integer cents for decimal arithmetic', () => {
   assert.equal(parseAmountCents('0.10') + parseAmountCents('0,20'), 30);
   for (const value of ['0', '-1', '1.001', 'Infinity', 'NaN', '1e3', ''])
     assert.throws(() => parseAmountCents(value));
 });
-await test('validates calendar dates and future entries', () => {
+await test('validates real calendar dates', () => {
   assert.equal(validDate('2024-02-29'), true);
   assert.equal(validDate('2026-02-29'), false);
   assert.equal(validDate('2026-04-31'), false);
-  assert.throws(() =>
-    createMovement({ ...base, date: '2026-09-12' }, '2026-09-11'),
-  );
-  assert.throws(() =>
-    createMovement({ ...base, description: '   ' }, '2026-09-11'),
-  );
-  assert.throws(() =>
-    createMovement({ ...base, category: 'Invalid' }, '2026-09-11'),
-  );
 });
-await test('income and expense affect the shared balance with the correct sign', () => {
-  const expense = createMovement(base, '2026-09-11');
-  const income = createMovement(
-    { ...base, type: 'income', amount: '0.20' },
-    '2026-09-11',
-  );
+await test('empty history stays empty and has no synthetic opening balance', () => {
+  assert.deepEqual(movementTotals([]), { income: 0, expense: 0, net: 0 });
+  assert.deepEqual(filterMovements([], filters), []);
   assert.equal(
-    OPENING_BALANCE_CENTS + movementTotals(demoMovements).net,
-    28465000,
-  );
-  assert.equal(
-    movementTotals([...demoMovements, expense, income]).net -
-      movementTotals(demoMovements).net,
+    movementTotals([
+      row,
+      { ...row, id: 'income', type: 'income', amountCents: 20 },
+    ]).net,
     10,
   );
 });
-await test('combines accent-insensitive search with date, type and category filters', () => {
-  const result = filterMovements(demoMovements, {
-    query: 'cafe',
-    type: 'expense',
-    category: 'Alimentación',
-    from: '2026-09-09',
-    to: '2026-09-09',
-  });
-  assert.deepEqual(
-    result.map((item) => item.id),
-    ['demo-coffee'],
+await test('combines accent-insensitive search, date, type and category', () => {
+  assert.equal(
+    filterMovements([row], {
+      ...filters,
+      query: 'cafe',
+      type: 'expense',
+      category: 'Alimentación',
+      from: '2026-09-11',
+      to: '2026-09-11',
+    }).length,
+    1,
   );
   assert.equal(
-    filterMovements(demoMovements, {
-      query: '',
-      type: 'all',
-      category: '',
-      from: '2026-09-10',
-      to: '2026-09-01',
-    }).length,
+    filterMovements([row], { ...filters, from: '2026-09-12' }).length,
     0,
   );
 });
-await test('round-trips manual records and rejects corrupted or duplicate entries', () => {
-  const item = createMovement(base, '2026-09-11');
-  assert.deepEqual(decodeMovements(encodeMovements([item])), [item]);
-  assert.deepEqual(decodeMovements(null), demoMovements);
-  assert.throws(() => decodeMovements('{bad json'));
-  assert.throws(() =>
-    decodeMovements(JSON.stringify({ version: 2, items: [] })),
-  );
-  assert.throws(() => decodeMovements(encodeMovements([item, item])));
-  assert.throws(() =>
-    decodeMovements(encodeMovements([{ ...item, amountCents: -1 }])),
-  );
-});
-
-await test('persists instrument selection and filters associated movements', () => {
-  const card = createMovement(
-    { ...base, instrumentId: 'card-oro' },
-    '2026-09-11',
-  );
-  const account = createMovement(
-    { ...base, instrumentId: 'account-personal' },
-    '2026-09-11',
-  );
-  const stored = decodeMovements(encodeMovements([card, account]));
-  assert.equal(
-    stored.find((item) => item.id === card.id)?.instrumentId,
-    'card-oro',
-  );
-  const filtered = filterMovements(stored, {
-    query: '',
-    type: 'all',
-    category: '',
-    from: '',
-    to: '',
-    instrumentId: 'card-oro',
-  });
-  assert.deepEqual(
-    filtered.map((item) => item.id),
-    [card.id],
-  );
-  assert.throws(() =>
-    createMovement({ ...base, instrumentId: 'unknown-card' }, '2026-09-11'),
-  );
-});
-
-await test('preserves legacy history while adding known instrument associations', () => {
-  const oldManual = createMovement(base, '2026-09-11');
-  delete oldManual.instrumentId;
-  const oldSeed = {
-    ...demoMovements.find((item) => item.id === 'demo-groceries')!,
+await test('searches persisted account/card information without fixture IDs', () => {
+  const card: Movement = {
+    ...row,
+    id: 'card-movement',
+    instrumentId: 'actual-card-id',
+    card: {
+      id: 'actual-card-id',
+      last4: '5678',
+      product: { key: 'oro', name: 'Oro', imageKey: 'oro' },
+    },
   };
-  delete oldSeed.instrumentId;
-  const restored = decodeMovements(encodeMovements([oldManual, oldSeed]));
-  assert.equal(
-    restored.find((item) => item.id === oldManual.id)?.instrumentId,
-    'account-personal',
+  assert.deepEqual(
+    filterMovements([row, card], {
+      ...filters,
+      instrumentId: 'actual-card-id',
+    }),
+    [card],
   );
-  assert.equal(
-    restored.find((item) => item.id === oldSeed.id)?.instrumentId,
-    'card-clasica',
+  assert.deepEqual(
+    filterMovements([row, card], { ...filters, query: '5678' }),
+    [card],
   );
-  assert.equal(
-    movementTotals(restored).net,
-    movementTotals([oldManual, oldSeed]).net,
+  assert.deepEqual(
+    filterMovements([row], { ...filters, query: 'cuenta propia' }),
+    [row],
   );
 });

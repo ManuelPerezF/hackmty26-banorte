@@ -59,7 +59,7 @@ sequenceDiagram
   B-->>C: Resultado y nuevo snapshot
 ```
 
-La prueba usó un modelo controlado, con MCP y DB reales. La llamada real a Gemini y el consumidor visual A2UI requieren terminar configuración/integración del frontend.
+La prueba usó un modelo controlado, con MCP y DB reales. El consumidor visual A2UI está conectado y fue probado en navegador. Se configuró Gemini Flash-Lite y se validó el ciclo desde navegador con una llamada real.
 
 ## Decisiones
 
@@ -70,4 +70,4 @@ La prueba usó un modelo controlado, con MCP y DB reales. La llamada real a Gemi
 - Turnos persistidos y snapshots: recuperar estado tras desconexión; al reiniciar se marcan interrumpidos los activos.
 - Una instancia Nest local: limita complejidad. Rate limits y capacidades en memoria; falta coordinación distribuida si se escala.
 
-PostgreSQL es el único proceso en Docker. El frontend aún debe reemplazar localStorage por estas rutas y renderizar el protocolo.
+PostgreSQL es el único proceso en Docker. El frontend consume estas rutas y renderiza el protocolo; localStorage ya no es la fuente de su historial.

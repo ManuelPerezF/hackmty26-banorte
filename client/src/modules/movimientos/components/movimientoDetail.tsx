@@ -1,7 +1,4 @@
-import {
-  instrumentLabel,
-  personalAccount,
-} from '@/modules/cuentas/data/accounts';
+import { movementLabel } from '../services/movement-label';
 import { useEffect, useRef } from 'react';
 import { ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
@@ -68,12 +65,12 @@ export function MovimientoDetail({
         </div>
         <div>
           <dt>{movement.type === 'income' ? 'Destino' : 'Cuenta / tarjeta'}</dt>
-          <dd>{instrumentLabel(movement.instrumentId)}</dd>
+          <dd>{movementLabel(movement)}</dd>
         </div>
         <div>
           <dt>Cuenta del historial</dt>
           <dd>
-            {personalAccount.name} · {personalAccount.currency}
+            {movement.account?.name} · {movement.account?.currency}
           </dd>
         </div>
       </dl>

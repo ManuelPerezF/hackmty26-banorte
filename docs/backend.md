@@ -40,7 +40,7 @@ Verificación de esta entrega con PostgreSQL local y scripts temporales, elimina
 - MCP real por stdio: descubrimiento de ocho herramientas, lectura autorizada y rechazo de escritura sin capacidad.
 - Asistente con modelo controlado: preparación sin escritura, confirmación idempotente, persistencia, respuesta posterior al modelo, mensajes A2UI y SSE.
 
-No se hizo una llamada real a Gemini en estas pruebas. El frontend no fue conectado ni se implementó su renderer en esta entrega. No se añadió una suite permanente en `server/test`, conforme a la eliminación solicitada.
+Posteriormente se validó Gemini real (Flash-Lite) desde el navegador; ver [verificación](verificacion.md). El frontend y su renderer están conectados; la prueba de navegador verificó persistencia de un movimiento confirmado por MCP, asociación a tarjeta y restauración de conversación. No se añadió una suite permanente en `server/test`, conforme a la eliminación solicitada.
 
 ## Límites operativos
 

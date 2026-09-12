@@ -4,7 +4,7 @@ Base: `http://127.0.0.1:3001/api/v1`. Todos los importes son centavos enteros MX
 
 ## Reglas comunes
 
-Salvo salud, catálogo de productos, registro y login, las rutas requieren cookie de sesión. POST/PATCH requieren Origin permitido y JSON (logout puede ir sin body); las rutas privadas además exigen X-CSRF-Token. El navegador debe enviar `credentials: 'include'`. Las rutas nunca aceptan un userId/accountId para elegir al propietario.
+Salvo salud, catálogo de productos y login, las rutas requieren cookie de sesión. POST/PATCH requieren Origin permitido y JSON (logout puede ir sin body); las rutas privadas además exigen X-CSRF-Token. El navegador debe enviar `credentials: 'include'`. Las rutas nunca aceptan un userId/accountId para elegir al propietario.
 
 Las rutas marcadas con **K** requieren `Idempotency-Key`: generar un UUID por intención, conservarlo en reintentos. Repetir la clave con el mismo payload recupera el resultado; otro payload devuelve 409.
 
@@ -14,7 +14,6 @@ Las rutas marcadas con **K** requieren `Idempotency-Key`: generar un UUID por in
 | --- | --- | --- |
 | GET | /health | Público; proceso activo |
 | GET | /health/ready | Público; SELECT 1, 503 si no hay DB |
-| POST | /auth/register | Público con origen/JSON/rate limit; 201 |
 | POST | /auth/login | Público con origen/JSON/rate limit; 200 + cookie |
 | GET | /auth/session | Privado; usuario, CSRF y vencimiento |
 | POST | /auth/logout | Privado + CSRF; 204 |
@@ -44,9 +43,9 @@ Las rutas marcadas con **K** requieren `Idempotency-Key`: generar un UUID por in
 
 Ruta interna adicional: `POST /internal/tools/:name`, solo con capacidad MCP del servidor. No usar desde el frontend ni con cookie; ver [MCP](mcp.md).
 
-## Registro, login y ejemplo para el cliente
+## Login y ejemplo para el cliente
 
-Registro recibe `{displayName,email,password}`. Nombre de 1–80, email normalizado único, contraseña de 15–128 caracteres sin trim. Devuelve 201 `{user:{id,email,displayName}}` y no inicia sesión automáticamente. Crea perfil, cuenta, dos tarjetas y nueve movimientos iniciales propios.
+El registro público está deshabilitado: `/auth/register` devuelve 404. Las dos cuentas se aprovisionan de forma privada mediante el seed; ver [autenticación](autenticacion.md).
 
 Login recibe `{email,password}`. Devuelve 200 `{user:{id,email,displayName},expiresAt,csrfToken}` y Set-Cookie HttpOnly. Session devuelve ese mismo cuerpo. Logout revoca la sesión; una sesión ausente/expirada/revocada devuelve 401.
 
@@ -97,13 +96,14 @@ POST body:
   "type": "expense",
   "category": "Alimentación",
   "date": "2026-09-11",
-  "notes": "Compra semanal"
+  "notes": "Compra semanal",
+  "cardId": null
 }
 ```
 
-Descripción de 1–80 caracteres, monto entero positivo hasta 99999999999, type income/expense, categoría del catálogo, fecha válida no posterior a hoy en la zona del perfil, notes opcional hasta 500. Campos extra como accountId/source se rechazan. Respuesta 201: `{id,description,amountCents,type,category,date,notes,source,createdAt}`. Un reintento idéntico mantiene UUID y fecha de creación. Source demo es ejemplo; manual es registro propio. No hay relación movement-card ni ejecución de pagos.
+Descripción de 1–80 caracteres, monto entero positivo hasta 99999999999, type income/expense, categoría del catálogo, fecha válida no posterior a hoy en la zona del perfil, notes opcional hasta 500. Campos extra como accountId/source se rechazan. Respuesta 201: `{id,description,amountCents,type,category,date,notes,source,createdAt}`. Un reintento idéntico mantiene UUID y fecha de creación. Source demo es ejemplo; manual es registro propio. `cardId` es UUID de una tarjeta propia activa o null para cuenta personal. La respuesta incluye `cardId`, `card` (id, last4, product) y `account` (id, name, currency). Tarjeta ajena: 404; inactiva: 409. No ejecuta pagos.
 
-GET filtros: query (concepto/categoría/nota), type, category, from, to, page, pageSize. Fechas inclusivas; búsqueda sin distinguir mayúsculas, sí acentos. Orden fecha/creación/ID descendente. Página 1, tamaño 20 por defecto; máximo 100.
+GET filtros: query (concepto/categoría/nota), type, category, from, to, cardId, accountOnly (true/false), page, pageSize. Fechas inclusivas; búsqueda sin distinguir mayúsculas, sí acentos. Orden fecha/creación/ID descendente. Página 1, tamaño 20 por defecto; máximo 100.
 
 Respuesta: `{items,total,page,pageSize,totals:{incomeCents,expenseCents,netCents}}`. Los totales abarcan el filtro completo, no solo la página. Una página fuera de rango devuelve items vacío. Detalle ajeno/inexistente: 404.
 

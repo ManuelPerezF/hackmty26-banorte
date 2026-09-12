@@ -33,6 +33,8 @@ model Movement {
   id             String         @id @default(uuid()) @db.Uuid
   accountId      String         @db.Uuid
   account        Account        @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  cardId         String?        @db.Uuid
+  card           Card?          @relation(fields: [cardId], references: [id], onDelete: Restrict)
   description    String         @db.VarChar(80)
   amountCents    BigInt
   type           MovementType
@@ -46,6 +48,7 @@ model Movement {
   @@unique([accountId, idempotencyKey])
   @@index([accountId, date, createdAt, id])
   @@index([accountId, type, category])
+  @@index([accountId, cardId, date])
 }
 
 model User {
@@ -90,6 +93,7 @@ model CardProduct {
   cards Card[]
 }
 model Card {
+  movements Movement[]
   id String @id @default(uuid()) @db.Uuid
   profileId String @db.Uuid
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)

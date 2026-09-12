@@ -15,6 +15,7 @@ export const dateSchema = z.iso.date().refine((value) => {
   return Number.isFinite(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }, "Fecha inválida");
 export const movementSchema = z.strictObject({
+  cardId: z.uuid().nullable().default(null),
   description: z.string().trim().min(1).max(80),
   amountCents: z.number().int().positive().max(99999999999),
   type: z.enum(["income", "expense"]),
@@ -24,6 +25,8 @@ export const movementSchema = z.strictObject({
 });
 export const movementQuerySchema = z
   .strictObject({
+    cardId: z.uuid().optional(),
+    accountOnly: z.enum(["true", "false"]).optional(),
     query: z.string().trim().max(100).optional(),
     type: z.enum(["income", "expense"]).optional(),
     category: z.enum(categories).optional(),
