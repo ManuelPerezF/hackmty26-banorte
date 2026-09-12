@@ -1,4 +1,5 @@
 'use client';
+import { CardList, GoalList, SavingsBlock } from './financial-blocks';
 import { formText } from '@/shared/api/client';
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
@@ -102,6 +103,18 @@ function UiBlock({
       <h3>{component.text}</h3>
     ) : (
       <p className="chat-prose">{component.text}</p>
+    );
+  if (component.component === 'BanorteCardList')
+    return <CardList data={data} />;
+  if (component.component === 'BanorteGoalList')
+    return <GoalList data={data} />;
+  if (component.component === 'BanorteSavingsSimulator')
+    return (
+      <SavingsBlock
+        data={data}
+        disabled={disabled || !latest}
+        onSubmit={(values) => action('simulate_savings', { values })}
+      />
     );
   if (component.component === 'BanorteBalance') {
     const b = z

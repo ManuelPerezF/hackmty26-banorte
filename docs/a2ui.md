@@ -14,7 +14,7 @@ Cada snapshot incluye, en orden:
 
 Todos llevan `version: "v0.9.1"`. El surfaceId es el UUID del turno y la revisión final es 1. Cada turno crea una superficie nueva; al restaurar un snapshot, el cliente debe reconstruir o sustituir esa superficie, no emitir createSurface dos veces sobre una existente.
 
-`GET /assistant/catalog` devuelve JSON Schema del catálogo y requiere sesión. Incluye Column, Text, BanorteBalance, BanorteMovementTable, BanorteSpendingChart, BanorteMovementForm, BanorteConfirmation, BanorteActionResult y BanortePeriodSelector. Los componentes Banorte tienen `data: {path: "/..."}` y, cuando corresponde, `action` como nombre del evento del catálogo. El renderer propio debe implementar ese contrato; no son componentes incluidos automáticamente en el catálogo básico de A2UI.
+`GET /assistant/catalog` devuelve JSON Schema del catálogo y requiere sesión. Incluye Column, Text, BanorteBalance, BanorteMovementTable, BanorteSpendingChart, BanorteMovementForm, BanorteConfirmation, BanorteActionResult , BanortePeriodSelector, BanorteCardList, BanorteGoalList y BanorteSavingsSimulator. Los componentes Banorte tienen `data: {path: "/..."}` y, cuando corresponde, `action` como nombre del evento del catálogo. El renderer propio debe implementar ese contrato; no son componentes incluidos automáticamente en el catálogo básico de A2UI.
 
 ## Acciones de la aplicación
 
@@ -22,6 +22,7 @@ Todos llevan `version: "v0.9.1"`. El surfaceId es el UUID del turno y la revisi�
 
 | Evento | Efecto |
 | --- | --- |
+| simulate_savings | Valida supuestos explícitos, calcula por MCP y devuelve nueva superficie sin una llamada LLM adicional |
 | change_period | Consulta el nuevo periodo mediante MCP y solicita nueva UI |
 | submit_movement_form | Valida y guarda una acción pendiente; muestra confirmación |
 | confirm_movement | Ejecuta payload aprobado por MCP y devuelve resultado/saldo/historial |
@@ -42,3 +43,11 @@ Los mensajes generados se validaron también contra el JSON Schema oficial serve
 `client/src/modules/asistente` registra los componentes del catálogo, resuelve rutas del data model y valida datos con Zod antes de renderizar. Formularios y confirmaciones envían acciones con cookies, CSRF e idempotencia. La interfaz muestra errores, restaura snapshots y se desmonta al cerrar sesión. Ver [frontend](frontend.md).
 
 Referencia del protocolo: [esquema server-to-client v0.9.1](https://a2ui.org/specification/v0_9_1/server_to_client.json). El alcance actual es el subconjunto de mensajes descrito arriba, con catálogo propio.
+
+## Nuevos bloques financieros
+
+- `cards` → `BanorteCardList`: productos y últimas cuatro cifras devueltos por `list_my_cards`; imágenes locales del catálogo, estado y preferencia real. Sin inventar tarjetas, CVV o límites.
+- `goals` → `BanorteGoalList`: lista y monto objetivo de `list_goals`; no presenta objetivos como dinero apartado ni inventa avance.
+- `savings` → `BanorteSavingsSimulator`: formulario vacío si faltan supuestos, o resultado de `simulate_savings` con capital, aportación, plazo, tasa y calendario. Los valores se expresan en centavos y la tasa en puntos base. Recalcular crea un nuevo turno determinista por MCP, conservando el escenario anterior deshabilitado. No necesita regenerar texto con Gemini.
+
+Se conserva el identificador del catálogo para restaurar conversaciones existentes. El backend valida entradas del turno y componentes; el cliente valida cada bloque antes de renderizar. Los tres bloques se implementan en `components/financial-blocks.tsx` dentro del dominio Asistente.

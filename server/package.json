@@ -6,16 +6,17 @@
     "node": ">=22.13.0"
   },
   "scripts": {
-    "dev": "nest start --watch",
-    "build": "nest build",
+    "dev": "npm run mcp:build && nest start --watch",
+    "build": "nest build && npm run mcp:build",
     "start": "node dist/main.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && tsc -p ../mcp/tsconfig.json --noEmit",
     "prisma:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
-    "check": "npm run typecheck && npm run build"
+    "check": "npm run typecheck && npm run build",
+    "mcp:build": "tsc -p ../mcp/tsconfig.json"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",

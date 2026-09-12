@@ -37,7 +37,7 @@ Verificación de esta entrega con PostgreSQL local y scripts temporales, elimina
 - Endpoints protegidos, cookie HttpOnly, CSRF/origen, vencimiento e imposibilidad de consultar o modificar recursos ajenos.
 - Tres registros simultáneos con la misma clave generan un solo movimiento; payload diferente devuelve 409; saldo y agregados correctos.
 - Metas aisladas, PATCH conserva campos omitidos, simulación exacta y rechazo de desbordamiento.
-- MCP real por stdio: descubrimiento de ocho herramientas, lectura autorizada y rechazo de escritura sin capacidad.
+- MCP real por stdio: descubrimiento de diez herramientas, lectura autorizada y rechazo de escritura sin capacidad.
 - Asistente con modelo controlado: preparación sin escritura, confirmación idempotente, persistencia, respuesta posterior al modelo, mensajes A2UI y SSE.
 
 Posteriormente se validó Gemini real (Flash-Lite) desde el navegador; ver [verificación](verificacion.md). El frontend y su renderer están conectados; la prueba de navegador verificó persistencia de un movimiento confirmado por MCP, asociación a tarjeta y restauración de conversación. No se añadió una suite permanente en `server/test`, conforme a la eliminación solicitada.

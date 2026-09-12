@@ -36,7 +36,9 @@ const patchSchema = z
     status: z.enum(["active", "archived"]).optional(),
   })
   .refine((x) => Object.keys(x).length > 0);
-const listSchema = pagination.extend({ status: z.enum(["active", "archived"]).default("active") });
+export const goalQuerySchema = pagination.extend({
+  status: z.enum(["active", "archived"]).default("active"),
+});
 const serialize = (g: Goal) => ({
   id: g.id,
   name: g.name,
@@ -47,9 +49,9 @@ const serialize = (g: Goal) => ({
   updatedAt: g.updatedAt.getTime(),
 });
 @Injectable()
-class MetasService {
+export class MetasService {
   constructor(private readonly db: PrismaService) {}
-  async list(i: Identity, q: z.infer<typeof listSchema>) {
+  async list(i: Identity, q: z.infer<typeof goalQuerySchema>) {
     const where = { profileId: i.profileId, status: q.status };
     const [items, total] = await this.db.$transaction(
       [
@@ -113,7 +115,7 @@ class MetasController {
   constructor(private readonly service: MetasService) {}
   @Get() list(
     @CurrentUser() i: Identity,
-    @Query(new ZodValidationPipe(listSchema)) q: z.infer<typeof listSchema>,
+    @Query(new ZodValidationPipe(goalQuerySchema)) q: z.infer<typeof goalQuerySchema>,
   ) {
     return this.service.list(i, q);
   }
@@ -132,5 +134,10 @@ class MetasController {
     return this.service.patch(i, id, b);
   }
 }
-@Module({ imports: [DatabaseModule], providers: [MetasService], controllers: [MetasController] })
+@Module({
+  imports: [DatabaseModule],
+  providers: [MetasService],
+  exports: [MetasService],
+  controllers: [MetasController],
+})
 export class MetasModule {}

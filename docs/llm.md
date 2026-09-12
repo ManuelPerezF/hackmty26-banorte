@@ -14,7 +14,7 @@ Sin clave, enviar una pregunta devuelve `503 LLM_NOT_CONFIGURED`. La API de banc
 6. Resolver datos de los bloques desde las herramientas y construir mensajes A2UI del catálogo permitido.
 7. Persistir explicación y snapshot; SSE entrega el estado al consumidor.
 
-Bloques del plan: balance, movements, spending, movementForm y education. Las cifras de tablas/gráficas/saldo vienen de los servicios, no del texto generado. El modelo puede redactar explicaciones, cuya exactitud debe evaluarse al probar el proveedor real.
+Bloques del plan: balance, movements, spending, movementForm, education, cards, goals y savings. Las cifras de tablas/gráficas/saldo vienen de los servicios, no del texto generado. El modelo puede redactar explicaciones, cuya exactitud debe evaluarse al probar el proveedor real.
 
 ## Escrituras
 
@@ -37,3 +37,5 @@ Prueba: navegador → Nest → MCP por stdio → Gemini → A2UI → formulario 
 Google ofrece [nivel gratuito para Flash-Lite](https://ai.google.dev/gemini-api/docs/pricing#gemini-3.1-flash-lite), sujeto a cuotas del proyecto. La aplicación no activa facturación ni cambia de proveedor automáticamente. Un 429 informa límite de uso; un 503 informa indisponibilidad temporal. Los mensajes públicos nunca incluyen el error crudo o la clave. No hay reintentos automáticos de escrituras financieras.
 
 Pendiente: medir latencia y cuota con el guion completo del hackathon; comprobar educación, simulación y preguntas ambiguas en español. Las credenciales de otro entorno deben configurarse fuera de Git siguiendo [la guía de Google](https://ai.google.dev/gemini-api/docs/api-key).
+
+Para simular, el modelo solo llama la herramienta si dispone de todos los supuestos del usuario. En caso contrario propone `savings` con formulario vacío. El botón de recálculo vuelve al orquestador y a MCP, sin coste de otra generación LLM.

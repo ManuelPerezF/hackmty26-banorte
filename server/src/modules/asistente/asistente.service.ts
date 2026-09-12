@@ -14,10 +14,10 @@ import { AuthService } from "../autenticacion/auth.service";
 import { McpService } from "../../integrations/mcp/mcp.service";
 import { LlmService } from "../../integrations/llm/llm.service";
 import { ToolName, toolDefinitions } from "../../integrations/mcp/tool-definitions";
-import { surface } from "../../ui-protocol/a2ui";
+import { surface, a2uiMessageSchema } from "../../ui-protocol/a2ui";
 import { sameJson } from "../../shared/requests";
 import { ENV, Environment } from "../../config/env";
-import { AgentAction } from "./asistente.schemas";
+import { AgentAction, turnInputSchema } from "./asistente.schemas";
 import {
   movementSchema,
   todayInTimezone,
@@ -26,10 +26,14 @@ import {
 import { insightsSchema } from "../analisis/analisis.module";
 const json = (value: unknown) => JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 const agentErrors: Record<string, string> = {
-  LLM_QUOTA_EXCEEDED: "El asistente alcanzó su límite de uso. Intenta más tarde; puedes seguir usando tus cuentas y movimientos.",
-  LLM_UNAVAILABLE: "El servicio de IA está ocupado temporalmente. Intenta de nuevo en unos momentos.",
-  LLM_AUTH_FAILED: "El asistente no puede conectarse al servicio de IA. La configuración de acceso requiere revisión.",
-  LLM_TIMEOUT: "El asistente tardó demasiado en responder. Consulta el estado de tu movimiento antes de reintentar.",
+  LLM_QUOTA_EXCEEDED:
+    "El asistente alcanzó su límite de uso. Intenta más tarde; puedes seguir usando tus cuentas y movimientos.",
+  LLM_UNAVAILABLE:
+    "El servicio de IA está ocupado temporalmente. Intenta de nuevo en unos momentos.",
+  LLM_AUTH_FAILED:
+    "El asistente no puede conectarse al servicio de IA. La configuración de acceso requiere revisión.",
+  LLM_TIMEOUT:
+    "El asistente tardó demasiado en responder. Consulta el estado de tu movimiento antes de reintentar.",
 };
 const terminal = (s: string) => ["completed", "failed", "interrupted"].includes(s);
 @Injectable()
@@ -151,13 +155,20 @@ export class AsistenteService implements OnModuleInit {
     });
     if (!origin || origin.revision !== action.revision || !origin.uiSnapshot)
       throw new ConflictException({ code: "STALE_UI", message: "Actualiza la interfaz." });
-    const messages = origin.uiSnapshot as any[];
-    const components = messages.flatMap((m) => m.updateComponents?.components ?? []);
+    const messages = (origin.uiSnapshot as unknown[]).map((m) => a2uiMessageSchema.parse(m));
+    const components = messages.flatMap((m) =>
+      "updateComponents" in m ? m.updateComponents.components : [],
+    );
     if (
       action.event === "submit_movement_form" &&
       !components.some((c) => c.component === "BanorteMovementForm")
     )
       throw new ConflictException("Formulario no disponible.");
+    if (
+      action.event === "simulate_savings" &&
+      !components.some((c) => c.component === "BanorteSavingsSimulator")
+    )
+      throw new ConflictException("Simulador no disponible.");
     if (action.event === "change_period") {
       insightsSchema.parse(action.values);
       if (!components.some((c) => c.component === "BanortePeriodSelector"))
@@ -242,7 +253,8 @@ export class AsistenteService implements OnModuleInit {
       error: t.errorCode
         ? {
             code: t.errorCode,
-            message: agentErrors[t.errorCode] ??
+            message:
+              agentErrors[t.errorCode] ??
               "No se pudo completar la respuesta. Consulta el resultado de la acción antes de reintentar.",
           }
         : null,
@@ -280,7 +292,7 @@ export class AsistenteService implements OnModuleInit {
     try {
       await this.auth.bySessionId(i.sessionId);
       const turn = await this.db.agentTurn.update({ where: { id }, data: { status: "running" } });
-      const input = turn.input as any;
+      const input = turnInputSchema.parse(turn.input);
       if (input.kind === "action" && input.event === "submit_movement_form") {
         const payload = movementSchema.parse(input.values);
         if (payload.date > todayInTimezone(i.timezone)) throw new Error("INVALID_DATE");
@@ -342,9 +354,10 @@ export class AsistenteService implements OnModuleInit {
       );
       await this.mcp.withClient(i, names, actionId, async (client) => {
         await client.listTools();
-        const cached = new Map<ToolName, any>();
+        const cached = new Map<ToolName, unknown>();
         const execute = async (name: ToolName, args: Record<string, unknown>) => {
           if (
+            input.kind === "action" &&
             input.event === "change_period" &&
             ["list_movements", "get_spending_insights"].includes(name)
           )
@@ -358,8 +371,10 @@ export class AsistenteService implements OnModuleInit {
           });
           trace.push({ tool: name, ms: Date.now() - started, ok: !result.isError });
           if (result.isError) throw new Error("MCP_TOOL_FAILED");
-          const item = (result.content as any[]).find((x) => x.type === "text");
-          const value = JSON.parse(item?.text ?? "null");
+          const item = (result.content as { type: string; text?: string }[]).find(
+            (x) => x.type === "text",
+          );
+          const value = result.structuredContent ?? JSON.parse(item?.text ?? "null");
           cached.set(name, value);
           return value;
         };
@@ -405,14 +420,32 @@ export class AsistenteService implements OnModuleInit {
           take: 12,
         });
         const context = history.reverse().map((m) => ({ role: m.role, content: m.content }));
-        if (input.kind === "action")
+        if (input.kind === "action" && input.event === "change_period")
           context.push({
             role: "user",
             content: `El usuario cambió el periodo a ${JSON.stringify(input.values)}. Actualiza la interfaz usando esos filtros.`,
           });
+        if (input.kind === "action" && input.event === "simulate_savings") {
+          const result = await execute("simulate_savings", input.values);
+          await this.finish(
+            id,
+            "Tu escenario de ahorro",
+            "Ajusta los importes, el plazo o la tasa para comparar escenarios. Esta proyección no mueve dinero.",
+            [
+              {
+                id: "savings",
+                component: "BanorteSavingsSimulator",
+                data: { path: "/savings" },
+                action: "simulate_savings",
+              },
+            ],
+            { savings: { result } },
+          );
+          return;
+        }
         const plan = await this.llm.respond(context, execute, signal);
         const data: Record<string, unknown> = {};
-        const components: any[] = [];
+        const components: unknown[] = [];
         const add = (id: string, component: string, action?: string) =>
           components.push({
             id,
@@ -431,7 +464,7 @@ export class AsistenteService implements OnModuleInit {
               cached.get("list_movements") ??
               (await execute("list_movements", {
                 pageSize: 8,
-                ...(input.event === "change_period" ? input.values : {}),
+                ...(input.kind === "action" && input.event === "change_period" ? input.values : {}),
               }));
             add("movements", "BanorteMovementTable");
           }
@@ -440,14 +473,31 @@ export class AsistenteService implements OnModuleInit {
               cached.get("get_spending_insights") ??
               (await execute(
                 "get_spending_insights",
-                input.event === "change_period" ? input.values : {},
+                input.kind === "action" && input.event === "change_period" ? input.values : {},
               ));
             add("spending", "BanorteSpendingChart");
-            data.period = (data.spending as any).period;
+            data.period = (data.spending as { period: { from: string; to: string } }).period;
             add("period", "BanortePeriodSelector", "change_period");
           }
+          if (block === "cards") {
+            data.cards = cached.get("list_my_cards") ?? (await execute("list_my_cards", {}));
+            add("cards", "BanorteCardList");
+          }
+          if (block === "goals") {
+            data.goals = cached.get("list_goals") ?? (await execute("list_goals", {}));
+            add("goals", "BanorteGoalList");
+          }
+          if (block === "savings") {
+            data.savings = { result: cached.get("simulate_savings") ?? null };
+            add("savings", "BanorteSavingsSimulator", "simulate_savings");
+          }
           if (block === "movementForm") {
-            data.form = { categories, today: todayInTimezone(i.timezone), currency: "MXN", cards: await execute("list_my_cards", {}) };
+            data.form = {
+              categories,
+              today: todayInTimezone(i.timezone),
+              currency: "MXN",
+              cards: await execute("list_my_cards", {}),
+            };
             add("form", "BanorteMovementForm", "submit_movement_form");
           }
         }
@@ -457,13 +507,16 @@ export class AsistenteService implements OnModuleInit {
       const providerStatus = e && typeof e === "object" && "status" in e ? e.status : undefined;
       const code = signal.aborted
         ? "LLM_TIMEOUT"
-        : providerStatus === 429 ? "LLM_QUOTA_EXCEEDED"
-        : providerStatus === 503 || providerStatus === 502 ? "LLM_UNAVAILABLE"
-        : providerStatus === 401 || providerStatus === 403 ? "LLM_AUTH_FAILED"
-        : e instanceof Error &&
-            ["LLM_INVALID_OUTPUT", "TOOL_LIMIT", "INVALID_DATE"].includes(e.message)
-          ? e.message
-          : "AGENT_FAILED";
+        : providerStatus === 429
+          ? "LLM_QUOTA_EXCEEDED"
+          : providerStatus === 503 || providerStatus === 502
+            ? "LLM_UNAVAILABLE"
+            : providerStatus === 401 || providerStatus === 403
+              ? "LLM_AUTH_FAILED"
+              : e instanceof Error &&
+                  ["LLM_INVALID_OUTPUT", "TOOL_LIMIT", "INVALID_DATE"].includes(e.message)
+                ? e.message
+                : "AGENT_FAILED";
       const action = actionId
         ? await this.db.pendingAction.findUnique({ where: { id: actionId } })
         : null;

@@ -42,7 +42,7 @@ export const envSchema = z
     GEMINI_API_KEY: z.string().optional(),
     LLM_MODEL: z.string().default("gemini-3.1-flash-lite"),
     LLM_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120000).default(30000),
-    MCP_ENTRY: z.string().default("../mcp/server.cjs"),
+    MCP_ENTRY: z.string().default("../mcp/dist/server.js"),
   })
   .superRefine((v, ctx) => {
     if (

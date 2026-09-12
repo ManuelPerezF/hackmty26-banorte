@@ -21,7 +21,7 @@ server/
     database/               Prisma
     shared/                 Validación HTTP, idempotencia y dinero
   prisma/                   Esquema, migraciones y seed
-mcp/server.cjs              Servidor SDK MCP por stdio
+mcp/server.ts                  Fuente TypeScript del servidor SDK MCP por stdio
 docs/                       Contratos y pendientes
 compose.yaml                Solo PostgreSQL
 ```

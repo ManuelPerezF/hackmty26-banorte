@@ -28,8 +28,24 @@ La prueba previa con modelo controlado cubrió además cambiar periodo, cancelar
 ## Pendiente para presentar el reto
 
 - Capturar datos propios para que las consultas de gastos tengan contenido; no hay conexión bancaria ni importación automática de estados de cuenta.
-- Ensayar preguntas variadas de gastos, educación y ahorro/inversión; ampliar el catálogo A2UI si se desea que metas y simulaciones aparezcan como bloques dentro del chat. El simulador actual funciona en Metas.
+- Ensayar preguntas variadas de gastos, educación y ahorro/inversión. Tarjetas, metas y simulador ya aparecen como bloques dentro del chat.
 - Medir latencia y consumo de cuota del guion, y preparar recuperación ante saturación del proveedor.
 - Preparar guion/evidencia y despliegue si la presentación requiere una URL pública.
 
 Para una publicación como producto, aparte del hackathon: recuperación de contraseña, verificación de correo, operación/monitorización y despliegue HTTPS.
+
+## MCP TypeScript y ampliación A2UI
+
+El ejecutable MCP migró de CommonJS escrito a mano a `mcp/server.ts` con comprobación estricta y compilación incorporada al build de Nest. Se descubrieron diez herramientas por stdio y se comprobaron contenido estructurado, anotaciones de lectura y rechazo de escritura sin capacidad.
+
+Con navegador real, Nest en un puerto aislado, MCP TypeScript, PostgreSQL y un plan de modelo controlado se verificó:
+
+- Tarjetas y metas vacías; después se crearon una tarjeta y una meta exclusivamente en el perfil temporal y aparecieron sus datos correctos en los nuevos componentes.
+- Formulario de movimiento → confirmación → una sola escritura; cambiar periodo, cancelar sin guardar y restaurar conversación tras recarga.
+- Simulador A2UI: $1,000 iniciales + $500 al mes durante 12 meses, tasa 0% → $7,000 exactos y 12 filas mensuales. El recálculo no invocó de nuevo al LLM. Un plazo de 601 meses fue rechazado con HTTP 400.
+- Bienvenida, conversación y simulador a 1440 px y 390 px, sin errores JavaScript ni desbordamiento horizontal. Revisión visual de capturas de escritorio y móvil.
+- Limpieza completa del perfil temporal. Al terminar permanecen los dos usuarios originales, con cero movimientos y dos tarjetas cada uno.
+
+La comprobación adicional del proveedor se realizó con **Gemini real y respuestas de herramientas sintéticas vacías**, sin iniciar Nest ni leer PostgreSQL. Seleccionó `cards`, `goals` y `savings`, consultó las dos herramientas de lectura y no ejecutó una simulación sin supuestos. Esta prueba valida el contrato del proveedor; no se presenta como una nueva prueba integral Gemini–base de datos de esos tres bloques.
+
+Checks: `server/npm run check` (Nest + MCP), `client/npm run typecheck`, `npm run lint`, nueve pruebas automatizadas del cliente y `npm run build`: correctos. Vinext mantiene su aviso de clasificación estática de rutas; no impidió el build ni la prueba de navegación.

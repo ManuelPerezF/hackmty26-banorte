@@ -45,7 +45,7 @@ npm run dev
 | `BOOTSTRAP_EMAIL`, `BOOTSTRAP_PASSWORD` | Opcionales privados; habilitan propietario inicial al sembrar |
 | `GEMINI_API_KEY`, `LLM_MODEL` | Clave privada y modelo Gemini configurable |
 | `LLM_TIMEOUT_MS` | 30000 por defecto |
-| `MCP_ENTRY` | ../mcp/server.cjs, lanzado por Nest |
+| `MCP_ENTRY` | ../mcp/dist/server.js, lanzado por Nest |
 | `BUSINESS_TIMEZONE` | `America/Monterrey` para validar el día actual |
 | `NODE_ENV` | development/test/production; producción exige cookies Secure y orígenes HTTPS |
 

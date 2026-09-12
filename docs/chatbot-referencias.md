@@ -10,8 +10,8 @@ Consultadas con el MCP de Mobbin: búsqueda de asistentes web con historial, pre
 
 ## Adaptación a Banorte
 
-Historial a la izquierda en escritorio y compacto en móvil. Área principal con nombre del asistente, mensajes y bloques financieros; entrada de texto persistente al pie. Colores y tipografía siguen la interfaz existente de Banorte.
+La captura SchoolAI proporcionada por el usuario guía la actualización: bienvenida centrada, saludo con tipografía serif, compositor amplio y sugerencias en filas. Historial a la derecha en escritorio y desplegable con botón en móvil. Al iniciar la conversación, el compositor pasa al pie. Se conservan la navegación y los colores de Banorte; no se añaden adjuntos ni micrófono sin funcionalidad.
 
-Tres puntos de entrada: entender gastos, registrar un gasto y empezar a ahorrar. El backend determina los bloques según la intención. Una escritura tiene un paso explícito de revisión y un recibo persistido. El estado de conexión y los errores se muestran junto a la conversación.
+Cinco puntos de entrada: entender gastos, registrar movimientos, consultar cuentas y tarjetas, revisar metas y simular ahorro. El backend determina los bloques según la intención. Una escritura tiene un paso explícito de revisión y un recibo persistido. El estado de conexión y los errores se muestran junto a la conversación.
 
 El MCP de Mobbin sirve para investigar diseño. El MCP financiero propio en `mcp/` es el que consulta los datos y ejecuta acciones del producto.

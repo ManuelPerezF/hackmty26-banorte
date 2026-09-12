@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "rootDir": ".",
+    "outDir": "dist",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "typeRoots": [
+      "../server/node_modules/@types"
+    ],
+    "paths": {
+      "@modelcontextprotocol/sdk/*": [
+        "../server/node_modules/@modelcontextprotocol/sdk/dist/cjs/*"
+      ],
+      "zod": [
+        "../server/node_modules/zod"
+      ]
+    }
+  },
+  "include": [
+    "server.ts"
+  ]
+}

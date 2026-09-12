@@ -1,13 +1,18 @@
 'use client';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   ArrowUp,
+  ArrowUpRight,
   MessageSquare,
   Plus,
   Wallet,
   Receipt,
   ChartColumn,
   RotateCcw,
+  History,
+  CreditCard,
+  Flag,
+  X,
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { useBank } from '@/modules/cuentas/context/bank-context';
@@ -16,6 +21,7 @@ import { A2uiRenderer } from './a2ui-renderer';
 import '../styles/chat.css';
 export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
   const { profile } = useBank();
+  const [historyOpen, setHistoryOpen] = useState(false);
   const scroll = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const area = scroll.current;
@@ -27,68 +33,91 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
     a.messages.some(
       (m) => m.role === 'assistant' && m.turnId === standalone.id,
     );
+  const welcome = !a.loading && !a.messages.length && !a.busy && !standalone;
+  const composer = (
+    <form
+      className="bank-chat-compose"
+      onSubmit={(e) => {
+        e.preventDefault();
+        void a.send();
+      }}
+    >
+      <label className="sr-only" htmlFor="chat-input">
+        Mensaje al asistente
+      </label>
+      <textarea
+        id="chat-input"
+        value={a.draft}
+        onChange={(e) => a.setDraft(e.target.value)}
+        placeholder="Pregunta algo sobre tus cuentas o tus planes…"
+        maxLength={4000}
+        rows={2}
+        disabled={a.busy || a.loading}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
+            e.preventDefault();
+            void a.send();
+          }
+        }}
+      />
+      <Button
+        type="submit"
+        aria-label="Enviar mensaje"
+        disabled={a.busy || a.loading || !a.catalogReady || !a.draft.trim()}
+      >
+        <ArrowUp size={19} />
+      </Button>
+      <small>Revisa los datos antes de confirmar un movimiento.</small>
+    </form>
+  );
   return (
-    <section className="bank-chat" aria-label="Asistente financiero">
-      <aside className="chat-history">
-        <Button variant="ghost" disabled={a.busy} onClick={a.newChat}>
-          <Plus size={17} /> Nueva conversación
-        </Button>
-        <h2>Conversaciones</h2>
-        {a.conversations.length ? (
-          <ul>
-            {a.conversations.map((c) => (
-              <li key={c.id}>
-                <button
-                  disabled={a.busy}
-                  aria-current={a.conversationId === c.id ? 'page' : undefined}
-                  onClick={() => {
-                    void a.open(c.id);
-                  }}
-                >
-                  <MessageSquare size={14} />
-                  <span>{c.title}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>Tus conversaciones aparecerán aquí.</p>
-        )}
-      </aside>
+    <section
+      className={`bank-chat ${welcome ? 'is-welcome' : ''} ${historyOpen ? 'is-history-open' : ''}`}
+      aria-label="Asistente financiero"
+    >
       <div className="chat-main">
         <header className="bank-chat-header">
           <span className="chat-agent-mark">
-            <Wallet size={20} />
+            <Wallet size={18} />
           </span>
-          <div>
-            <h2>Tu asistente financiero</h2>
-            <p>Consulta, entiende y organiza tu dinero.</p>
-          </div>
+          <h2>Asistente Banorte</h2>
+          <Button
+            variant="ghost"
+            className="chat-history-toggle"
+            aria-expanded={historyOpen}
+            aria-controls="chat-history"
+            onClick={() => setHistoryOpen(!historyOpen)}
+          >
+            <History size={18} /> Historial
+          </Button>
         </header>
         <div
           ref={scroll}
           className="chat-scroll"
           aria-busy={a.busy || a.loading}
         >
-          {a.loading ? (
-            <p className="chat-loading">Cargando conversaciones…</p>
-          ) : !a.messages.length && !a.busy ? (
+          {a.loading && (
+            <output className="chat-loading">Cargando conversaciones…</output>
+          )}
+          {welcome && (
             <div className="chat-welcome">
-              <span>UN POCO MÁS DE CLARIDAD</span>
-              <h3>
-                ¿Qué quieres entender
-                <br />
-                de tu dinero, {profile.displayName.split(' ')[0]}?
-              </h3>
-              <p>
-                Podemos revisar tus gastos, registrar un movimiento o pensar en
-                tu próxima meta.
-              </p>
+              <span className="chat-welcome-mark" aria-hidden="true">
+                <Wallet size={27} strokeWidth={1.35} />
+              </span>
+              <h3>Hola, {profile.displayName.split(' ')[0]}.</h3>
+              <p>Hagamos espacio para tus planes.</p>
+              {composer}
               <div className="chat-suggestions">
+                <span>PODEMOS EMPEZAR POR AQUÍ</span>
                 {[
                   { icon: ChartColumn, text: '¿En qué gasté este mes?' },
-                  { icon: Receipt, text: 'Quiero registrar un gasto' },
-                  { icon: Wallet, text: '¿Cómo puedo empezar a ahorrar?' },
+                  { icon: Receipt, text: 'Quiero registrar un movimiento' },
+                  {
+                    icon: CreditCard,
+                    text: 'Muéstrame mis cuentas y tarjetas',
+                  },
+                  { icon: Flag, text: 'Quiero revisar mis metas' },
+                  { icon: Wallet, text: 'Ayúdame a simular mi ahorro' },
                 ].map(({ icon: Icon, text }) => (
                   <button
                     key={text}
@@ -98,14 +127,14 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
                       void a.send(text);
                     }}
                   >
-                    <Icon size={18} />
+                    <Icon size={18} strokeWidth={1.5} />
                     {text}
-                    <span>↗</span>
+                    <ArrowUpRight size={15} />
                   </button>
                 ))}
               </div>
             </div>
-          ) : null}
+          )}
           {a.messages.map((m) => (
             <article key={m.id} className={`chat-message ${m.role}`}>
               <span className="chat-speaker">
@@ -152,45 +181,60 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
             </div>
           )}
         </div>
-        <form
-          className="bank-chat-compose"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void a.send();
-          }}
-        >
-          <label className="sr-only" htmlFor="chat-input">
-            Mensaje al asistente
-          </label>
-          <textarea
-            id="chat-input"
-            value={a.draft}
-            onChange={(e) => a.setDraft(e.target.value)}
-            placeholder="Pregunta algo sobre tus cuentas o tus planes…"
-            maxLength={4000}
-            rows={2}
-            disabled={a.busy}
-            onKeyDown={(e) => {
-              if (
-                e.key === 'Enter' &&
-                !e.shiftKey &&
-                !e.nativeEvent.isComposing
-              ) {
-                e.preventDefault();
-                void a.send();
-              }
-            }}
-          />
-          <Button
-            type="submit"
-            aria-label="Enviar mensaje"
-            disabled={a.busy || !a.catalogReady || !a.draft.trim()}
-          >
-            <ArrowUp size={19} />
-          </Button>
-          <small>Revisa los datos antes de confirmar un movimiento.</small>
-        </form>
+        {!welcome && composer}
       </div>
+      <aside
+        className="chat-history"
+        id="chat-history"
+        aria-label="Historial de conversaciones"
+      >
+        <div className="chat-history-top">
+          <Button
+            variant="ghost"
+            disabled={a.busy || a.loading}
+            onClick={() => {
+              a.newChat();
+              setHistoryOpen(false);
+            }}
+          >
+            <Plus size={17} /> Nueva conversación
+          </Button>
+          <Button
+            variant="ghost"
+            className="chat-history-close"
+            aria-label="Cerrar historial"
+            onClick={() => setHistoryOpen(false)}
+          >
+            <X size={18} />
+          </Button>
+        </div>
+        <h2>Recientes</h2>
+        {a.conversations.length ? (
+          <ul>
+            {a.conversations.map((c) => (
+              <li key={c.id}>
+                <button
+                  disabled={a.busy || a.loading}
+                  aria-current={a.conversationId === c.id ? 'page' : undefined}
+                  onClick={() => {
+                    void a.open(c.id);
+                    setHistoryOpen(false);
+                  }}
+                >
+                  <MessageSquare size={15} />
+                  <span>{c.title}</span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <div className="chat-history-empty">
+            <MessageSquare size={24} strokeWidth={1.2} />
+            <p>Tus ideas empiezan aquí.</p>
+            <small>Encuentra tus conversaciones en este espacio.</small>
+          </div>
+        )}
+      </aside>
     </section>
   );
 }

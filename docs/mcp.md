@@ -1,21 +1,23 @@
 # MCP financiero
 
-Implementado con `@modelcontextprotocol/sdk`: cliente Nest y servidor `mcp/server.cjs` sobre stdio. Nest inicia un proceso por turno, descubre herramientas, las llama y cierra el proceso al terminar. El servidor reutiliza las dependencias de `server` y los esquemas compilados; primero instalar y compilar el backend.
+Implementado con `@modelcontextprotocol/sdk`: cliente Nest y servidor TypeScript `mcp/server.ts` (compilado a `mcp/dist/server.js`) sobre stdio. Nest inicia un proceso por turno, descubre herramientas, las llama y cierra el proceso al terminar. El servidor reutiliza las dependencias de `server` y los esquemas compilados; primero instalar y compilar el backend.
 
 ## Herramientas
 
 | Nombre | Entrada | Alcance |
 | --- | --- | --- |
 | get_profile | `{}` | Perfil autenticado |
-| list_my_cards | `{}` | Dos tarjetas asignadas |
+| list_my_cards | `{}` | Tarjetas asignadas al perfil, o lista vacía |
 | get_account_summary | `{}` | Saldo e ingresos/gastos |
 | list_movements | Filtros y paginación del historial | Cuenta autenticada |
 | get_movement | `{id}` | Detalle propio |
 | list_movement_categories | `{}` | Catálogo de categorías |
 | get_spending_insights | from/to, category, bucket opcionales | Agregados propios |
+| list_goals | status, page y pageSize | Metas propias, sin inventar progreso |
+| simulate_savings | initialCents, monthlyContributionCents, months, annualRateBps | Cálculo determinista sin escribir dinero |
 | register_movement | `{}` | Payload de una acción aprobada en servidor |
 
-Los esquemas Zod compartidos están en `server/src/integrations/mcp/tool-definitions.ts`. El LLM solo recibe las siete herramientas de lectura. Una confirmación válida permite que el orquestador ejecute `register_movement` con la acción previamente persistida; el modelo no puede inventar una aprobación ni cambiar su monto.
+Los esquemas Zod compartidos están en `server/src/integrations/mcp/tool-definitions.ts`. El LLM solo recibe las nueve herramientas de lectura y cálculo. Una confirmación válida permite que el orquestador ejecute `register_movement` con la acción previamente persistida; el modelo no puede inventar una aprobación ni cambiar su monto.
 
 ## Autorización del proceso
 
@@ -27,6 +29,18 @@ El servidor MCP llama `POST /api/v1/internal/tools/:name` con `Authorization: Be
 
 ## Operación y prueba
 
-`MCP_ENTRY=../mcp/server.cjs` se resuelve desde `server`. No hace falta iniciar un servidor MCP manualmente ni instalar otra carpeta node_modules. stdout está reservado al protocolo; errores de proceso usan stderr. Timeout de conexión y llamadas: diez segundos, además del límite global del turno.
+`MCP_ENTRY=../mcp/dist/server.js` se resuelve desde `server`. No hace falta iniciar un servidor MCP manualmente ni instalar otra carpeta node_modules. stdout está reservado al protocolo; errores de proceso usan stderr. Timeout de conexión y llamadas: diez segundos, además del límite global del turno.
 
-Se probó descubrimiento de ocho herramientas y llamadas reales por stdio, incluyendo rechazo de escritura con capacidad de lectura y registro confirmado sin duplicados. Las capacidades viven en una sola instancia Nest; un despliegue con varias instancias requerirá rediseñar su almacenamiento/ruteo.
+Se probó descubrimiento de diez herramientas y llamadas reales por stdio, incluyendo rechazo de escritura con capacidad de lectura y registro confirmado sin duplicados. Las capacidades viven en una sola instancia Nest; un despliegue con varias instancias requerirá rediseñar su almacenamiento/ruteo.
+
+## Contratos y errores
+
+Las diez herramientas tienen título, descripción de unidades/filtros y anotaciones MCP (`readOnlyHint`, `idempotentHint`, `destructiveHint`, `openWorldHint`). Estas anotaciones describen la operación; la autorización se comprueba en el gateway, independientemente de ellas.
+
+Cada resultado incluye `structuredContent` y una copia JSON en contenido textual para clientes compatibles. Nest consume primero el resultado estructurado. Los fallos de ejecución usan `isError` y códigos `INVALID_INPUT`, `ACCESS_DENIED`, `NOT_FOUND`, `CONFLICT`, `API_UNAVAILABLE`, `INVALID_RESPONSE` o `CANCELLED`. Los argumentos inválidos también pueden rechazarse directamente por el SDK. No se devuelven trazas ni cuerpos privados del backend.
+
+El proceso solo acepta una URL HTTP loopback de Nest, no sigue redirecciones y combina la cancelación del cliente con un timeout de diez segundos. No tiene acceso directo a PostgreSQL.
+
+Desde `server/`: `npm run check` verifica tipos y compila tanto Nest como MCP. `npm run mcp:build` recompila solo el ejecutable; después de cambiar esquemas de dominio, recompilar también Nest. `npm run dev` compila MCP al arrancar; si cambias `mcp/server.ts` durante desarrollo, vuelve a ejecutar `npm run mcp:build`.
+
+Referencia: [herramientas y resultados estructurados en MCP](https://modelcontextprotocol.io/specification/2025-11-25/server/tools).

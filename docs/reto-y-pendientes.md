@@ -12,10 +12,10 @@ Ayudar a una persona a entender y registrar sus gastos en una misma experiencia.
 | --- | --- | --- |
 | Interpretar intención, generar interfaz y ejecutar acción | Diap. 3 | Probado: Gemini real → UI → confirmar → persistencia → recibo |
 | LLM central: interpreta, decide y orquesta | Diap. 5 | Implementado y validado con Gemini Flash-Lite real |
-| MCP para datos, herramientas y acciones propias | Diap. 5 | Implementado: servidor/cliente stdio y ocho herramientas probadas |
+| MCP para datos, herramientas y acciones propias | Diap. 5 | Implementado: servidor/cliente stdio y diez herramientas probadas |
 | A2UI o protocolo equivalente | Diap. 3 y 5 | Implementado: mensajes v0.9.1, catálogo propio y renderer React |
 | Cada interacción vuelve al agente y cambia la experiencia | Diap. 6 | Flujo visual probado con MCP real y modelo controlado |
-| Componentes propios | Diap. 7 | Implementado: tabla, formulario, gráfica, confirmación y recibo en el renderer |
+| Componentes propios | Diap. 7 | Implementado: tabla, formulario, gráfica, confirmación, recibo, tarjetas, metas y simulador en el renderer |
 | Datos y APIs propios; sintéticos permitidos | Diap. 7 | Implementado: cuenta y movimientos capturados en PostgreSQL; precargas retiradas por decisión del usuario |
 | Al menos un flujo accionable con cambio real | Diap. 7 | Probado desde UI generada: confirmar persiste y devuelve recibo/saldo |
 
@@ -38,7 +38,8 @@ El detalle técnico y el orden de ejecución están en [plan-backend.md](plan-ba
 - [x] Renderizar tabla, gráfica y formulario desde el plan del backend; probado con modelo controlado.
 - [x] Devolver eventos del usuario al agente y actualizar la interfaz.
 - [x] Registrar un gasto desde ese formulario, persistirlo y mostrar saldo/historial nuevos.
-- [ ] Probar reintentos, fallos del modelo/MCP, estados vacíos y navegación móvil.
+- [x] Probar estados vacíos, navegación móvil, cambio de periodo, cancelación y confirmación de movimientos.
+- [ ] Ampliar pruebas de reintentos, pérdida de red y fallos del modelo/MCP.
 - [ ] Ensayar desde un arranque limpio y guardar evidencia de la demo.
 
 ## P1: utilidad y experiencia

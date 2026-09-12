@@ -1,15 +1,19 @@
 import { z } from "zod";
 import { movementQuerySchema } from "../../modules/movimientos/schemas/movimiento.schema";
 import { insightsSchema } from "../../modules/analisis/analisis.module";
+import { goalQuerySchema } from "../../modules/metas/metas.module";
+import { simulationSchema } from "../../modules/simulaciones/simulaciones.module";
 export const toolDefinitions = {
   get_profile: { description: "Perfil del usuario autenticado.", schema: z.strictObject({}) },
   list_my_cards: { description: "Tarjetas asignadas a este usuario.", schema: z.strictObject({}) },
   get_account_summary: {
-    description: "Saldo e ingresos/gastos de la cuenta actual.",
+    description:
+      "Saldo disponible e ingresos/gastos acumulados de la cuenta autenticada, en centavos MXN. No es deuda ni límite de crédito. Puede ser cero si aún no hay registros.",
     schema: z.strictObject({}),
   },
   list_movements: {
-    description: "Historial filtrado y totales. Usar fechas YYYY-MM-DD.",
+    description:
+      "Historial propio, paginado y filtrado. Fechas inclusivas YYYY-MM-DD. Los totales corresponden a todo el filtro, items solo a la página. cardId es UUID propio; accountOnly=true selecciona movimientos sin tarjeta. No inventes registros si items está vacío.",
     schema: movementQuerySchema,
   },
   get_movement: {
@@ -21,8 +25,19 @@ export const toolDefinitions = {
     schema: z.strictObject({}),
   },
   get_spending_insights: {
-    description: "Gráfica de gastos por categoría y serie del periodo.",
+    description:
+      "Gastos propios por categoría y serie temporal. from/to deben enviarse juntos, máximo 366 días; por defecto mes actual. share es proporción 0–1. Neto del periodo no es saldo de cuenta.",
     schema: insightsSchema,
+  },
+  list_goals: {
+    description:
+      "Consulta metas propias activas o archivadas. Devuelve objetivos, no dinero apartado ni progreso de ahorro. Pagina con page y pageSize.",
+    schema: goalQuerySchema,
+  },
+  simulate_savings: {
+    description:
+      "Calcula un escenario de ahorro en MXN, sin mover dinero. Importes en centavos, tasa nominal anual en puntos base (500=5%). Usa solo supuestos expresos del usuario; nunca inventes una tasa. Devuelve totales, supuestos y calendario mensual.",
+    schema: simulationSchema,
   },
   register_movement: {
     description:
@@ -31,3 +46,16 @@ export const toolDefinitions = {
   },
 } as const;
 export type ToolName = keyof typeof toolDefinitions;
+
+export const toolMetadata: Record<ToolName, { title: string; readOnly: boolean }> = {
+  get_profile: { title: "Consultar perfil", readOnly: true },
+  list_my_cards: { title: "Consultar tarjetas", readOnly: true },
+  get_account_summary: { title: "Consultar saldo", readOnly: true },
+  list_movements: { title: "Consultar historial", readOnly: true },
+  get_movement: { title: "Consultar movimiento", readOnly: true },
+  list_movement_categories: { title: "Consultar categorías", readOnly: true },
+  get_spending_insights: { title: "Analizar gastos", readOnly: true },
+  list_goals: { title: "Consultar metas", readOnly: true },
+  simulate_savings: { title: "Simular ahorro", readOnly: true },
+  register_movement: { title: "Guardar movimiento confirmado", readOnly: false },
+};

@@ -4,9 +4,20 @@ export const uiPlanSchema = z.strictObject({
   title: z.string().min(1).max(120),
   explanation: z.string().max(2000),
   blocks: z
-    .array(z.enum(["balance", "movements", "spending", "movementForm", "education"]))
+    .array(
+      z.enum([
+        "balance",
+        "movements",
+        "spending",
+        "movementForm",
+        "education",
+        "cards",
+        "goals",
+        "savings",
+      ]),
+    )
     .min(1)
-    .max(5),
+    .max(8),
 });
 export type UiPlan = z.infer<typeof uiPlanSchema>;
 const common = { id: z.string().min(1).max(100) };
@@ -27,6 +38,9 @@ export const componentSchema = z.discriminatedUnion("component", [
       "BanorteConfirmation",
       "BanorteActionResult",
       "BanortePeriodSelector",
+      "BanorteCardList",
+      "BanorteGoalList",
+      "BanorteSavingsSimulator",
     ] as const
   ).map((name) =>
     z.strictObject({

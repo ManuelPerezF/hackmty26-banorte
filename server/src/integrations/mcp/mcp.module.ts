@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { MetasModule, MetasService, goalQuerySchema } from "../../modules/metas/metas.module";
+import { simulate, simulationSchema } from "../../modules/simulaciones/simulaciones.module";
 import {
   Body,
   Controller,
@@ -39,6 +42,7 @@ class ToolGatewayController {
     private readonly movements: MovimientosService,
     private readonly insights: AnalisisService,
     private readonly db: PrismaService,
+    private readonly goals: MetasService,
   ) {}
   @SetMetadata("auth:mcp", true) @Post(":name") async call(
     @Param("name") name: ToolName,
@@ -51,7 +55,9 @@ class ToolGatewayController {
       name,
     );
     if (!Object.hasOwn(toolDefinitions, name)) throw new UnauthorizedException();
-    const b = new ZodValidationPipe(toolDefinitions[name].schema as any).transform(body) as any;
+    const parse = <S extends z.ZodType>(schema: S): z.output<S> =>
+      new ZodValidationPipe(schema).transform(body) as z.output<S>;
+    parse(toolDefinitions[name].schema);
     const i = cap.identity;
     switch (name) {
       case "get_profile":
@@ -61,13 +67,17 @@ class ToolGatewayController {
       case "get_account_summary":
         return this.accounts.summary(i);
       case "list_movements":
-        return this.movements.list(movementQuerySchema.parse(b), i);
+        return this.movements.list(parse(movementQuerySchema), i);
       case "get_movement":
-        return this.movements.findOne(b.id, i);
+        return this.movements.findOne(parse(toolDefinitions.get_movement.schema).id, i);
       case "list_movement_categories":
         return { items: categories };
       case "get_spending_insights":
-        return this.insights.spending(insightsSchema.parse(b), i);
+        return this.insights.spending(parse(insightsSchema), i);
+      case "list_goals":
+        return this.goals.list(i, parse(goalQuerySchema));
+      case "simulate_savings":
+        return simulate(parse(simulationSchema));
       case "register_movement": {
         if (!cap.actionId) throw new UnauthorizedException();
         const action = await this.db.pendingAction.findFirst({
@@ -95,7 +105,14 @@ class ToolGatewayController {
   }
 }
 @Module({
-  imports: [DatabaseModule, PerfilModule, CuentasModule, MovimientosModule, AnalisisModule],
+  imports: [
+    DatabaseModule,
+    PerfilModule,
+    CuentasModule,
+    MovimientosModule,
+    AnalisisModule,
+    MetasModule,
+  ],
   controllers: [ToolGatewayController],
   providers: [CapabilityService, McpService],
   exports: [McpService],

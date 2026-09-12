@@ -29,10 +29,12 @@ Un UUID estable representa cada envío lógico; se conserva al reintentar una pe
 
 `asistente/hooks/useAsistente.ts` consume conversaciones, mensajes, acciones y snapshots. EventSource lleva la cookie; la UI restaura conversaciones al seleccionarlas y presenta el estado de trabajo, error o confirmación.
 
-`types/protocol.ts` valida el catálogo y las envolturas v0.9.1 con Zod. `components/a2ui-renderer.tsx` resuelve únicamente los componentes permitidos: saldo, tabla, gráfica por categoría, selector de periodo, formulario, confirmación y recibo. Nunca ejecuta HTML/JS/JSX producido por el modelo. Cada bloque valida además sus datos.
+`types/protocol.ts` valida el catálogo y las envolturas v0.9.1 con Zod. `components/a2ui-renderer.tsx` resuelve únicamente los componentes permitidos: saldo, tabla, gráfica por categoría, selector de periodo, formulario, confirmación, recibo, tarjetas, metas y simulador de ahorro. Nunca ejecuta HTML/JS/JSX producido por el modelo. Cada bloque valida además sus datos.
 
 El formulario reutiliza el módulo Movimientos. Preparar muestra el monto, fecha y cuenta/tarjeta; confirmar devuelve `actionId` al backend. Al terminar se actualizan saldo e historial. Los formularios históricos quedan inactivos y las confirmaciones obedecen su estado/vencimiento.
 
 La prueba en navegador recorrió Nest → MCP real por stdio → respuesta de modelo controlada → A2UI → confirmación → PostgreSQL y restauración. También se probaron crear/editar/archivar metas, cambiar periodo y cancelar un registro sin escritura. **También pasó la prueba con Gemini real (gemini-3.1-flash-lite)**: perfil vacío, saldo cero, formulario generado, ingreso confirmado de $10.55, recibo y conversación restaurada. El perfil temporal se eliminó al terminar. Sin clave se muestra el error del servicio, no una respuesta simulada.
 
 Referencias: [chatbot y Mobbin](chatbot-referencias.md). Comandos y estructura: [README del cliente](../client/README.md).
+
+La bienvenida del asistente sigue la referencia SchoolAI adjunta: compositor centrado, cinco sugerencias y conversaciones a la derecha. En móvil, el historial tiene controles de apertura y cierre. Los resultados financieros usan información del backend y estados vacíos explícitos.
