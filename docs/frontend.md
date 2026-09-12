@@ -42,3 +42,13 @@ La bienvenida del asistente sigue la referencia SchoolAI adjunta: compositor cen
 ## Fuentes documentales de Maya
 
 El bloque A2UI `BanorteSources` muestra fuentes numeradas, página y vigencia, con extractos desplegables y acceso al PDF original. Tiene estado vacío y se conserva en los snapshots de conversaciones. No hay datos de producto inventados en el cliente. Ver [RAG](rag.md).
+
+## Metas: planificación y siguientes pasos
+
+La sección presenta objetivos activos y archivados, monto objetivo total, sugerencias de nombres sin cantidades precargadas y un detalle por meta. El formulario compartido de creación y edición incluye nombre, monto y fecha opcional, con vista previa. Cada detalle propone definir o revisar la fecha, o muestra una referencia mensual, y permite editar, archivar y recuperar.
+
+La referencia divide el objetivo completo entre los meses restantes aproximados, redondeando fracciones de mes hacia arriba y el resultado a centavos. Parte de cero, sin rendimientos ni aportaciones registradas; no representa dinero disponible o ahorrado. El simulador se abre dentro del detalle y recibe este plazo y monto mensual como valores editables. Guardar una meta no mueve dinero. Las metas continúan usando los endpoints existentes de Nest y PostgreSQL.
+
+Referencias consultadas con Mobbin: el [enlace proporcionado de Wise](https://mobbin.com/flows/27984037-e26c-4d2e-b8bd-db416b5d836e) corresponde a mostrar el PIN de una tarjeta; se tomó su jerarquía de detalle y acciones. Para el flujo de metas se consultó además [Setting up a jar](https://mobbin.com/flows/64b21fe4-7da0-4b2a-a2cf-4256830ba0d5): nombre sencillo, sugerencias y separación entre configurar y financiar. Se conservó la identidad visual de Banorte.
+
+Verificación: pruebas de fechas, meses parciales y redondeo en `client/tests/metas.test.ts`; recorrido de creación, edición con fecha, simulación, archivo, recuperación y persistencia tras recargar con una cuenta temporal; revisión visual en escritorio y móvil. El usuario temporal se eliminó al terminar.

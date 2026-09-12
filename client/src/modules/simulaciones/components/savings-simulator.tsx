@@ -15,7 +15,13 @@ type Result = {
     balanceCents: number;
   }[];
 };
-export function SavingsSimulator() {
+export function SavingsSimulator({
+  initialValues,
+  targetCents,
+}: {
+  initialValues?: { monthlyCents: number; months: number };
+  targetCents?: number;
+} = {}) {
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -23,9 +29,13 @@ export function SavingsSimulator() {
   return (
     <section className="savings-simulator">
       <h3>Explora cómo podría crecer tu ahorro</h3>
-      <p>Elige tus aportaciones y una tasa para comparar un escenario.</p>
+      <p>
+        El escenario parte de $0 y una tasa de 0%. Ajusta los valores a lo que
+        quieras explorar; no representan un saldo guardado.
+      </p>
       <form
         className="simulation-form"
+        onInput={() => setResult(null)}
         onSubmit={async (e) => {
           e.preventDefault();
           if (lock.current) return;
@@ -65,7 +75,16 @@ export function SavingsSimulator() {
         </label>
         <label>
           Aportación mensual (MXN)
-          <input name="monthly" inputMode="decimal" defaultValue="0" required />
+          <input
+            name="monthly"
+            inputMode="decimal"
+            defaultValue={
+              initialValues
+                ? (initialValues.monthlyCents / 100).toFixed(2)
+                : '0'
+            }
+            required
+          />
         </label>
         <label>
           Plazo en meses
@@ -74,7 +93,7 @@ export function SavingsSimulator() {
             type="number"
             min="1"
             max="600"
-            defaultValue="12"
+            defaultValue={initialValues?.months ?? 12}
             required
           />
         </label>
@@ -101,6 +120,13 @@ export function SavingsSimulator() {
       )}
       {result && (
         <div className="simulation-result">
+          {targetCents !== undefined && (
+            <p>
+              {result.finalCents >= targetCents
+                ? `Este escenario cubriría tu objetivo de ${formatMoney(targetCents)}.`
+                : `En este escenario faltarían ${formatMoney(targetCents - result.finalCents)} para tu objetivo de ${formatMoney(targetCents)}.`}
+            </p>
+          )}
           <dl>
             <div>
               <dt>Aportaciones</dt>

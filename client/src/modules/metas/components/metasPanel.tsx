@@ -1,80 +1,140 @@
 'use client';
-import { useState } from 'react';
-import { formText } from '@/shared/api/client';
-import type { Goal } from '@/shared/api/types';
-import { Flag, Plus } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  ArrowLeft,
+  ArrowUpRight,
+  Archive,
+  CalendarDays,
+  ChevronRight,
+  Flag,
+  Plus,
+  RotateCcw,
+  Pencil,
+  Calculator,
+} from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
-import { Input } from '@/shared/components/ui/input';
+import { formatMoney, formatMovementDate } from '@/shared/utils/money';
+import { useBank } from '@/modules/cuentas/context/bank-context';
+import { SavingsSimulator } from '@/modules/simulaciones/components/savings-simulator';
+import type { Goal } from '@/shared/api/types';
 import type { useMetas } from '../hooks/useMetas';
+import { goalPlan } from '../services/goal-plan';
+import { GoalForm } from './goal-form';
 import '../styles/metas.css';
-const money = new Intl.NumberFormat('es-MX', {
-  style: 'currency',
-  currency: 'MXN',
-  maximumFractionDigits: 2,
-});
-export function MetasPanel({
-  goals,
-  addGoal,
-  error,
-  notice,
-  busy,
-  loading,
-  archive,
-  editGoal,
-}: ReturnType<typeof useMetas>) {
+const ideas = [
+  'Fondo de emergencia',
+  'Mi próximo viaje',
+  'Un proyecto personal',
+];
+function status(goal: Goal, today: string) {
+  if (goal.status === 'archived') return 'Archivada';
+  const plan = goalPlan(goal.targetCents, goal.deadline, today);
+  return !plan
+    ? 'Sin fecha'
+    : plan.status === 'overdue'
+      ? 'Revisar fecha'
+      : plan.status === 'today'
+        ? 'Fecha objetivo: hoy'
+        : 'Con fecha';
+}
+export function MetasPanel(props: ReturnType<typeof useMetas>) {
+  const {
+    goals,
+    archivedGoals,
+    addGoal,
+    editGoal,
+    archive,
+    restore,
+    busy,
+    loading,
+    error,
+    notice,
+  } = props;
+  const { profile } = useBank();
+  const parts = new Intl.DateTimeFormat('en', {
+    timeZone: profile.timezone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(new Date());
+  const part = (type: string) => parts.find((p) => p.type === type)!.value;
+  const today = `${part('year')}-${part('month')}-${part('day')}`;
+  const [tab, setTab] = useState<'active' | 'archived'>('active');
+  const [selected, setSelected] = useState<string | null>(null);
+  const [editor, setEditor] = useState<{ goal?: Goal; name?: string } | null>(
+    null,
+  );
+  const heading = useRef<HTMLHeadingElement>(null);
+  useEffect(() => {
+    if (selected || editor) heading.current?.focus();
+  }, [selected, editor]);
+  const goal = [...goals, ...archivedGoals].find((g) => g.id === selected);
+  const visible = tab === 'active' ? goals : archivedGoals;
+  const plan = goal ? goalPlan(goal.targetCents, goal.deadline, today) : null;
+  const back = () => {
+    setSelected(null);
+    setEditor(null);
+  };
+  if (!props.loaded)
+    return (
+      <section className="goals-view" aria-label="Tus metas">
+        {loading ? (
+          <output>Cargando tus metas…</output>
+        ) : (
+          <>
+            <p className="goal-error" role="alert">
+              {error}
+            </p>
+            <Button onClick={props.retry}>Volver a intentar</Button>
+          </>
+        )}
+      </section>
+    );
   return (
-    <section className="goals-view" aria-labelledby="goals-title">
-      <div className="goals-intro">
-        <h2 id="goals-title">Dale un destino a tu ahorro.</h2>
-        <p>
-          Un viaje, un imprevisto o eso que llevas tiempo planeando. Empieza con
-          un nombre y una cantidad.
-        </p>
-      </div>
-      <form
-        className="goal-form"
-        onSubmit={async (event) => {
-          event.preventDefault();
-          const form = event.currentTarget;
-          const data = new FormData(form);
-          const name = data.get('name');
-          if (
-            await addGoal({
-              name: typeof name === 'string' ? name : '',
-              target: Number(data.get('target')),
-            })
-          )
-            form.reset();
-        }}
-      >
-        <div>
-          <label htmlFor="goal-name">¿Para qué quieres ahorrar?</label>
-          <Input
-            id="goal-name"
-            name="name"
-            placeholder="Mi fondo de emergencia"
-            maxLength={60}
-            required
-          />
-        </div>
-        <div>
-          <label htmlFor="goal-target">Monto objetivo (MXN)</label>
-          <Input
-            id="goal-target"
-            name="target"
-            type="number"
-            inputMode="decimal"
-            min="1"
-            max="1000000000"
-            step="0.01"
-            placeholder="10000"
-            required
-          />
-        </div>
-        <Button type="submit" className="button" disabled={busy}>
-          <Plus size={17} /> Crear meta
+    <section
+      className="goals-view"
+      aria-labelledby="goals-title"
+      aria-busy={loading || busy}
+    >
+      {(editor || goal) && (
+        <Button
+          className="goals-back"
+          variant="ghost"
+          disabled={busy}
+          onClick={back}
+        >
+          <ArrowLeft size={17} /> Todas mis metas
         </Button>
-      </form>
+      )}
+      <header className="goals-intro">
+        <div>
+          <h2 id="goals-title" tabIndex={-1} ref={heading}>
+            {editor
+              ? editor.goal
+                ? 'Ajusta tu meta.'
+                : '¿Qué quieres hacer realidad?'
+              : goal
+                ? goal.name
+                : 'Tus planes empiezan aquí.'}
+          </h2>
+          <p>
+            {editor
+              ? 'Define el monto y, si ya la tienes, una fecha para alcanzarlo.'
+              : goal
+                ? 'Tu objetivo, tu fecha y una referencia para organizarte.'
+                : 'Ponle nombre, monto y fecha a lo que quieres lograr.'}
+          </p>
+        </div>
+        {!editor && !goal && (
+          <Button
+            className="button"
+            disabled={loading || busy}
+            onClick={() => setEditor({})}
+          >
+            <Plus size={17} /> Nueva meta
+          </Button>
+        )}
+      </header>
       {error && (
         <p className="goal-error" role="alert">
           {error}
@@ -83,131 +143,317 @@ export function MetasPanel({
       <output className="goal-notice" aria-live="polite">
         {notice}
       </output>
-      <div className="goals-heading">
-        <h3>Mis metas</h3>
-        <span>
-          {goals.length} {goals.length === 1 ? 'meta' : 'metas'}
-        </span>
-      </div>
-      {loading ? (
-        <p>Cargando tus metas…</p>
-      ) : goals.length ? (
-        <ul className="goals-list">
-          {goals.map((goal) => (
-            <li key={goal.id}>
+      {editor ? (
+        <GoalForm
+          key={editor.goal?.id ?? editor.name ?? 'new'}
+          initial={editor.goal}
+          name={editor.name}
+          today={today}
+          busy={busy}
+          onCancel={() => setEditor(null)}
+          onSave={async (input) => {
+            const saved = editor.goal
+              ? await editGoal(editor.goal.id, {
+                  name: input.name,
+                  targetCents: Math.round(input.target * 100),
+                  deadline: input.deadline ?? null,
+                })
+              : await addGoal(input);
+            if (saved) {
+              setEditor(null);
+              if (!editor.goal) {
+                setTab('active');
+                setSelected(null);
+              }
+            }
+            return saved;
+          }}
+        />
+      ) : goal ? (
+        <div className="goal-detail-layout">
+          <div>
+            <div className="goal-detail-amount">
               <span className="goal-symbol">
-                <Flag size={21} aria-hidden="true" />
+                <Flag size={25} />
               </span>
+              <span>Monto objetivo</span>
+              <strong>{formatMoney(goal.targetCents)}</strong>
+              <span className="goal-status">{status(goal, today)}</span>
+            </div>
+            <dl className="goal-facts">
               <div>
-                <h4>{goal.name}</h4>
-                <p>Objetivo de ahorro · Sin aportaciones</p>
+                <dt>
+                  <CalendarDays size={17} /> Fecha objetivo
+                </dt>
+                <dd>
+                  {goal.deadline
+                    ? formatMovementDate(goal.deadline)
+                    : 'Todavía no definida'}
+                </dd>
               </div>
-              <strong>{money.format(goal.targetCents / 100)}</strong>
-              <GoalEditor goal={goal} save={editGoal} />
-              <Button
-                variant="ghost"
-                onClick={() => {
-                  void archive(goal.id);
-                }}
+              <div>
+                <dt>Tipo de meta</dt>
+                <dd>Plan de ahorro</dd>
+              </div>
+            </dl>
+            <div className="goal-actions">
+              {goal.status === 'active' ? (
+                <>
+                  <Button
+                    className="button"
+                    disabled={busy}
+                    onClick={() => setEditor({ goal })}
+                  >
+                    <Pencil size={16} /> Editar meta
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    disabled={busy}
+                    onClick={async () => {
+                      if (await archive(goal.id)) {
+                        back();
+                        setTab('archived');
+                      }
+                    }}
+                  >
+                    <Archive size={16} /> Archivar
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  className="button"
+                  disabled={busy}
+                  onClick={async () => {
+                    if (await restore(goal.id)) setTab('active');
+                  }}
+                >
+                  <RotateCcw size={16} /> Recuperar meta
+                </Button>
+              )}
+            </div>
+            {goal.status === 'active' && (
+              <details
+                className="goal-simulation"
+                key={`${goal.id}-${goal.targetCents}-${goal.deadline}`}
               >
-                Archivar
-              </Button>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <div className="goals-empty">
-          <Flag size={28} strokeWidth={1.5} aria-hidden="true" />
-          <h4>Tu primera meta empieza aquí.</h4>
-          <p>Cuando crees una meta, aparecerá en este espacio.</p>
+                <summary>
+                  <Calculator size={19} />
+                  <span>
+                    Explorar un escenario de ahorro
+                    <small>
+                      Ajusta cuánto aportarías y compara el resultado con tu
+                      objetivo.
+                    </small>
+                  </span>
+                  <ChevronRight size={17} />
+                </summary>
+                <SavingsSimulator
+                  targetCents={goal.targetCents}
+                  initialValues={
+                    plan?.status === 'scheduled' && plan.months <= 600
+                      ? {
+                          monthlyCents: plan.monthlyCents!,
+                          months: plan.months,
+                        }
+                      : undefined
+                  }
+                />
+              </details>
+            )}
+          </div>
+          <aside
+            className="goal-next-step"
+            aria-label="Siguiente paso de tu meta"
+          >
+            <span className="goal-kicker">Tu siguiente paso</span>
+            {goal.status === 'archived' ? (
+              <>
+                <h3>Tu plan está en pausa.</h3>
+                <p>
+                  Recupera esta meta cuando quieras volver a planificarla. Su
+                  nombre, monto y fecha se conservan.
+                </p>
+              </>
+            ) : !plan ? (
+              <>
+                <h3>Elige una fecha.</h3>
+                <p>
+                  Así podrás ver una referencia mensual para reunir tu monto
+                  objetivo.
+                </p>
+                <Button
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => setEditor({ goal })}
+                >
+                  Definir fecha <ArrowUpRight size={16} />
+                </Button>
+              </>
+            ) : plan.status !== 'scheduled' ? (
+              <>
+                <h3>
+                  {plan.status === 'today'
+                    ? 'Llegó la fecha de tu plan.'
+                    : 'Es momento de revisar tu fecha.'}
+                </h3>
+                <p>
+                  Actualiza el plazo para volver a calcular tu referencia
+                  mensual. La fecha por sí sola no indica que hayas completado
+                  la meta.
+                </p>
+                <Button
+                  variant="outline"
+                  disabled={busy}
+                  onClick={() => setEditor({ goal })}
+                >
+                  Ajustar fecha <ArrowUpRight size={16} />
+                </Button>
+              </>
+            ) : (
+              <>
+                <h3>Una referencia para empezar</h3>
+                <strong className="goal-monthly">
+                  {formatMoney(plan.monthlyCents!)}
+                  <small>al mes</small>
+                </strong>
+                <p>
+                  Para un objetivo de {formatMoney(goal.targetCents)} en
+                  aproximadamente {plan.months}{' '}
+                  {plan.months === 1 ? 'mes' : 'meses'}.
+                </p>
+                <details>
+                  <summary>¿Cómo se calcula?</summary>
+                  <p>
+                    Dividimos el objetivo entre los meses restantes, redondeando
+                    el plazo y los centavos hacia arriba. Parte de $0, sin
+                    rendimientos ni aportaciones previas. Es una referencia de
+                    planificación.
+                  </p>
+                </details>
+              </>
+            )}
+            <p className="goal-planning-note">
+              Esta meta guarda tu plan. No aparta dinero ni mide un saldo
+              ahorrado.
+            </p>
+          </aside>
         </div>
+      ) : (
+        <>
+          <div className="goals-overview">
+            <span>
+              {goals.length}{' '}
+              {goals.length === 1 ? 'meta activa' : 'metas activas'}
+            </span>
+            <p>
+              Suma de objetivos{' '}
+              <strong>
+                {formatMoney(
+                  goals.reduce((total, g) => total + g.targetCents, 0),
+                )}
+              </strong>
+            </p>
+            <small>Importe que quieres reunir, no saldo disponible.</small>
+          </div>
+          <div className="goals-workspace">
+            <div>
+              <fieldset className="goals-tabs" aria-label="Estado de las metas">
+                <button
+                  type="button"
+                  aria-pressed={tab === 'active'}
+                  onClick={() => setTab('active')}
+                >
+                  Activas <span>{goals.length}</span>
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={tab === 'archived'}
+                  onClick={() => setTab('archived')}
+                >
+                  Archivadas <span>{archivedGoals.length}</span>
+                </button>
+              </fieldset>
+              {loading ? (
+                <output className="goals-empty">Cargando tus metas…</output>
+              ) : visible.length ? (
+                <ul className="goals-list">
+                  {visible.map((g) => (
+                    <li key={g.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelected(g.id)}
+                        aria-label={`Ver meta ${g.name}`}
+                      >
+                        <span className="goal-symbol">
+                          <Flag size={20} />
+                        </span>
+                        <span className="goal-list-name">
+                          <strong>{g.name}</strong>
+                          <small>
+                            {g.deadline
+                              ? formatMovementDate(g.deadline)
+                              : 'Define una fecha para planificarla'}
+                            <span className="goal-status">
+                              {status(g, today)}
+                            </span>
+                          </small>
+                        </span>
+                        <span className="goal-list-amount">
+                          {formatMoney(g.targetCents)}
+                          <small>Monto objetivo</small>
+                        </span>
+                        <ChevronRight size={17} />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <div className="goals-empty">
+                  <Flag size={32} strokeWidth={1.4} />
+                  <h3>
+                    {tab === 'active'
+                      ? '¿Qué te gustaría lograr?'
+                      : 'Tus metas archivadas aparecerán aquí.'}
+                  </h3>
+                  <p>
+                    {tab === 'active'
+                      ? 'Crea una meta con tu propio monto. Puedes añadir una fecha ahora o después.'
+                      : 'Archivar conserva tu plan para que puedas recuperarlo cuando quieras.'}
+                  </p>
+                  {tab === 'active' && (
+                    <Button
+                      className="button"
+                      disabled={busy}
+                      onClick={() => setEditor({})}
+                    >
+                      Crear mi primera meta <Plus size={16} />
+                    </Button>
+                  )}
+                </div>
+              )}
+            </div>
+            <aside className="goal-ideas" aria-labelledby="goal-ideas-title">
+              <h3 id="goal-ideas-title">Ideas para una nueva meta</h3>
+              <p>Empieza con un nombre. El monto y la fecha los eliges tú.</p>
+              <ul>
+                {ideas.map((name) => (
+                  <li key={name}>
+                    <button
+                      type="button"
+                      aria-label={`Crear meta: ${name}`}
+                      disabled={loading || busy}
+                      onClick={() => setEditor({ name })}
+                    >
+                      <span>{name}</span>
+                      <ArrowUpRight size={17} aria-hidden="true" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </aside>
+          </div>
+        </>
       )}
-      <p className="goals-note">
-        Los objetivos se guardan en tu cuenta. Crear una meta no aparta ni mueve
-        dinero.
-      </p>
     </section>
-  );
-}
-
-function GoalEditor({
-  goal,
-  save,
-}: {
-  goal: Goal;
-  save: (
-    id: string,
-    body: { name: string; targetCents: number; deadline: string | null },
-  ) => Promise<boolean>;
-}) {
-  const [editing, setEditing] = useState(false);
-  const [saving, setSaving] = useState(false);
-  if (!editing)
-    return (
-      <Button variant="ghost" onClick={() => setEditing(true)}>
-        Editar
-      </Button>
-    );
-  return (
-    <form
-      className="goal-edit"
-      aria-label={`Editar ${goal.name}`}
-      onSubmit={async (event) => {
-        event.preventDefault();
-        if (saving) return;
-        const data = new FormData(event.currentTarget);
-        setSaving(true);
-        try {
-          if (
-            await save(goal.id, {
-              name: formText(data, 'name'),
-              targetCents: Math.round(Number(formText(data, 'target')) * 100),
-              deadline: formText(data, 'deadline') || null,
-            })
-          )
-            setEditing(false);
-        } finally {
-          setSaving(false);
-        }
-      }}
-    >
-      <label htmlFor={`edit-name-${goal.id}`}>
-        Nombre
-        <Input
-          id={`edit-name-${goal.id}`}
-          name="name"
-          defaultValue={goal.name}
-          maxLength={60}
-          required
-        />
-      </label>
-      <label htmlFor={`edit-target-${goal.id}`}>
-        Monto objetivo
-        <Input
-          id={`edit-target-${goal.id}`}
-          name="target"
-          type="number"
-          min="1"
-          max="1000000000"
-          step="0.01"
-          defaultValue={goal.targetCents / 100}
-          required
-        />
-      </label>
-      <label>
-        Fecha objetivo
-        <input name="deadline" type="date" defaultValue={goal.deadline ?? ''} />
-      </label>
-      <Button className="button" type="submit" disabled={saving}>
-        Guardar cambios
-      </Button>
-      <Button
-        variant="ghost"
-        disabled={saving}
-        onClick={() => setEditing(false)}
-      >
-        Cancelar
-      </Button>
-    </form>
   );
 }

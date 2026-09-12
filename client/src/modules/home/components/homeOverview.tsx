@@ -4,7 +4,6 @@ import { movementLabel } from '@/modules/movimientos/services/movement-label';
 import {
   ArrowRight,
   ArrowUpRight,
-  ChevronDown,
   ChevronRight,
   Command,
   Plus,
@@ -45,10 +44,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
         <div className="panel-account-column">
           <section className="modern-balance" aria-label="Saldo disponible">
             <div className="modern-balance-label">
-              Saldo total{' '}
-              <span>
-                MXN <ChevronDown size={14} />
-              </span>
+              Saldo total <span>MXN</span>
             </div>
             <div className="modern-balance-amount">
               {formatMoney(ledger.balanceCents)}
