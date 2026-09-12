@@ -1,0 +1,1090 @@
+/* Spacious account-first composition from the supplied Wise and Revolut references. */
+.business-shell {
+  --sidebar-width: 240px;
+}
+.business-sidebar {
+  border-right: 0;
+}
+.business-sidebar [data-slot='sidebar-inner'] {
+  background: #fff;
+}
+.business-brand {
+  padding: 43px 29px 48px;
+}
+.business-brand img {
+  width: 161px;
+}
+.business-brand > span {
+  display: none;
+}
+.nav-group-label {
+  display: none;
+}
+.business-menu {
+  padding: 0 20px;
+  gap: 8px;
+}
+.business-nav-item {
+  height: 49px;
+  border-radius: 100px;
+  font-size: 15px;
+  gap: 16px;
+  padding-inline: 20px;
+}
+.business-nav-item[data-active] {
+  background: #f9edf0;
+  color: #b5092b;
+}
+.business-nav-item[data-active] svg {
+  color: #b5092b;
+}
+.business-sidebar-footer {
+  padding: 28px;
+}
+.business-main {
+  padding: 0 48px 30px;
+}
+.business-topbar,
+.business-view {
+  max-width: 990px;
+}
+.business-topbar {
+  min-height: 120px;
+  border-bottom: 0;
+}
+.business-topbar h1 {
+  font-size: 34px;
+  letter-spacing: -0.04em;
+  font-weight: 550;
+}
+.business-toolbar {
+  gap: 12px;
+}
+.business-shell .company-switch {
+  background: transparent;
+  border: 0;
+  font-size: 14px;
+  gap: 12px;
+}
+.business-shell .company-avatar {
+  width: 41px;
+  height: 41px;
+  background: #f1f0f0;
+  color: #5c5254;
+  font-size: 13px;
+}
+.business-toolbar .demo-label {
+  order: -1;
+  background: #f9edf0;
+  border: 0;
+  color: #a93049;
+  padding: 8px 13px;
+}
+.account-tabs {
+  display: flex;
+  gap: 8px;
+  margin: 0 0 36px;
+}
+.account-tabs button {
+  height: 42px;
+  padding: 10px 21px;
+  border-radius: 100px;
+  background: transparent;
+  color: #858286;
+  font-size: 15px;
+  font-weight: 400;
+}
+.account-tabs button[aria-current='page'] {
+  color: #343034;
+  background: #f3f3f3;
+  font-weight: 500;
+}
+.account-tabs button:hover {
+  background: #f7f6f6;
+}
+.modern-balance-label {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: #777377;
+  font-size: 16px;
+}
+.modern-balance-label > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #5c555b;
+  background: #f4f3f3;
+  padding: 5px 9px;
+  border-radius: 100px;
+}
+.modern-balance-amount {
+  font-size: clamp(43px, 4.25vw, 61px);
+  font-weight: 550;
+  letter-spacing: -0.055em;
+  line-height: 1.2;
+  margin-top: 9px;
+  font-variant-numeric: tabular-nums;
+}
+.modern-balance-amount > span {
+  color: #aaa5a8;
+  font-weight: 400;
+}
+.modern-balance-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin: 25px 0 34px;
+}
+.modern-balance-actions button {
+  display: inline-flex;
+  gap: 9px;
+  align-items: center;
+  height: 45px;
+  border-radius: 100px;
+  background: #df0028;
+  color: #fff;
+  font-size: 14px;
+  padding: 0 21px;
+  font-weight: 450;
+}
+.modern-balance-actions button:hover {
+  background: #c40024;
+}
+.modern-balance-actions button + button {
+  background: #fcecef;
+  color: #ad1431;
+}
+.modern-balance-actions button + button:hover {
+  background: #f8dce3;
+}
+.modern-account-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+}
+.everyday-account,
+.intelligence-card {
+  min-width: 0;
+  border-radius: 25px;
+  overflow: hidden;
+}
+.everyday-account {
+  background: #f5f5f5;
+}
+.wallet-art {
+  position: relative;
+  height: 116px;
+  overflow: hidden;
+  margin: 12px 12px 0;
+  border-radius: 19px 19px 0 0;
+  isolation: isolate;
+}
+.wallet-back {
+  position: absolute;
+  inset: 0 5px auto;
+  height: 115px;
+  border-radius: 18px;
+  background: #e9c0c6;
+  transform: rotate(2deg);
+  color: #965260;
+  padding: 17px 23px;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+}
+.wallet-bank-card {
+  position: absolute;
+  width: 100%;
+  top: 15px;
+  left: 0;
+  border-radius: 17px;
+  transform: rotate(-2deg);
+}
+.wallet-front {
+  position: absolute;
+  inset: 64px 0 0;
+  background: #f5f5f5;
+  border-radius: 17px 17px 0 0;
+  padding: 20px 20px 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  color: #595158;
+}
+.wallet-front > span:first-child {
+  display: flex;
+  gap: 7px;
+  align-items: center;
+  font-size: 12px;
+}
+.wallet-front > span:last-child {
+  font-size: 9px;
+  letter-spacing: 0.09em;
+  color: #c20027;
+  font-weight: 600;
+  padding-top: 3px;
+}
+.everyday-content {
+  padding: 5px 30px 26px;
+}
+.everyday-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+}
+.everyday-heading h2 {
+  font-size: clamp(21px, 1.8vw, 26px);
+  font-weight: 550;
+  letter-spacing: -0.035em;
+  margin: 0;
+}
+.everyday-heading button {
+  display: grid;
+  place-items: center;
+  height: 32px;
+  width: 28px;
+  color: #999499;
+  background: transparent;
+  padding: 0;
+}
+.everyday-content > p {
+  font-size: 13px;
+  color: #8c858b;
+  margin: 6px 0 25px;
+}
+.account-currency-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.peso-symbol {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  height: 36px;
+  width: 36px;
+  border-radius: 50%;
+  color: #498369;
+  background: #e7eee8;
+  font-size: 21px;
+  font-weight: 450;
+}
+.account-currency-row > div {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 4px;
+}
+.account-currency-row strong {
+  font-size: 14px;
+  font-weight: 450;
+  letter-spacing: -0.02em;
+}
+.account-currency-row > div > span {
+  font-size: 11px;
+  color: #969096;
+}
+.account-currency-row > strong {
+  font-size: 16px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.account-details {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  background: #eae8e9;
+  border-radius: 100px;
+  padding: 8px 13px;
+  height: 35px;
+  margin-top: 26px;
+  color: #60565d;
+  font-size: 12px;
+}
+.account-details:hover {
+  background: #e1dcde;
+}
+.intelligence-card {
+  padding: 27px 29px 0;
+  background: #faf0f1;
+  display: flex;
+  flex-direction: column;
+}
+.intelligence-topline {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+.intelligence-topline > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: #aa2341;
+  font-weight: 500;
+}
+.concept-pill {
+  font-size: 9px;
+  padding: 5px 8px;
+  background: #fff9fa;
+  color: #a96d7b;
+  border-radius: 100px;
+}
+.intelligence-card h2 {
+  font-size: clamp(24px, 2.05vw, 29px);
+  line-height: 1.12;
+  font-weight: 550;
+  letter-spacing: -0.045em;
+  margin: 25px 0 11px;
+  color: #462c35;
+}
+.intelligence-card > p {
+  max-width: 275px;
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #9c7884;
+}
+.intelligence-bottom {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-top: auto;
+  padding-top: 17px;
+}
+.open-assistant {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 28px;
+  height: auto;
+  white-space: normal;
+  color: #a70029;
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+}
+.open-assistant:hover {
+  color: #660021;
+  background: transparent;
+}
+.insight-mini {
+  width: 150px;
+  height: 116px;
+  padding: 14px 17px;
+  border-radius: 12px 12px 0 0;
+  background: #fff;
+  flex-shrink: 0;
+  transform: rotate(-5deg) translateY(9px);
+  box-shadow: 0 4px 24px #76324c08;
+}
+.insight-mini > span {
+  display: block;
+  font-size: 9px;
+  color: #a4949b;
+}
+.insight-mini > strong {
+  display: block;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  color: #512536;
+  margin-top: 5px;
+}
+.insight-mini > div {
+  display: flex;
+  gap: 6px;
+  align-items: flex-end;
+  height: 38px;
+  margin-top: 5px;
+}
+.insight-mini i {
+  flex: 1;
+  height: 35%;
+  border-radius: 3px 3px 0 0;
+  background: #e990a4;
+}
+.insight-mini i:nth-child(2) {
+  height: 48%;
+}
+.insight-mini i:nth-child(3) {
+  height: 40%;
+}
+.insight-mini i:nth-child(4) {
+  height: 65%;
+}
+.insight-mini i:nth-child(5) {
+  height: 54%;
+}
+.insight-mini i:nth-child(6) {
+  height: 78%;
+}
+.insight-mini i:last-child {
+  height: 100%;
+  background: #cb1640;
+}
+.ai-discovery {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  width: 100%;
+  height: auto;
+  padding: 21px 25px;
+  margin-top: 24px;
+  background: #f5f5f5;
+  color: #3e383d;
+  text-align: left;
+  white-space: normal;
+  border-radius: 19px;
+}
+.ai-discovery:hover {
+  background: #f1eeee;
+}
+.discovery-icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  background: #ece9ea;
+  color: #8a737d;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+.discovery-icon svg {
+  width: 24px;
+  height: 24px;
+}
+.ai-discovery > span:nth-child(2) {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 6px;
+}
+.ai-discovery strong {
+  font-size: 15px;
+  font-weight: 450;
+}
+.ai-discovery > span:nth-child(2) > span {
+  font-size: 12px;
+  color: #989095;
+}
+.discovery-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #a92143;
+  font-size: 13px;
+}
+.modern-transactions {
+  margin-top: 46px;
+}
+.modern-transactions .finance-section-title h3 {
+  font-size: 24px;
+  font-weight: 550;
+  letter-spacing: -0.035em;
+}
+.modern-transactions .finance-section-title button {
+  font-size: 13px;
+  color: #a91d3b;
+  gap: 8px;
+}
+.transaction-day {
+  display: block;
+  margin: 25px 0 2px;
+  color: #9d979c;
+  font-size: 12px;
+}
+.modern-transactions .transaction-row {
+  padding: 17px 0;
+  gap: 17px;
+}
+.modern-transactions .merchant-avatar {
+  width: 43px;
+  height: 43px;
+  border-radius: 50%;
+  font-size: 13px;
+}
+.modern-transactions .merchant-copy strong,
+.modern-transactions .transaction-value strong {
+  font-size: 15px;
+  font-weight: 450;
+}
+.modern-transactions .merchant-copy > span,
+.modern-transactions .transaction-value > span {
+  font-size: 12px;
+}
+.modern-transactions .merchant-copy,
+.modern-transactions .transaction-value {
+  gap: 6px;
+}
+.workspace-footer {
+  font-size: 10px;
+  margin-top: 20px;
+}
+/* Portal owns its light palette independently of the page's dark login theme. */
+.finance-assistant-sheet[data-slot='sheet-content'] {
+  width: min(480px, 100%);
+  max-width: 480px;
+  background: #fcfcfd;
+  color: #343037;
+  border: 0;
+  gap: 0;
+  font-family: 'Outfit Variable', Arial, sans-serif;
+  color-scheme: light;
+  overflow-y: auto;
+  --ui-muted: #817982;
+  --foreground: #343037;
+  --muted-foreground: #817982;
+}
+.finance-assistant-sheet .assistant-panel {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
+}
+.finance-assistant-sheet .assistant-header {
+  padding: 26px 55px 23px 25px;
+}
+.finance-assistant-sheet .assistant-header h3 {
+  font-size: 17px;
+}
+.finance-assistant-sheet .assistant-header > div > span {
+  font-size: 11px;
+}
+.finance-assistant-sheet .assistant-context {
+  padding: 13px 25px;
+}
+.finance-assistant-sheet .assistant-context > span {
+  font-size: 11px;
+}
+.finance-assistant-sheet .conversation {
+  padding: 0 25px;
+}
+.finance-assistant-sheet .conversation-date {
+  font-size: 11px;
+  margin: 24px 0;
+}
+.finance-assistant-sheet .user-message {
+  font-size: 14px;
+}
+.finance-assistant-sheet .assistant-response {
+  margin-top: 27px;
+}
+.finance-assistant-sheet .response-label {
+  font-size: 10px;
+}
+.finance-assistant-sheet .assistant-response > p {
+  font-size: 14px;
+}
+.finance-assistant-sheet .tool-activity > button {
+  font-size: 12px;
+  height: 37px;
+}
+.finance-assistant-sheet .tool-activity li {
+  font-size: 12px;
+}
+.finance-assistant-sheet .tool-activity code {
+  font-size: 10px;
+}
+.finance-assistant-sheet .generated-insight {
+  padding: 21px 21px 0;
+  max-width: none;
+  border-radius: 15px;
+}
+.finance-assistant-sheet .insight-label {
+  font-size: 10px;
+}
+.finance-assistant-sheet .generated-insight h4 {
+  font-size: 17px;
+  margin-top: 19px;
+}
+.finance-assistant-sheet .generated-insight > p {
+  font-size: 11px;
+}
+.finance-assistant-sheet .insight-total {
+  font-size: 37px;
+}
+.finance-assistant-sheet .spending-row > div {
+  font-size: 12px;
+}
+.finance-assistant-sheet .spending-bars {
+  gap: 15px;
+}
+.finance-assistant-sheet .spending-track {
+  height: 6px;
+}
+.finance-assistant-sheet .insight-footer {
+  margin-inline: -21px;
+  padding: 12px 21px;
+  font-size: 10px;
+}
+.finance-assistant-sheet .assistant-takeaway {
+  font-size: 13px;
+}
+.finance-assistant-sheet .assistant-compose {
+  padding: 8px 19px 22px;
+}
+.finance-assistant-sheet .prompt-suggestions button {
+  font-size: 11px;
+  height: 34px;
+}
+.finance-assistant-sheet .assistant-compose input {
+  font-size: 13px;
+  height: 39px;
+}
+.finance-assistant-sheet .assistant-compose form > button {
+  width: 36px;
+  height: 36px;
+}
+.finance-assistant-sheet .assistant-compose > p {
+  font-size: 10px;
+}
+.finance-assistant-sheet button {
+  cursor: pointer;
+}
+@media (max-width: 1199px) {
+  .business-main {
+    padding-inline: 30px;
+  }
+  .modern-account-grid {
+    gap: 18px;
+  }
+  .everyday-content {
+    padding-inline: 22px;
+  }
+  .intelligence-card {
+    padding-inline: 22px;
+  }
+  .account-currency-row > div > strong {
+    font-size: 12px;
+  }
+  .account-currency-row > strong {
+    font-size: 14px;
+  }
+  .insight-mini {
+    width: 124px;
+    padding-inline: 12px;
+  }
+  .open-assistant {
+    font-size: 12px;
+  }
+  .concept-pill {
+    font-size: 8px;
+  }
+}
+@media (max-width: 1023px) {
+  .business-main {
+    padding-inline: 28px;
+  }
+  .business-topbar {
+    min-height: 106px;
+  }
+  .business-topbar h1 {
+    font-size: 31px;
+  }
+  .modern-account-grid {
+    grid-template-columns: 1fr;
+  }
+  .intelligence-card {
+    min-height: 305px;
+  }
+  .everyday-content {
+    padding: 5px 28px 26px;
+  }
+  .intelligence-card {
+    padding: 26px 28px 0;
+  }
+  .intelligence-card h2 {
+    font-size: 30px;
+  }
+  .insight-mini {
+    width: 185px;
+  }
+  .open-assistant {
+    font-size: 14px;
+    padding-bottom: 30px;
+  }
+  .wallet-art {
+    height: 125px;
+  }
+  .wallet-front {
+    top: 73px;
+  }
+  .everyday-heading h2 {
+    font-size: 25px;
+  }
+  .account-currency-row strong,
+  .account-currency-row > div > strong {
+    font-size: 15px;
+  }
+  .account-currency-row > strong {
+    font-size: 18px;
+  }
+  .discovery-link {
+    font-size: 0;
+    gap: 0;
+  }
+  .ai-discovery strong {
+    font-size: 14px;
+  }
+}
+@media (max-width: 767px) {
+  .business-main {
+    padding-inline: 22px;
+  }
+  .business-topbar {
+    min-height: 92px;
+  }
+  .business-topbar h1 {
+    font-size: 29px;
+  }
+  .business-heading {
+    gap: 10px;
+  }
+  .business-toolbar {
+    gap: 3px;
+  }
+  .business-toolbar .company-avatar {
+    width: 35px;
+    height: 35px;
+  }
+  .account-tabs {
+    margin-bottom: 29px;
+  }
+  .account-tabs button {
+    padding-inline: 18px;
+    font-size: 14px;
+  }
+  .modern-balance-amount {
+    font-size: 48px;
+  }
+  .modern-balance-label {
+    font-size: 14px;
+  }
+  .modern-balance-actions {
+    gap: 7px;
+    margin-top: 23px;
+  }
+  .modern-balance-actions button {
+    font-size: 12px;
+    height: 43px;
+    padding-inline: 14px;
+    gap: 6px;
+  }
+  .modern-balance-actions button svg {
+    width: 16px;
+    height: 16px;
+  }
+  .modern-account-grid {
+    gap: 18px;
+  }
+  .everyday-account,
+  .intelligence-card {
+    border-radius: 22px;
+  }
+  .everyday-content {
+    padding-inline: 23px;
+  }
+  .everyday-heading h2 {
+    font-size: 23px;
+  }
+  .account-currency-row > div > strong {
+    font-size: 13px;
+  }
+  .account-currency-row > strong {
+    font-size: 15px;
+  }
+  .intelligence-card {
+    padding-inline: 24px;
+  }
+  .intelligence-card h2 {
+    font-size: 28px;
+  }
+  .insight-mini {
+    width: 145px;
+  }
+  .ai-discovery {
+    padding: 19px 18px;
+    gap: 13px;
+    margin-top: 18px;
+  }
+  .discovery-icon {
+    width: 38px;
+    height: 38px;
+  }
+  .ai-discovery > span:nth-child(2) > span {
+    font-size: 11px;
+    line-height: 1.5;
+  }
+  .discovery-link {
+    display: none;
+  }
+  .modern-transactions {
+    margin-top: 34px;
+  }
+  .modern-transactions .finance-section-title h3 {
+    font-size: 22px;
+  }
+  .modern-transactions .transaction-row {
+    gap: 12px;
+  }
+  .modern-transactions .merchant-copy strong,
+  .modern-transactions .transaction-value strong {
+    font-size: 13px;
+  }
+  .modern-transactions .merchant-copy > span,
+  .modern-transactions .transaction-value > span {
+    font-size: 10px;
+  }
+  .modern-transactions .merchant-avatar {
+    width: 37px;
+    height: 37px;
+  }
+  .workspace-footer {
+    font-size: 9px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .finance-assistant-sheet[data-slot='sheet-content'] {
+    transition: none;
+  }
+}
+
+/* Keep the assistant present beside the account, with its composer always in reach. */
+.business-topbar,
+.business-view {
+  max-width: 1260px;
+}
+.panel-with-chat {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 420px;
+  gap: 38px;
+  align-items: start;
+}
+.panel-account-column {
+  min-width: 0;
+}
+.panel-account-column .modern-account-grid {
+  grid-template-columns: minmax(0, 1fr);
+}
+.panel-account-column .modern-balance-amount {
+  font-size: clamp(40px, 3.6vw, 57px);
+}
+.panel-account-column .modern-balance-actions {
+  gap: 8px;
+}
+.panel-account-column .modern-balance-actions button {
+  padding-inline: 17px;
+  font-size: 13px;
+}
+.panel-account-column .modern-transactions {
+  margin-top: 33px;
+}
+.finance-embedded-chat {
+  position: sticky;
+  top: 24px;
+  min-width: 0;
+  height: min(850px, calc(100dvh - 200px));
+  min-height: 610px;
+  border: 1px solid #e9e5e8;
+  border-radius: 24px;
+  background: #fcfcfd;
+  overflow: hidden;
+  color: #343037;
+  color-scheme: light;
+  --foreground: #343037;
+  --muted-foreground: #817982;
+  --ui-muted: #817982;
+}
+.finance-embedded-chat .assistant-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: transparent;
+}
+.finance-embedded-chat .assistant-header {
+  padding: 23px;
+  flex-shrink: 0;
+}
+.finance-embedded-chat .assistant-context {
+  flex-shrink: 0;
+  padding-inline: 23px;
+}
+.finance-embedded-chat .conversation {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding-inline: 23px;
+  scrollbar-width: thin;
+  scrollbar-color: #dcd6db transparent;
+}
+.finance-embedded-chat .assistant-compose {
+  flex-shrink: 0;
+  padding: 15px 17px 17px;
+  border-top: 1px solid #efebee;
+  background: #fcfcfd;
+}
+.finance-embedded-chat .assistant-compose form {
+  border-radius: 15px;
+}
+.finance-embedded-chat .assistant-compose input {
+  font-size: 12px;
+}
+.finance-embedded-chat .assistant-response .assistant-takeaway {
+  margin-bottom: 23px;
+}
+.finance-embedded-chat .assistant-header > div > span {
+  font-size: 11px;
+}
+.finance-embedded-chat .generated-insight {
+  border-radius: 15px;
+}
+.finance-embedded-chat .assistant-compose button {
+  touch-action: manipulation;
+}
+@media (max-width: 1399px) and (min-width: 1101px) {
+  .business-main {
+    padding-inline: 30px;
+  }
+  .panel-with-chat {
+    grid-template-columns: minmax(0, 1fr) 370px;
+    gap: 27px;
+  }
+  .panel-account-column .modern-balance-actions button {
+    font-size: 12px;
+    padding-inline: 13px;
+  }
+  .panel-account-column .modern-balance-actions button svg {
+    width: 16px;
+  }
+  .panel-account-column .account-currency-row > strong {
+    font-size: 15px;
+  }
+  .panel-account-column .everyday-content {
+    padding-inline: 22px;
+  }
+  .panel-account-column .everyday-heading h2 {
+    font-size: 22px;
+  }
+  .finance-embedded-chat .conversation {
+    padding-inline: 19px;
+  }
+  .finance-embedded-chat .assistant-compose input {
+    font-size: 11px;
+  }
+}
+@media (max-width: 1100px) {
+  .panel-with-chat {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 30px;
+  }
+  .finance-embedded-chat {
+    position: static;
+    width: 100%;
+    height: 780px;
+    min-height: 0;
+  }
+  .panel-account-column .modern-balance-amount {
+    font-size: 52px;
+  }
+  .finance-embedded-chat .assistant-compose input {
+    font-size: 14px;
+  }
+}
+@media (max-width: 767px) {
+  .finance-embedded-chat {
+    border-radius: 21px;
+    height: 740px;
+  }
+  .finance-embedded-chat .assistant-header {
+    padding: 20px;
+  }
+  .finance-embedded-chat .conversation {
+    padding-inline: 18px;
+  }
+  .finance-embedded-chat .assistant-context {
+    padding-inline: 20px;
+  }
+  .finance-embedded-chat .assistant-compose {
+    padding-inline: 13px;
+  }
+  .finance-embedded-chat .assistant-compose input {
+    font-size: 12px;
+  }
+  .panel-account-column .modern-balance-amount {
+    font-size: 46px;
+  }
+  .panel-account-column .modern-balance-actions button {
+    font-size: 12px;
+    padding-inline: 13px;
+  }
+  .panel-account-column .modern-transactions .merchant-copy strong,
+  .panel-account-column .modern-transactions .transaction-value strong {
+    font-size: 12px;
+  }
+}
+
+/* Chat has a dedicated destination in the persistent sidebar. */
+.account-home .panel-with-chat {
+  display: block;
+}
+.account-home .modern-account-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.account-home {
+  max-width: 990px;
+  margin-inline: auto;
+}
+.chat-page {
+  max-width: 850px;
+  margin-inline: auto;
+}
+.chat-page .finance-embedded-chat {
+  position: static;
+  width: 100%;
+  height: calc(100dvh - 180px);
+  min-height: 620px;
+}
+.chat-page .conversation {
+  padding-inline: 34px;
+}
+.chat-page .user-message {
+  max-width: 78%;
+  margin-left: auto;
+}
+.chat-page .generated-insight {
+  max-width: 470px;
+}
+.chat-page .assistant-compose {
+  padding-inline: 26px;
+}
+.chat-page .assistant-compose input {
+  font-size: 14px;
+}
+.chat-page .assistant-response > p {
+  max-width: 600px;
+}
+@media (max-width: 1023px) {
+  .account-home .modern-account-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 767px) {
+  .chat-page .finance-embedded-chat {
+    min-height: 580px;
+    height: calc(100dvh - 155px);
+  }
+  .chat-page .conversation {
+    padding-inline: 18px;
+  }
+  .chat-page .assistant-compose {
+    padding-inline: 14px;
+  }
+  .chat-page .assistant-compose input {
+    font-size: 12px;
+  }
+}

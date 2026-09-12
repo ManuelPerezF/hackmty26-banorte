@@ -1,0 +1,342 @@
+.refined-access {
+  --access-paper: oklch(0.977 0.005 65);
+  --access-ink: oklch(0.22 0.009 20);
+  --access-muted: oklch(0.48 0.01 20);
+  --access-red: oklch(0.56 0.22 22);
+  --access-line: oklch(0.22 0.009 20 / 0.13);
+  color-scheme: light;
+  background: var(--access-paper);
+  color: var(--access-ink);
+}
+.refined-access .access-header {
+  max-width: 1600px;
+  padding: 24px 48px;
+  min-height: 92px;
+}
+.access-header-links {
+  display: flex;
+  align-items: center;
+  gap: 27px;
+}
+.access-header-links > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--access-muted);
+}
+.access-header-links > a:hover {
+  color: var(--access-red);
+}
+.refined-access .demo-label {
+  color: var(--access-muted);
+  background: transparent;
+  border-color: var(--access-line);
+  font-size: 11px;
+}
+.access-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
+  width: min(1552px, calc(100% - 48px));
+  flex: 1;
+  margin: 0 auto;
+}
+.access-story {
+  background: var(--access-red);
+  color: var(--access-paper);
+  border-radius: 22px;
+  min-height: 730px;
+  padding: 51px 48px 30px;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.access-story-copy > span {
+  font-size: 13px;
+}
+.access-story-copy h2 {
+  font-size: 54px;
+  line-height: 1.04;
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  margin: 29px 0 20px;
+}
+.access-story-copy p {
+  font-size: 17px;
+  line-height: 1.55;
+  margin: 0;
+  opacity: 0.85;
+}
+.access-card-pair {
+  position: relative;
+  width: 100%;
+  height: 310px;
+  max-width: 470px;
+  margin: 30px auto;
+}
+.access-infinite,
+.access-oro {
+  position: absolute;
+  width: 74%;
+  filter: drop-shadow(0 18px 17px oklch(0.22 0.06 20 / 0.26));
+}
+.access-infinite {
+  top: 0;
+  left: 0;
+  transform: rotate(-11deg);
+  z-index: 2;
+}
+.access-oro {
+  bottom: 0;
+  right: 0;
+  transform: rotate(10deg);
+}
+.access-supplied-card {
+  position: relative;
+  display: block;
+  aspect-ratio: 416 / 260;
+  overflow: hidden;
+  border-radius: 13px;
+  background: oklch(0.2 0.008 20);
+}
+.access-supplied-card img {
+  position: absolute;
+  max-width: none;
+  width: 120.1923%;
+  height: auto;
+  left: -10.0962%;
+  top: -49.6154%;
+}
+.access-story-foot {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  margin-top: auto;
+  padding-top: 24px;
+  border-top: 1px solid oklch(0.977 0.005 65 / 0.25);
+  font-size: 11px;
+}
+.access-form-area {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 35px 34px;
+}
+.refined-access .access-content {
+  width: min(390px, 100%);
+  padding: 0;
+  margin: 0;
+}
+.refined-access .access-back {
+  position: static;
+  width: fit-content;
+  height: auto;
+  min-height: 32px;
+  padding: 0;
+  gap: 9px;
+  border: 0;
+  border-radius: 0;
+  font-size: 12px;
+  color: var(--access-muted);
+  margin-bottom: 33px;
+}
+.refined-access .access-back:hover {
+  background: transparent;
+  color: var(--access-red);
+}
+.access-welcome {
+  display: block;
+  color: var(--access-red);
+  font-size: 12px;
+  margin-bottom: 12px;
+}
+.refined-access .access-content h1 {
+  font-size: 38px;
+  line-height: 1.08;
+  text-align: left;
+  margin: 0 0 17px;
+  color: var(--access-ink);
+}
+.refined-access .access-description {
+  text-align: left;
+  font-size: 15px;
+  line-height: 1.5;
+  margin-bottom: 26px;
+  color: var(--access-muted);
+}
+.access-demo-ready {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 15px;
+  background: oklch(0.945 0.009 65);
+  border-radius: 12px;
+  margin-bottom: 25px;
+}
+.access-demo-ready > span {
+  border-radius: 50%;
+  background: oklch(0.89 0.015 65);
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  flex-shrink: 0;
+}
+.access-demo-ready p {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+}
+.access-demo-ready small {
+  display: block;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--access-muted);
+  margin-top: 3px;
+  line-height: 1.4;
+}
+.refined-access .login-form {
+  gap: 18px;
+}
+.refined-access .login-field label {
+  color: var(--access-ink);
+  font-size: 12px;
+}
+.refined-access .login-input {
+  height: 52px;
+  border: 1px solid oklch(0.83 0.009 65);
+  background: oklch(0.992 0.002 65);
+  color: var(--access-ink);
+  border-radius: 10px;
+  font-size: 14px;
+  box-shadow: none;
+}
+.refined-access .login-input:focus-visible {
+  outline-color: var(--access-red);
+  box-shadow: none;
+}
+.refined-access .password-toggle {
+  color: var(--access-muted);
+  top: 4px;
+}
+.refined-access .password-toggle:hover {
+  color: var(--access-ink);
+  background: oklch(0.94 0.005 65);
+}
+.refined-access .login-help-button {
+  color: var(--access-muted);
+  font-size: 12px;
+}
+.refined-access .login-help-button:hover {
+  color: var(--access-red);
+}
+.refined-access .login-help {
+  color: var(--access-muted);
+  background: oklch(0.94 0.009 65);
+  font-size: 13px;
+}
+.refined-access .login-primary {
+  background: var(--access-red);
+  color: var(--access-paper);
+  box-shadow: none;
+  height: 52px;
+  font-size: 14px;
+  justify-content: space-between;
+  padding-inline: 23px;
+}
+.refined-access .login-primary:hover {
+  background: oklch(0.49 0.19 22);
+}
+.refined-access .demo-notice {
+  color: var(--access-muted);
+  font-size: 11px;
+  line-height: 1.5;
+  gap: 9px;
+}
+.refined-access .login-official {
+  border-color: var(--access-line);
+  margin-top: 23px;
+  padding-top: 15px;
+}
+.refined-access .login-official a {
+  color: var(--access-muted);
+  font-size: 11px;
+}
+.refined-access .login-official a:hover {
+  color: var(--access-red);
+}
+.refined-access .access-footer {
+  color: var(--access-muted);
+  font-size: 10px;
+  max-width: 1600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 20px 48px;
+}
+@media (min-width: 1500px) {
+  .access-story {
+    padding: 65px 65px 35px;
+  }
+  .access-card-pair {
+    height: 340px;
+  }
+  .access-story-copy h2 {
+    font-size: 64px;
+  }
+}
+@media (max-width: 1100px) {
+  .access-layout {
+    gap: 10px;
+  }
+  .access-story {
+    padding: 40px 30px 25px;
+  }
+  .access-story-copy h2 {
+    font-size: 42px;
+  }
+  .access-card-pair {
+    height: 270px;
+    margin-top: 50px;
+  }
+  .access-form-area {
+    padding-inline: 25px;
+  }
+}
+@media (max-width: 800px) {
+  .refined-access .access-header {
+    min-height: 82px;
+    padding: 18px 25px;
+  }
+  .refined-access .access-header .brand img {
+    width: 139px;
+  }
+  .access-header-links > a {
+    display: none;
+  }
+  .access-layout {
+    display: block;
+    width: 100%;
+  }
+  .access-story {
+    display: none;
+  }
+  .access-form-area {
+    padding: 22px 26px 40px;
+  }
+  .refined-access .access-content {
+    width: min(400px, 100%);
+  }
+  .refined-access .access-back {
+    margin-bottom: 29px;
+  }
+  .refined-access .access-content h1 {
+    font-size: 36px;
+  }
+  .refined-access .access-footer {
+    padding: 18px 25px;
+    gap: 14px;
+    font-size: 9px;
+  }
+}
