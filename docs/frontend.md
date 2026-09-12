@@ -38,3 +38,7 @@ La prueba en navegador recorrió Nest → MCP real por stdio → respuesta de mo
 Referencias: [chatbot y Mobbin](chatbot-referencias.md). Comandos y estructura: [README del cliente](../client/README.md).
 
 La bienvenida del asistente sigue la referencia SchoolAI adjunta: compositor centrado, cinco sugerencias y conversaciones a la derecha. En móvil, el historial tiene controles de apertura y cierre. Los resultados financieros usan información del backend y estados vacíos explícitos.
+
+## Fuentes documentales de Maya
+
+El bloque A2UI `BanorteSources` muestra fuentes numeradas, página y vigencia, con extractos desplegables y acceso al PDF original. Tiene estado vacío y se conserva en los snapshots de conversaciones. No hay datos de producto inventados en el cliente. Ver [RAG](rag.md).

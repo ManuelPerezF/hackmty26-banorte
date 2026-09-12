@@ -173,3 +173,32 @@ model PendingAction {
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   @@index([sessionId, status])
 }
+
+model KnowledgeDocument {
+  id String @id @default(uuid()) @db.Uuid
+  slug String @unique
+  title String
+  product String
+  filename String
+  contentHash String
+  indexHash String
+  embeddingModel String
+  pageCount Int
+  validFrom DateTime? @db.Date
+  validTo DateTime? @db.Date
+  active Boolean @default(true)
+  indexedAt DateTime @default(now()) @db.Timestamptz(3)
+  chunks KnowledgeChunk[]
+}
+model KnowledgeChunk {
+  id String @id @default(uuid()) @db.Uuid
+  documentId String @db.Uuid
+  document KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  page Int
+  ordinal Int
+  text String
+  validFrom DateTime? @db.Date
+  validTo DateTime? @db.Date
+  embedding Unsupported("vector(768)")
+  @@unique([documentId, page, ordinal])
+}

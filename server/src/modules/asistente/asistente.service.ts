@@ -1,3 +1,4 @@
+import { knowledgeResultSchema, KnowledgeSource } from "../conocimiento/knowledge.schemas";
 import {
   BadRequestException,
   ConflictException,
@@ -355,6 +356,8 @@ export class AsistenteService implements OnModuleInit {
       await this.mcp.withClient(i, names, actionId, async (client) => {
         await client.listTools();
         const cached = new Map<ToolName, unknown>();
+        const sources = new Map<string, KnowledgeSource & { citation: string }>();
+        let searchedKnowledge = false;
         const execute = async (name: ToolName, args: Record<string, unknown>) => {
           if (
             input.kind === "action" &&
@@ -364,6 +367,7 @@ export class AsistenteService implements OnModuleInit {
             args = { ...args, ...input.values };
           signal.throwIfAborted();
           await this.auth.bySessionId(i.sessionId);
+          if (name === "search_financial_knowledge") searchedKnowledge = true;
           const started = Date.now();
           const result = await client.callTool({ name, arguments: args }, undefined, {
             timeout: Math.min(10000, this.env.LLM_TIMEOUT_MS),
@@ -374,7 +378,18 @@ export class AsistenteService implements OnModuleInit {
           const item = (result.content as { type: string; text?: string }[]).find(
             (x) => x.type === "text",
           );
-          const value = result.structuredContent ?? JSON.parse(item?.text ?? "null");
+          let value = result.structuredContent ?? JSON.parse(item?.text ?? "null");
+          if (name === "search_financial_knowledge") {
+            const result = knowledgeResultSchema.parse(value);
+            value = {
+              ...result,
+              sources: result.sources.map((source) => {
+                if (!sources.has(source.id))
+                  sources.set(source.id, { ...source, citation: `S${sources.size + 1}` });
+                return sources.get(source.id)!;
+              }),
+            };
+          }
           cached.set(name, value);
           return value;
         };
@@ -501,7 +516,35 @@ export class AsistenteService implements OnModuleInit {
             add("form", "BanorteMovementForm", "submit_movement_form");
           }
         }
-        await this.finish(id, plan.title, plan.explanation, components, data);
+        if (searchedKnowledge) {
+          data.sources = {
+            items: [...sources.values()],
+            empty: "No encontré información suficiente en los documentos disponibles.",
+          };
+          add("sources", "BanorteSources");
+        }
+        // Only expose citation markers produced by this turn's tool results.
+        let explanation =
+          searchedKnowledge && !sources.size
+            ? "No pude verificar esa información en los documentos disponibles. Precisa la tarjeta o consulta sus condiciones vigentes; no tengo evidencia suficiente para confirmar beneficios o costos."
+            : plan.explanation.replace(/\[S(\d+)\]/g, (match, n) =>
+                [...sources.values()].some((s) => s.citation === `S${n}`) ? match : "",
+              );
+        if (
+          [...sources.values()].some(
+            (s) => s.validity === "unknown" && explanation.includes(`[${s.citation}]`),
+          )
+        )
+          explanation +=
+            "\n\nLa guía citada no indica una vigencia general. Confirma que esas condiciones sigan aplicando.";
+        if (
+          [...sources.values()].some(
+            (s) => s.validity === "historical" && explanation.includes(`[${s.citation}]`),
+          )
+        )
+          explanation +=
+            "\n\nLas condiciones marcadas como históricas ya vencieron; sus fechas aparecen en las fuentes.";
+        await this.finish(id, plan.title, explanation, components, data);
       });
     } catch (e) {
       const providerStatus = e && typeof e === "object" && "status" in e ? e.status : undefined;

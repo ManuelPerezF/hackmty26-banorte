@@ -40,6 +40,7 @@ export const envSchema = z
         }
       }),
     GEMINI_API_KEY: z.string().optional(),
+    RAG_EMBEDDING_MODEL: z.literal("gemini-embedding-001").default("gemini-embedding-001"),
     LLM_MODEL: z.string().default("gemini-3.1-flash-lite"),
     LLM_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120000).default(30000),
     MCP_ENTRY: z.string().default("../mcp/dist/server.js"),

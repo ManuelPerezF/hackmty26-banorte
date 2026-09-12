@@ -14,7 +14,7 @@ Cada snapshot incluye, en orden:
 
 Todos llevan `version: "v0.9.1"`. El surfaceId es el UUID del turno y la revisión final es 1. Cada turno crea una superficie nueva; al restaurar un snapshot, el cliente debe reconstruir o sustituir esa superficie, no emitir createSurface dos veces sobre una existente.
 
-`GET /assistant/catalog` devuelve JSON Schema del catálogo y requiere sesión. Incluye Column, Text, BanorteBalance, BanorteMovementTable, BanorteSpendingChart, BanorteMovementForm, BanorteConfirmation, BanorteActionResult , BanortePeriodSelector, BanorteCardList, BanorteGoalList y BanorteSavingsSimulator. Los componentes Banorte tienen `data: {path: "/..."}` y, cuando corresponde, `action` como nombre del evento del catálogo. El renderer propio debe implementar ese contrato; no son componentes incluidos automáticamente en el catálogo básico de A2UI.
+`GET /assistant/catalog` devuelve JSON Schema del catálogo y requiere sesión. Incluye Column, Text, BanorteBalance, BanorteMovementTable, BanorteSpendingChart, BanorteMovementForm, BanorteConfirmation, BanorteActionResult , BanortePeriodSelector, BanorteCardList, BanorteGoalList BanorteSavingsSimulator y BanorteSources. Los componentes Banorte tienen `data: {path: "/..."}` y, cuando corresponde, `action` como nombre del evento del catálogo. El renderer propio debe implementar ese contrato; no son componentes incluidos automáticamente en el catálogo básico de A2UI.
 
 ## Acciones de la aplicación
 
@@ -51,3 +51,7 @@ Referencia del protocolo: [esquema server-to-client v0.9.1](https://a2ui.org/spe
 - `savings` → `BanorteSavingsSimulator`: formulario vacío si faltan supuestos, o resultado de `simulate_savings` con capital, aportación, plazo, tasa y calendario. Los valores se expresan en centavos y la tasa en puntos base. Recalcular crea un nuevo turno determinista por MCP, conservando el escenario anterior deshabilitado. No necesita regenerar texto con Gemini.
 
 Se conserva el identificador del catálogo para restaurar conversaciones existentes. El backend valida entradas del turno y componentes; el cliente valida cada bloque antes de renderizar. Los tres bloques se implementan en `components/financial-blocks.tsx` dentro del dominio Asistente.
+
+## Fuentes RAG
+
+`BanorteSources` se añade automáticamente al consultar `search_financial_knowledge`. No depende de un bloque inventado por el modelo. `/sources.items` contiene fragmentos recuperados, documento, página PDF, producto, vigencia y marcador S1/S2. Los marcadores se asignan por turno y se deduplican entre llamadas. El renderer ofrece acordeones accesibles, texto original y un enlace autenticado al PDF; construye la URL con el UUID validado, nunca con un enlace generado por Gemini. Sin resultados o con error de recuperación, el servidor muestra un mensaje de evidencia insuficiente. Ver [RAG](rag.md).

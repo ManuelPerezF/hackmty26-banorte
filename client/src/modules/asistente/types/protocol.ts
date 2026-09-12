@@ -25,6 +25,7 @@ const component = z.discriminatedUnion('component', [
       'BanorteCardList',
       'BanorteGoalList',
       'BanorteSavingsSimulator',
+      'BanorteSources',
     ]),
     data: z.object({ path: z.string().regex(/^\//) }),
     action: z.string().optional(),

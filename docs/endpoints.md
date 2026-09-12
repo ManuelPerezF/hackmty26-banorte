@@ -153,3 +153,9 @@ SSE emite snapshot al conectar y al cambiar el estado, done al terminar y error 
 Zod devuelve code VALIDATION_ERROR, message e issues. Otros errores preservan el cuerpo estándar Nest o su code específico; no todos llevan el mismo código de dominio. Un error posterior al 202 se consulta en el turno; no cambia retroactivamente la respuesta inicial. Si falló el modelo después de guardar, la UI informa que el registro sí existe.
 
 El frontend debe invalidar saldo/historial/análisis tras registrar, recargar perfil/tarjetas tras cambiar preferencia y limpiar estado al cerrar sesión. No mezclar localStorage y PostgreSQL como una sola cuenta.
+
+## Documentos RAG
+
+`GET /api/v1/knowledge/documents/:id/file` requiere sesión. Devuelve PDF `inline`; UUID inválido → 400, documento inexistente → 404, sin sesión → 401. El frontend añade `#page=N` para abrir la página citada. La búsqueda se ofrece mediante la herramienta MCP `search_financial_knowledge` bajo capacidad de lectura; no hay endpoint público de carga ni se aceptan rutas de archivos del modelo.
+
+Un documento retirado de la búsqueda puede seguir abriéndose desde citas históricas mientras se conserve su archivo.

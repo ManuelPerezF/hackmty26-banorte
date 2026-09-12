@@ -83,3 +83,7 @@ curl http://127.0.0.1:3001/api/v1/health/ready
 ## Verificación de la ampliación
 
 Login/hash, aislamiento de usuarios, CSRF, expiración, reintentos concurrentes, metas, simulación y MCP por stdio se probaron con scripts temporales contra esta DB. También SSE/A2UI y confirmación con un modelo controlado; falta la llamada real a Gemini. Ver [backend](backend.md).
+
+## pgvector
+
+La imagen de la base es `pgvector/pgvector:0.8.6-pg17-bookworm`, compatible con el volumen PostgreSQL 17 existente. Nest continúa ejecutándose localmente. No usar `down -v`: la migración habilita la extensión conservando el historial. Se realizó un respaldo privado antes del cambio local.

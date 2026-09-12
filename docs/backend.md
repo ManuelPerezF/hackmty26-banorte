@@ -47,3 +47,7 @@ Posteriormente se validó Gemini real (Flash-Lite) desde el navegador; ver [veri
 Una instancia Nest: límites de solicitudes, capacidades MCP y ejecución de turnos viven en memoria. Los turnos persisten; al reiniciar, queued/running se marcan interrupted. La escritura usa la misma clave de acción para recuperar reintentos. No hay cola distribuida ni replay de deltas SSE; la recuperación se hace con snapshots.
 
 Swagger/OpenAPI generado, recuperación de contraseña, verificación de email y despliegue remoto quedan fuera de esta entrega. Los errores Zod contienen `code`, `message`, `issues`; algunos errores de dominio conservan el formato HTTP estándar de Nest.
+
+## Conocimiento documental
+
+El dominio `src/modules/conocimiento` contiene búsqueda RAG, embeddings Gemini, descarga autenticada de PDF y CLI de indexación. Se integra con el gateway MCP. Comandos y decisiones en [RAG](rag.md).

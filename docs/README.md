@@ -20,6 +20,7 @@ El frontend ya consume login, cuenta, tarjetas, movimientos, metas, simulación 
 | [Chatbot y Mobbin](chatbot-referencias.md) | Referencias y decisiones visuales |
 | [Frontend](frontend.md) | Pantallas, sesión y flujos integrados |
 | [MCP](mcp.md) | Herramientas, stdio y capacidades |
+| [RAG](rag.md) | PDFs, pgvector, embeddings, citas y vigencia |
 | [LLM](llm.md) | Proveedor, contexto y límites |
 | [A2UI](a2ui.md) | Mensajes, catálogo propio y eventos |
 | [Seguridad](seguridad.md) | Controles implementados y límites |
@@ -27,3 +28,5 @@ El frontend ya consume login, cuenta, tarjetas, movimientos, metas, simulación 
 | [Plan original](plan-backend.md) | Referencia de las fases propuestas; estado actualizado al inicio |
 
 El [README del backend](../server/README.md) contiene los comandos de instalación.
+
+Maya consulta seis documentos de Clásica, Oro y Platinum mediante RAG con pgvector. El índice contiene solo documentación de productos; saldos e historial continúan consultándose por las herramientas transaccionales.

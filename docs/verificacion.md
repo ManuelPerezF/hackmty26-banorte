@@ -49,3 +49,13 @@ Con navegador real, Nest en un puerto aislado, MCP TypeScript, PostgreSQL y un p
 La comprobación adicional del proveedor se realizó con **Gemini real y respuestas de herramientas sintéticas vacías**, sin iniciar Nest ni leer PostgreSQL. Seleccionó `cards`, `goals` y `savings`, consultó las dos herramientas de lectura y no ejecutó una simulación sin supuestos. Esta prueba valida el contrato del proveedor; no se presenta como una nueva prueba integral Gemini–base de datos de esos tres bloques.
 
 Checks: `server/npm run check` (Nest + MCP), `client/npm run typecheck`, `npm run lint`, nueve pruebas automatizadas del cliente y `npm run build`: correctos. Vinext mantiene su aviso de clasificación estática de rutas; no impidió el build ni la prueba de navegación.
+
+## RAG documental — 12 septiembre 2026
+
+- PostgreSQL actualizado a pgvector 0.8.6 sobre PostgreSQL 17/bookworm, conservando volumen y con respaldo previo. Migración aplicada; 6 documentos y 94 vectores de 768 dimensiones.
+- Repetir `rag:ingest` informa `sin cambios` para los seis PDFs; no vuelve a solicitar embeddings ni duplica fragmentos.
+- Consultas reales de embeddings: Platinum/LoungeKey, Oro/puntos y Clásica/anualidad recuperan páginas relacionadas. Una receta de cocina devuelve cero fuentes. La promoción Clásica de página 5 aparece al pedir información histórica y se excluye en consultas actuales.
+- `node scripts/verify-rag.cjs` desde `server` verifica MCP real, autorización por capacidad, validación de entrada, flujo HTTP del asistente con modelo conversacional controlado, fuentes A2UI, marcadores, PDFs con sesión y estados sin evidencia o fallo de recuperación (la explicación inventada del modelo controlado se descarta). Crea y elimina un usuario temporal, y comprueba que los conteos originales de usuarios y movimientos se conservan. Requiere puerto 3002 libre y consume cuota de embeddings con consultas documentales públicas.
+- Navegador Chromium: fuentes y extractos, enlace con página PDF, restauración de conversación, escritorio y móvil 390 px sin desbordamiento horizontal ni errores de JavaScript.
+- Gemini conversacional real: pregunta documental sobre LoungeKey Platinum, herramienta RAG elegida por el modelo, respuesta `education` con citas a páginas 19 de la guía y 1 del folleto. Tiempo observado: 8.2 segundos (una ejecución, no benchmark). El ejecutor de esta prueba solo permitió la herramienta documental; no envió cuentas ni movimientos a Gemini.
+- Compilación/tipos de Nest y MCP, tipos/lint del cliente y las 9 pruebas existentes del cliente pasan. Pendiente ampliar evaluación de exactitud y correspondencia de citas; una prueba exitosa no garantiza todas las respuestas.

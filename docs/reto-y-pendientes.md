@@ -12,7 +12,7 @@ Ayudar a una persona a entender y registrar sus gastos en una misma experiencia.
 | --- | --- | --- |
 | Interpretar intención, generar interfaz y ejecutar acción | Diap. 3 | Probado: Gemini real → UI → confirmar → persistencia → recibo |
 | LLM central: interpreta, decide y orquesta | Diap. 5 | Implementado y validado con Gemini Flash-Lite real |
-| MCP para datos, herramientas y acciones propias | Diap. 5 | Implementado: servidor/cliente stdio y diez herramientas probadas |
+| MCP para datos, herramientas y acciones propias | Diap. 5 | Implementado: servidor/cliente stdio y once herramientas |
 | A2UI o protocolo equivalente | Diap. 3 y 5 | Implementado: mensajes v0.9.1, catálogo propio y renderer React |
 | Cada interacción vuelve al agente y cambia la experiencia | Diap. 6 | Flujo visual probado con MCP real y modelo controlado |
 | Componentes propios | Diap. 7 | Implementado: tabla, formulario, gráfica, confirmación, recibo, tarjetas, metas y simulador en el renderer |
@@ -45,7 +45,8 @@ El detalle técnico y el orden de ejecución están en [plan-backend.md](plan-ba
 ## P1: utilidad y experiencia
 
 - [x] Comparación de gastos por periodo y categoría calculada en backend.
-- [ ] Explicaciones financieras contextuales cortas y basadas en los datos consultados.
+- [x] Consulta documental RAG con seis PDFs, filtros de vigencia y fuentes visibles.
+- [ ] Ampliar evaluación de respuestas financieras y su correspondencia con las citas.
 - [x] Persistencia de metas y conversaciones si el flujo la requiere.
 - [ ] Recuperación de formularios ante error y streaming progresivo.
 - [ ] Medición de latencia, llamadas y éxito de tareas con ejemplos en español.

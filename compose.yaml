@@ -2,7 +2,7 @@ name: banorte-demo
 
 services:
   postgres:
-    image: postgres:17-bookworm
+    image: pgvector/pgvector:0.8.6-pg17-bookworm
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-banorte}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-banorte_local_demo}

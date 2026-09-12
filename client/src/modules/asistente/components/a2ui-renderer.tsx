@@ -1,4 +1,5 @@
 'use client';
+import { KnowledgeSources } from './knowledge-sources';
 import { CardList, GoalList, SavingsBlock } from './financial-blocks';
 import { formText } from '@/shared/api/client';
 import { useState, useEffect } from 'react';
@@ -104,6 +105,8 @@ function UiBlock({
     ) : (
       <p className="chat-prose">{component.text}</p>
     );
+  if (component.component === 'BanorteSources')
+    return <KnowledgeSources data={data} />;
   if (component.component === 'BanorteCardList')
     return <CardList data={data} />;
   if (component.component === 'BanorteGoalList')

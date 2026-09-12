@@ -55,3 +55,7 @@ El seed puede crear la segunda cuenta con `SECOND_TEST_EMAIL`/`SECOND_TEST_PASSW
 `20260912030000_remove_sample_history` elimina únicamente movimientos `source = demo` y pone en cero la apertura fija del aprovisionamiento antiguo en las cuentas identificadas. No borra movimientos manuales, credenciales, tarjetas, metas ni conversaciones. En la base local, Manuel y Alex tenían nueve ejemplos y ningún movimiento manual; ambos quedaron en cero.
 
 El catálogo de productos, las categorías, MXN y la configuración regional son metadatos del producto. No representan dinero, historial ni titularidad de tarjetas del usuario. Los snapshots antiguos de conversaciones son históricos; una consulta nueva obtiene los datos actuales mediante MCP.
+
+## Conocimiento documental
+
+`KnowledgeDocument` guarda producto, archivo, hashes, modelo y vigencia. `KnowledgeChunk` guarda página PDF, ordinal, texto, vigencia efectiva y `vector(768)`. La migración `20260912050000_financial_knowledge` habilita pgvector y crea ambas tablas sin cambiar entidades financieras. Para este corpus pequeño se usa búsqueda exacta por distancia coseno, con filtros previos. Ver [RAG](rag.md).

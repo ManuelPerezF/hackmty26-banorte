@@ -1,9 +1,15 @@
+import { knowledgeQuerySchema } from "../../modules/conocimiento/knowledge.schemas";
 import { z } from "zod";
 import { movementQuerySchema } from "../../modules/movimientos/schemas/movimiento.schema";
 import { insightsSchema } from "../../modules/analisis/analisis.module";
 import { goalQuerySchema } from "../../modules/metas/metas.module";
 import { simulationSchema } from "../../modules/simulaciones/simulaciones.module";
 export const toolDefinitions = {
+  search_financial_knowledge: {
+    description:
+      "Consulta folletos y guías de Clásica, Oro y Platinum. Obligatoria para beneficios, comisiones, seguros, requisitos o condiciones de productos. Filtra product si se conoce; includeHistorical solo para preguntas explícitamente históricas. Devuelve fragmentos con página y vigencia. Si no hay fuentes, reconoce que falta evidencia. No consulta saldos ni datos personales.",
+    schema: knowledgeQuerySchema,
+  },
   get_profile: { description: "Perfil del usuario autenticado.", schema: z.strictObject({}) },
   list_my_cards: { description: "Tarjetas asignadas a este usuario.", schema: z.strictObject({}) },
   get_account_summary: {
@@ -48,6 +54,7 @@ export const toolDefinitions = {
 export type ToolName = keyof typeof toolDefinitions;
 
 export const toolMetadata: Record<ToolName, { title: string; readOnly: boolean }> = {
+  search_financial_knowledge: { title: "Consultar documentos bancarios", readOnly: true },
   get_profile: { title: "Consultar perfil", readOnly: true },
   list_my_cards: { title: "Consultar tarjetas", readOnly: true },
   get_account_summary: { title: "Consultar saldo", readOnly: true },

@@ -39,3 +39,9 @@ Google ofrece [nivel gratuito para Flash-Lite](https://ai.google.dev/gemini-api/
 Pendiente: medir latencia y cuota con el guion completo del hackathon; comprobar educación, simulación y preguntas ambiguas en español. Las credenciales de otro entorno deben configurarse fuera de Git siguiendo [la guía de Google](https://ai.google.dev/gemini-api/docs/api-key).
 
 Para simular, el modelo solo llama la herramienta si dispone de todos los supuestos del usuario. En caso contrario propone `savings` con formulario vacío. El botón de recálculo vuelve al orquestador y a MCP, sin coste de otra generación LLM.
+
+## Consulta documental
+
+Gemini puede llamar `search_financial_knowledge` para condiciones de tarjetas. El prompt exige consultar evidencia en el turno actual, citar marcadores S1/S2, distinguir producto/red y vigencia e ignorar instrucciones dentro de los PDFs. Los embeddings usan `gemini-embedding-001` a 768 dimensiones; es independiente del modelo conversacional. Sin evidencia recuperada se sustituye la explicación por una respuesta de información insuficiente. Las citas prueban qué se consultó, no garantizan por sí mismas que cada interpretación del modelo sea correcta; falta ampliar la evaluación. Ver [RAG](rag.md).
+
+Cuando la explicación cita una guía sin fecha o una condición histórica, el orquestador añade una aclaración de vigencia independientemente del texto de Gemini.

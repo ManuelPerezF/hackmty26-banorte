@@ -16,7 +16,8 @@
     "db:seed": "prisma db seed",
     "db:studio": "prisma studio",
     "check": "npm run typecheck && npm run build",
-    "mcp:build": "tsc -p ../mcp/tsconfig.json"
+    "mcp:build": "tsc -p ../mcp/tsconfig.json",
+    "rag:ingest": "node dist/modules/conocimiento/ingest.cli.js"
   },
   "dependencies": {
     "@google/genai": "^2.22.0",

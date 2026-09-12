@@ -1,0 +1,90 @@
+[
+  {
+    "slug": "platinum-folleto",
+    "title": "Banorte Platinum · Folleto informativo",
+    "product": "platinum",
+    "kind": "folleto",
+    "filename": "platinum-folleto.pdf",
+    "originalFilename": "Descarga el folleto informativo (2).pdf",
+    "sha256": "52a76ccb4c5ca84a70a45fb7cda4d2cd14a4913c815dc03d2daa40d53695576f",
+    "validFrom": "2026-05-01",
+    "validTo": "2026-10-31",
+    "pageCount": 5,
+    "pageValidity": {}
+  },
+  {
+    "slug": "platinum-guia",
+    "title": "Banorte Platinum · Guía de beneficios",
+    "product": "platinum",
+    "kind": "guia",
+    "filename": "platinum-guia.pdf",
+    "originalFilename": "Guía de beneficios (1).pdf",
+    "sha256": "20a20878c8e57e4006c2ceef2e79d591a145d049243aced345ba4266d647e90b",
+    "validFrom": null,
+    "validTo": null,
+    "pageCount": 27,
+    "pageValidity": {}
+  },
+  {
+    "slug": "clasica-folleto",
+    "title": "Banorte Clásica · Folleto informativo",
+    "product": "clasica",
+    "kind": "folleto",
+    "filename": "clasica-folleto.pdf",
+    "originalFilename": "Descarga el folleto informativo (1).pdf",
+    "sha256": "235f0628ea7ea616820e25b903dc2e8d85747f5a6edb489e55f7d5f83856becb",
+    "validFrom": "2026-05-01",
+    "validTo": "2026-10-31",
+    "pageCount": 5,
+    "pageValidity": {}
+  },
+  {
+    "slug": "clasica-guia",
+    "title": "Banorte Clásica · Guía de beneficios",
+    "product": "clasica",
+    "kind": "guia",
+    "filename": "clasica-guia.pdf",
+    "originalFilename": "Guía de beneficios.pdf",
+    "sha256": "4d21827117f4729cfef8bda35a660b6219e92410e0859222fc5be7dd51f039f7",
+    "validFrom": null,
+    "validTo": null,
+    "pageCount": 20,
+    "pageValidity": {
+      "5": {
+        "validFrom": null,
+        "validTo": "2024-04-03"
+      }
+    }
+  },
+  {
+    "slug": "oro-folleto",
+    "title": "Banorte Oro · Folleto informativo",
+    "product": "oro",
+    "kind": "folleto",
+    "filename": "oro-folleto.pdf",
+    "originalFilename": "Descarga el folleto informativo.pdf",
+    "sha256": "2d061c3488745f29b17123dfb85e209826d5ebda365259c3b2d45d8b7f1ef422",
+    "validFrom": "2026-05-01",
+    "validTo": "2026-10-31",
+    "pageCount": 5,
+    "pageValidity": {}
+  },
+  {
+    "slug": "oro-guia",
+    "title": "Banorte Oro · Guía de beneficios",
+    "product": "oro",
+    "kind": "guia",
+    "filename": "oro-guia.pdf",
+    "originalFilename": "Descarga la Guía de Beneficios_.pdf",
+    "sha256": "8e2c9605c68c3859014683a74f0eca99f48cda07cc9dcf76c5dc8c6c5fad5299",
+    "validFrom": null,
+    "validTo": null,
+    "pageCount": 20,
+    "pageValidity": {
+      "5": {
+        "validFrom": null,
+        "validTo": "2024-04-03"
+      }
+    }
+  }
+]

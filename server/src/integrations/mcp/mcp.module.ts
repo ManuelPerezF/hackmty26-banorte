@@ -1,3 +1,6 @@
+import { KnowledgeModule } from "../../modules/conocimiento/knowledge.module";
+import { KnowledgeService } from "../../modules/conocimiento/knowledge.service";
+import { knowledgeQuerySchema } from "../../modules/conocimiento/knowledge.schemas";
 import { z } from "zod";
 import { MetasModule, MetasService, goalQuerySchema } from "../../modules/metas/metas.module";
 import { simulate, simulationSchema } from "../../modules/simulaciones/simulaciones.module";
@@ -43,6 +46,7 @@ class ToolGatewayController {
     private readonly insights: AnalisisService,
     private readonly db: PrismaService,
     private readonly goals: MetasService,
+    private readonly knowledge: KnowledgeService,
   ) {}
   @SetMetadata("auth:mcp", true) @Post(":name") async call(
     @Param("name") name: ToolName,
@@ -60,6 +64,8 @@ class ToolGatewayController {
     parse(toolDefinitions[name].schema);
     const i = cap.identity;
     switch (name) {
+      case "search_financial_knowledge":
+        return this.knowledge.search(parse(knowledgeQuerySchema));
       case "get_profile":
         return this.profiles.me(i);
       case "list_my_cards":
@@ -107,6 +113,7 @@ class ToolGatewayController {
 @Module({
   imports: [
     DatabaseModule,
+    KnowledgeModule,
     PerfilModule,
     CuentasModule,
     MovimientosModule,

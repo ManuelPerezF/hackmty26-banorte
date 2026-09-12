@@ -41,6 +41,7 @@ export const componentSchema = z.discriminatedUnion("component", [
       "BanorteCardList",
       "BanorteGoalList",
       "BanorteSavingsSimulator",
+      "BanorteSources",
     ] as const
   ).map((name) =>
     z.strictObject({
