@@ -1,8 +1,8 @@
 # Adaptador LLM
 
-Implementado en `server/src/integrations/llm/llm.service.ts` con `@google/genai`. Modelo configurable mediante `LLM_MODEL`; valor inicial `gemini-3.1-flash-lite`. Configurar `GEMINI_API_KEY` exclusivamente en `server/.env` y reiniciar Nest. Nunca enviarla al cliente ni al proceso MCP.
+Implementado en `server/src/integrations/llm/llm.service.ts` con Gemini como proveedor del chat (`LLM_PROVIDER=gemini`). `GEMINI_API_KEY` permanece exclusivamente en `server/.env` y nunca se envía al cliente ni al proceso MCP.
 
-Sin clave, enviar una pregunta devuelve `503 LLM_NOT_CONFIGURED`. La API de banca, login y conversaciones sigue funcionando. No hay respuestas de modelo simuladas dentro del backend normal.
+Si falta `GEMINI_API_KEY`, enviar una pregunta devuelve `503 LLM_NOT_CONFIGURED`. No hay respuestas simuladas dentro del backend normal.
 
 ## Recorrido
 
@@ -24,13 +24,13 @@ El prompt exige tratar notas/resultados como datos y no instrucciones. La autori
 
 ## Límites y fallos
 
-Máximo seis llamadas a herramientas solicitadas por el modelo, siete rondas y 4096 tokens de salida por solicitud. El turno tiene un timeout configurable de 30 segundos por defecto. El plan permite como máximo cinco bloques. No se ejecuta HTML, JavaScript o SQL generado.
+Máximo seis llamadas a herramientas solicitadas por el modelo, siete rondas y 4096 tokens de salida por solicitud. El turno tiene un timeout configurable de 90 segundos para Gemini. El plan permite como máximo cinco bloques. No se ejecuta HTML, JavaScript o SQL generado.
 
 Estados persistidos: queued, running, completed, failed e interrupted. Una instancia reiniciada marca los turnos activos como interrupted. Los errores de turno exponen código seguro; las trazas de herramienta guardan nombre, duración y éxito, sin tokens ni cadenas de razonamiento.
 
 ## Validación real y nivel gratuito
 
-La clave local está configurada solo en `server/.env` (ignorado por Git, permisos 0600). La consulta oficial de modelos devolvió 200. Gemini 3.8 devolvió un 503 por alta demanda; se eligió `gemini-3.1-flash-lite` y el flujo integrado pasó con respuestas reales.
+La configuración está en `server/.env` (ignorado por Git, permisos 0600). El adaptador usa la API de Gemini para el chat y para embeddings RAG.
 
 Prueba: navegador → Nest → MCP por stdio → Gemini → A2UI → formulario → confirmación → ingreso persistido → recibo/saldo/historial → recarga de conversación. Se usó un perfil temporal vacío y se limpió al terminar. Ver [evidencia de validación](verificacion.md).
 

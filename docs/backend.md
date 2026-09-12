@@ -28,7 +28,7 @@ El registro manual solo guarda un dato financiero: no procesa un pago. Las tarje
 
 ## Arranque y comprobación
 
-Consultar [server/README.md](../server/README.md). `npm run check` ejecuta TypeScript y build. La API base funciona sin clave de modelo; enviar una pregunta devuelve `503 LLM_NOT_CONFIGURED` mientras no se configure `GEMINI_API_KEY`.
+Consultar [server/README.md](../server/README.md). `npm run check` ejecuta TypeScript y build. La API usa Gemini como proveedor del chat (`LLM_PROVIDER=gemini`) y requiere `GEMINI_API_KEY`.
 
 Verificación de esta entrega con PostgreSQL local y scripts temporales, eliminando sus usuarios al terminar:
 

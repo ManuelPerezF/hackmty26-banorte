@@ -646,7 +646,7 @@ export class AsistenteService implements OnModuleInit {
           const movements = await execute("list_movements", { pageSize: 5 });
           // The write is deterministic and authorized; the model receives its result for the next response.
           let explanation = "Movimiento guardado. Tu saldo e historial se actualizaron.";
-          if (this.env.GEMINI_API_KEY?.trim()) {
+          if (this.llm.isConfigured()) {
             try {
               const plan = await this.llm.respond(
                 [

@@ -38,9 +38,16 @@ export const envSchema = z
         } catch {
           return false;
         }
-      }),
+    }),
     GEMINI_API_KEY: z.string().optional(),
     RAG_EMBEDDING_MODEL: z.literal("gemini-embedding-001").default("gemini-embedding-001"),
+    LLM_PROVIDER: z.enum(["local", "gemini"]).default("local"),
+    // Fallback explícito para el chat. Por defecto no cambia de proveedor
+    // silenciosamente cuando el modelo local falla.
+    LLM_FALLBACK_PROVIDER: z.enum(["none", "gemini"]).default("none"),
+    LLM_BASE_URL: z.string().url().default("http://127.0.0.1:1234/v1"),
+    LOCAL_LLM_MODEL: z.string().trim().optional(),
+    LLM_API_KEY: z.string().optional(),
     LLM_MODEL: z.string().default("gemini-3.1-flash-lite"),
     LLM_TIMEOUT_MS: z.coerce.number().int().min(1000).max(120000).default(30000),
     MCP_ENTRY: z.string().default("../mcp/dist/server.js"),

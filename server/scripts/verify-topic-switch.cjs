@@ -1,6 +1,7 @@
 // Gemini regression: old movement form must not become the current request.
 require("reflect-metadata");
 require("dotenv").config({ quiet: true });
+process.env.LLM_PROVIDER = "gemini";
 const assert = require("node:assert/strict");
 const { LlmService } = require("../dist/integrations/llm/llm.service");
 const { parseEnvironment } = require("../dist/config/env");

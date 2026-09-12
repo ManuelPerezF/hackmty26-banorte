@@ -5,6 +5,7 @@ const assert = require("node:assert/strict"),
 const req = createRequire(path.resolve(__dirname, "../package.json"));
 req("reflect-metadata");
 req("dotenv").config({ path: path.resolve(__dirname, "../.env"), quiet: true });
+process.env.LLM_PROVIDER = "gemini";
 const { parseEnvironment } = req("./dist/config/env"),
   { LlmService } = req("./dist/integrations/llm/llm.service"),
   { simulate, simulationSchema } = req("./dist/modules/simulaciones/simulaciones.module");

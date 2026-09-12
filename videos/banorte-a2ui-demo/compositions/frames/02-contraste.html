@@ -1,0 +1,386 @@
+<template>
+  <style id="hf-fonts">
+@font-face{font-family:'Outfit';src:url('assets/fonts/outfit-latin-wght-normal.woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:block;}
+@font-face{font-family:'JetBrains Mono';src:url('assets/fonts/jetbrains-mono-400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:block;}
+</style>
+<style>
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      color: #1f1919;
+      font-family:'Outfit',sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ---------- full-bleed ground (clip layer, never #root) ---------- */
+    .f02-bg {
+      position: absolute;
+      inset: 0;
+      background: #faf7f4;
+    }
+    .f02-bloom {
+      position: absolute;
+      width: 1100px;
+      height: 1100px;
+      border-radius: 9999px;
+      top: 120px;
+    }
+    .f02-bloom-l {
+      left: -150px;
+      background: radial-gradient(circle, rgba(31, 25, 25, 0.05) 0%, rgba(31, 25, 25, 0) 68%);
+    }
+    .f02-bloom-r {
+      right: -150px;
+      background: radial-gradient(circle, rgba(215, 16, 51, 0.055) 0%, rgba(215, 16, 51, 0) 68%);
+    }
+
+    /* ---------- the shared user message ---------- */
+    .f02-bubble {
+      position: absolute;
+      left: 530px;
+      top: 120px;
+      width: 860px;
+      box-sizing: border-box;
+      padding: 32px 44px;
+      background: #f6ead7;
+      border: 1px solid rgba(31, 25, 25, 0.12);
+      border-radius: 12px;
+      text-align: center;
+      font-size: 44px;
+      line-height: 1.3;
+      letter-spacing: -0.012em;
+      color: #1f1919;
+    }
+
+    /* ---------- split stage ---------- */
+    .f02-stage {
+      position: absolute;
+      left: 180px;
+      top: 310px;
+      width: 1560px;
+      height: 520px;
+      perspective: 2000px;
+    }
+    .f02-split-rule {
+      position: absolute;
+      left: 780px;
+      top: 0;
+      width: 1px;
+      height: 520px;
+      background: rgba(31, 25, 25, 0.12);
+      transform-origin: 50% 0%;
+    }
+    .f02-cards {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      justify-content: space-between;
+      transform-style: preserve-3d;
+    }
+    .f02-card {
+      position: relative;
+      width: 700px;
+      height: 520px;
+      box-sizing: border-box;
+      border-radius: 12px;
+      transform-style: preserve-3d;
+      will-change: transform;
+    }
+    .f02-card-left {
+      background: #efece8;
+      border: 1px solid rgba(31, 25, 25, 0.12);
+      box-shadow: 14px 6px 28px rgba(31, 25, 25, 0.05);
+      padding: 56px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 34px;
+    }
+    .f02-card-right {
+      background: #faf7f4;
+      border: 1px solid rgba(31, 25, 25, 0.12);
+      box-shadow: -14px 6px 28px rgba(31, 25, 25, 0.05);
+      padding: 44px 48px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* left — flat text, illegible on purpose */
+    .f02-line {
+      height: 18px;
+      border-radius: 6px;
+      background: rgba(31, 25, 25, 0.16);
+    }
+    .f02-line-1 { width: 94%; }
+    .f02-line-2 { width: 100%; }
+    .f02-line-3 { width: 86%; }
+    .f02-line-4 { width: 97%; }
+    .f02-line-5 { width: 62%; }
+
+    /* right — the generated interface */
+    .f02-card-title {
+      font-size: 44px;
+      font-weight: 500;
+      line-height: 1.25;
+      letter-spacing: -0.005em;
+    }
+    .f02-total-tag {
+      margin-top: 26px;
+      font-family:'JetBrains Mono',monospace;
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(31, 25, 25, 0.5);
+    }
+    .f02-total {
+      margin-top: 8px;
+      font-size: 96px;
+      line-height: 0.98;
+      letter-spacing: -0.025em;
+    }
+    .f02-rule {
+      margin-top: 26px;
+      height: 1px;
+      background: rgba(31, 25, 25, 0.12);
+    }
+    .f02-row {
+      margin-top: 26px;
+    }
+    .f02-row-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 30px;
+      line-height: 1.2;
+    }
+    .f02-row-amount {
+      letter-spacing: -0.01em;
+    }
+    .f02-track {
+      margin-top: 14px;
+      height: 12px;
+      border-radius: 9999px;
+      background: rgba(31, 25, 25, 0.08);
+      overflow: hidden;
+    }
+    .f02-fill {
+      height: 12px;
+      border-radius: 9999px;
+      background: #cd9130;
+      transform-origin: 0% 50%;
+      will-change: transform;
+    }
+    .f02-fill-b {
+      background: rgba(205, 145, 48, 0.55);
+    }
+    .f02-accent-ring {
+      position: absolute;
+      inset: -1px;
+      border: 1px solid #d71033;
+      border-radius: 12px;
+      pointer-events: none;
+    }
+
+    /* pills at the inner edges */
+    .f02-pill {
+      position: absolute;
+      bottom: -24px;
+      padding: 12px 26px;
+      border-radius: 9999px;
+      font-family:'JetBrains Mono',monospace;
+      font-size: 26px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      will-change: transform;
+    }
+    .f02-pill-left {
+      right: -28px;
+      background: rgba(31, 25, 25, 0.08);
+      border: 1px solid rgba(31, 25, 25, 0.2);
+      color: rgba(31, 25, 25, 0.55);
+    }
+    .f02-pill-right {
+      left: -28px;
+      background: #d71033;
+      color: #faf7f4;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="02-contraste"
+    data-start="0"
+    data-duration="8"
+    data-width="1920"
+    data-height="1080"
+  >
+    <div class="f02-bg clip" data-start="0" data-duration="8" data-track-index="0">
+      <div class="f02-bloom f02-bloom-l"></div>
+      <div class="f02-bloom f02-bloom-r"></div>
+    </div>
+
+    <div class="f02-bubble clip" id="f02-bubble" data-start="0" data-duration="8" data-track-index="1">
+      ¿En qué gasté este mes?
+    </div>
+
+    <div class="f02-stage clip" data-start="0" data-duration="8" data-track-index="2">
+      <div class="f02-split-rule" id="f02-split-rule"></div>
+      <div class="f02-cards">
+        <div class="f02-card f02-card-left" id="f02-card-left">
+          <div class="f02-line f02-line-1 f02-line-item"></div>
+          <div class="f02-line f02-line-2 f02-line-item"></div>
+          <div class="f02-line f02-line-3 f02-line-item"></div>
+          <div class="f02-line f02-line-4 f02-line-item"></div>
+          <div class="f02-line f02-line-5 f02-line-item"></div>
+          <div class="f02-pill f02-pill-left" id="f02-pill-left">Texto</div>
+        </div>
+
+        <div class="f02-card f02-card-right" id="f02-card-right">
+          <div class="f02-card-title f02-right-item">Gastos por categoría</div>
+          <div class="f02-total-tag f02-right-item">Total</div>
+          <div class="f02-total f02-right-item">$14,042.30</div>
+          <div class="f02-rule f02-right-item"></div>
+
+          <div class="f02-row">
+            <div class="f02-row-head">
+              <span class="f02-row-label f02-row-a">Vivienda</span>
+              <span class="f02-row-amount f02-row-a">$7,500.00</span>
+            </div>
+            <div class="f02-track">
+              <div class="f02-fill" id="f02-fill-a" style="width: 100%"></div>
+            </div>
+          </div>
+
+          <div class="f02-row">
+            <div class="f02-row-head">
+              <span class="f02-row-label f02-row-b">Alimentación</span>
+              <span class="f02-row-amount f02-row-b">$3,546.30</span>
+            </div>
+            <div class="f02-track">
+              <div class="f02-fill f02-fill-b" id="f02-fill-b" style="width: 47.3%"></div>
+            </div>
+          </div>
+
+          <div class="f02-accent-ring" id="f02-accent-ring"></div>
+          <div class="f02-pill f02-pill-right" id="f02-pill-right">Interfaz</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      /* pre-state for pieces that land later inside the right card */
+      tl.set(".f02-row-a, .f02-row-b", { opacity: 0 }, 0);
+      tl.set("#f02-fill-a, #f02-fill-b", { scaleX: 0 }, 0);
+
+      /* Scene 1 (0.0–1.8s) — el mensaje del usuario, centrado */
+      tl.fromTo(
+        "#f02-bubble",
+        { y: 370, opacity: 0, scale: 0.96 },
+        { y: 330, opacity: 1, scale: 1, duration: 0.6, ease: "power3.out" },
+        0.05
+      );
+
+      /* Scene 2 (1.8–3.6s) — la burbuja sube, el plano se parte, entra el panel plano */
+      tl.fromTo(
+        "#f02-bubble",
+        { y: 330 },
+        { y: 0, duration: 0.9, ease: "power3.inOut" },
+        1.8
+      );
+      tl.fromTo(
+        "#f02-split-rule",
+        { scaleY: 0, opacity: 0 },
+        { scaleY: 1, opacity: 1, duration: 0.7, ease: "power3.out" },
+        2.0
+      );
+      tl.fromTo(
+        "#f02-card-left",
+        { x: -440, rotateY: 15, scale: 0.86, opacity: 0 },
+        { x: 0, rotateY: 8, scale: 1, opacity: 1, duration: 1.0, ease: "power3.out" },
+        2.05
+      );
+      tl.fromTo(
+        ".f02-line-item",
+        { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", stagger: 0.1 },
+        2.55
+      );
+      tl.fromTo(
+        "#f02-pill-left",
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+        3.1
+      );
+
+      /* Scene 3 (3.6–5.4s) — entra el panel espejo: la interfaz generada */
+      tl.fromTo(
+        "#f02-card-right",
+        { x: 440, rotateY: -15, scale: 0.86, opacity: 0 },
+        { x: 0, rotateY: -8, scale: 1, opacity: 1, duration: 1.0, ease: "power3.out" },
+        3.6
+      );
+      tl.fromTo(
+        ".f02-right-item",
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out", stagger: 0.09 },
+        4.05
+      );
+      tl.fromTo(
+        "#f02-fill-a",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.8, ease: "power3.out" },
+        4.5
+      );
+      tl.fromTo(
+        ".f02-row-a",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: "power2.out" },
+        4.45
+      );
+      tl.fromTo(
+        "#f02-fill-b",
+        { scaleX: 0 },
+        { scaleX: 1, duration: 0.8, ease: "power3.out" },
+        4.78
+      );
+      tl.fromTo(
+        ".f02-row-b",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.4, ease: "power2.out" },
+        4.73
+      );
+      tl.fromTo(
+        "#f02-pill-right",
+        { scale: 0, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.5, ease: "power3.out" },
+        5.15
+      );
+
+      /* Scene 4 (5.4–8.0s) — el texto plano se apaga, la interfaz gana el hairline accent */
+      tl.fromTo(
+        "#f02-card-left",
+        { opacity: 1 },
+        { opacity: 0.4, duration: 0.9, ease: "power2.inOut" },
+        5.5
+      );
+      tl.fromTo(
+        "#f02-accent-ring",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.7, ease: "power2.out" },
+        5.9
+      );
+
+      window.__timelines["02-contraste"] = tl;
+    })();
+  </script>
+</template>

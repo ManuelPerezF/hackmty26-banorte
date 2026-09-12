@@ -1,0 +1,499 @@
+<template>
+  <style id="hf-fonts">
+@font-face{font-family:'Outfit';src:url('assets/fonts/outfit-latin-wght-normal.woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:block;}
+@font-face{font-family:'JetBrains Mono';src:url('assets/fonts/jetbrains-mono-400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:block;}
+</style>
+<style>
+    #root {
+      position: relative;
+      width: 1920px;
+      height: 1080px;
+      overflow: hidden;
+      container-type: size;
+      --ink: #1F1919;
+      --cream: #FAF7F4;
+      --tile: #F6EAD7;
+      --tile-strong: #CD9130;
+      --coral: #D71033;
+      --navy: #181516;
+      --navy-elev: #252021;
+      --sans: system-ui, sans-serif;
+      --mono: ui-monospace, monospace;
+      font-family: var(--sans);
+      color: var(--ink);
+    }
+
+    /* ---- full-bleed ground (clip layer, never #root) ---- */
+    #f06adapt-bg {
+      position: absolute;
+      inset: 0;
+      background: var(--cream);
+    }
+
+    #f06adapt-stage { position: absolute; inset: 0; }
+
+    /* ---- fixed chrome ---- */
+    .f06adapt-kicker {
+      position: absolute;
+      left: 80px;
+      top: 56px;
+      font-family: var(--mono);
+      font-size: 26px;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(31, 25, 25, 0.72);
+      opacity: 0;
+    }
+    .f06adapt-kicker span { color: var(--coral); }
+
+    .f06adapt-accent {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 34px;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      color: var(--coral);
+      opacity: 0;
+    }
+    .f06adapt-accent-sub {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 152px;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 24px;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      color: rgba(31, 25, 25, 0.72);
+      opacity: 0;
+    }
+
+    /* ---- camera world ---- */
+    #f06adapt-world { position: absolute; inset: 0; }
+
+    /* ---- shared card ---- */
+    .f06adapt-card {
+      position: absolute;
+      background: var(--cream);
+      border: 1px solid rgba(31, 25, 25, 0.12);
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(31, 25, 25, 0.08), 0 4px 16px rgba(31, 25, 25, 0.04);
+    }
+
+    /* ---- left column: chart + selector ---- */
+    #f06adapt-col { position: absolute; inset: 0; }
+
+    #f06adapt-chart { left: 500px; top: 210px; width: 920px; height: 516px; opacity: 0; }
+
+    .f06adapt-chart-title {
+      position: absolute; left: 36px; top: 30px; opacity: 0;
+      font-size: 42px; font-weight: 500; letter-spacing: -0.005em;
+    }
+    .f06adapt-chart-hint {
+      position: absolute; left: 36px; top: 88px; opacity: 0;
+      font-size: 25px; font-weight: 400; color: rgba(31, 25, 25, 0.72);
+    }
+
+    .f06adapt-row {
+      position: absolute; left: 36px; width: 848px; height: 46px;
+      border-radius: 6px; opacity: 0;
+    }
+    .f06adapt-rowbg {
+      position: absolute; inset: -2px -12px; border-radius: 6px;
+      background: var(--tile); opacity: 0;
+    }
+    .f06adapt-rowmark {
+      position: absolute; left: -18px; top: 8px; width: 3px; height: 30px;
+      border-radius: 2px; background: var(--tile-strong);
+      transform-origin: center top; opacity: 0;
+    }
+    .f06adapt-rowlabel {
+      position: absolute; left: 0; top: 11px; width: 220px;
+      font-family: var(--mono); font-size: 24px; font-weight: 500;
+      letter-spacing: 0.01em; color: rgba(31, 25, 25, 0.86);
+    }
+    .f06adapt-track {
+      position: absolute; left: 232px; top: 16px; width: 460px; height: 15px;
+      border-radius: 8px; background: rgba(31, 25, 25, 0.07);
+    }
+    .f06adapt-bar {
+      position: absolute; inset: 0; border-radius: 8px;
+      background: var(--ink); transform-origin: left center;
+    }
+    .f06adapt-amt {
+      position: absolute; left: 696px; top: 11px; width: 152px; text-align: right;
+      font-family: var(--mono); font-size: 24px; font-weight: 500;
+    }
+
+    .f06adapt-rule {
+      position: absolute; left: 36px; width: 848px; height: 1px;
+      background: rgba(31, 25, 25, 0.12);
+    }
+    .f06adapt-totlabel {
+      position: absolute; left: 36px; top: 456px;
+      font-family: var(--mono); font-size: 22px; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(31, 25, 25, 0.72);
+    }
+    .f06adapt-tot {
+      position: absolute; left: 484px; top: 442px; opacity: 0; width: 400px; text-align: right;
+      font-size: 40px; font-weight: 500; letter-spacing: -0.018em;
+    }
+
+    /* ---- period selector ---- */
+    #f06adapt-sel { left: 500px; top: 748px; width: 920px; height: 96px; background: var(--tile); opacity: 0; }
+
+    .f06adapt-fieldlabel {
+      position: absolute; top: 16px;
+      font-family: var(--mono); font-size: 20px; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase;
+      color: rgba(31, 25, 25, 0.72);
+    }
+    .f06adapt-field {
+      position: absolute; top: 42px; width: 202px; height: 40px;
+      border: 1px solid rgba(31, 25, 25, 0.2); border-radius: 6px;
+      background: var(--cream); opacity: 0;
+    }
+    .f06adapt-fieldtext {
+      position: absolute; left: 14px; top: 6px;
+      font-family: var(--mono); font-size: 24px; font-weight: 500;
+    }
+    #f06adapt-mes {
+      position: relative; display: inline-block; width: 30px; height: 28px;
+      vertical-align: top; border-radius: 3px; background: rgba(205, 145, 48, 0);
+    }
+    #f06adapt-mes b { position: absolute; left: 0; top: 0; font-weight: 500; }
+    #f06adapt-mes-mid, #f06adapt-mes-new { opacity: 0; }
+    #f06adapt-caret {
+      position: absolute; left: 62px; top: 8px; width: 2px; height: 26px;
+      background: var(--ink); opacity: 0;
+    }
+    #f06adapt-btn {
+      position: absolute; left: 632px; top: 34px; opacity: 0; width: 260px; height: 50px;
+      background: var(--navy); border-radius: 8px;
+    }
+    #f06adapt-btn span {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      color: var(--cream); font-size: 24px; font-weight: 500;
+    }
+
+    /* ---- movements panel ---- */
+    #f06adapt-panel { left: 1040px; top: 210px; width: 800px; height: 634px; opacity: 0; }
+
+    .f06adapt-ptitle { position: absolute; left: 32px; top: 28px; opacity: 0; font-size: 34px; font-weight: 500; letter-spacing: -0.008em; }
+    .f06adapt-psub {
+      position: absolute; left: 32px; top: 76px; opacity: 0;
+      font-family: var(--mono); font-size: 22px; font-weight: 500; color: rgba(31, 25, 25, 0.72);
+    }
+    .f06adapt-phead {
+      position: absolute; top: 120px; opacity: 0;
+      font-family: var(--mono); font-size: 18px; font-weight: 500;
+      letter-spacing: 0.12em; text-transform: uppercase; color: rgba(31, 25, 25, 0.72);
+    }
+    .f06adapt-mrow {
+      position: absolute; left: 32px; width: 736px; height: 76px;
+      border-top: 1px solid rgba(31, 25, 25, 0.1); opacity: 0;
+    }
+    .f06adapt-mfecha { position: absolute; left: 0; top: 27px; width: 140px; font-family: var(--mono); font-size: 21px; font-weight: 500; color: rgba(31, 25, 25, 0.72); }
+    .f06adapt-mcon { position: absolute; left: 152px; top: 24px; width: 252px; font-size: 23px; font-weight: 400; white-space: nowrap; }
+    .f06adapt-mtar { position: absolute; left: 414px; top: 28px; width: 160px; font-family: var(--mono); font-size: 19px; font-weight: 500; color: rgba(31, 25, 25, 0.72); }
+    .f06adapt-mmonto { position: absolute; left: 586px; top: 25px; width: 150px; text-align: right; font-family: var(--mono); font-size: 23px; font-weight: 500; }
+
+    .f06adapt-ptotlabel {
+      position: absolute; left: 32px; top: 572px; opacity: 0;
+      font-family: var(--mono); font-size: 20px; font-weight: 500;
+      letter-spacing: 0.14em; text-transform: uppercase; color: rgba(31, 25, 25, 0.72);
+    }
+    .f06adapt-ptot {
+      position: absolute; left: 418px; top: 560px; opacity: 0; width: 350px; text-align: right;
+      font-size: 34px; font-weight: 500; letter-spacing: -0.015em;
+    }
+
+    /* ---- cursor ---- */
+    #f06adapt-cursor { position: absolute; left: 0; top: 0; width: 0; height: 0; opacity: 0; }
+    #f06adapt-cursor svg { position: absolute; left: -3px; top: -2px; }
+    #f06adapt-ripple {
+      position: absolute; left: -28px; top: -28px; width: 56px; height: 56px;
+      border-radius: 50%; border: 2px solid var(--ink); opacity: 0;
+    }
+  </style>
+
+  <div id="root" data-composition-id="06-adaptable" data-width="1920" data-height="1080">
+    <div id="f06adapt-bg" class="clip" data-start="0" data-duration="10" data-track-index="0"></div>
+
+    <div id="f06adapt-stage" class="clip" data-start="0" data-duration="10" data-track-index="1">
+      <div class="f06adapt-kicker" id="f06adapt-kicker"><span>&#10033;</span> Adaptabilidad</div>
+
+      <div class="f06adapt-accent" id="f06adapt-accent">la interacci&oacute;n vuelve al agente como contexto</div>
+      <div class="f06adapt-accent-sub" id="f06adapt-accentsub">recalculado por MCP &middot; sin una llamada extra al LLM</div>
+
+      <div id="f06adapt-world">
+        <div id="f06adapt-col">
+          <!-- chart -->
+          <div class="f06adapt-card" id="f06adapt-chart">
+            <div class="f06adapt-chart-title" id="f06adapt-charttitle">Gastos por categor&iacute;a</div>
+            <div class="f06adapt-chart-hint" id="f06adapt-charthint">Selecciona una categor&iacute;a para ver sus movimientos.</div>
+
+            <div class="f06adapt-row" id="f06adapt-r0" style="top:146px">
+              <div class="f06adapt-rowbg"></div><div class="f06adapt-rowmark"></div>
+              <div class="f06adapt-rowlabel">Vivienda</div>
+              <div class="f06adapt-track"><div class="f06adapt-bar" id="f06adapt-b0"></div></div>
+              <div class="f06adapt-amt" id="f06adapt-a0">$7,500.00</div>
+            </div>
+            <div class="f06adapt-row" id="f06adapt-r1" style="top:192px">
+              <div class="f06adapt-rowbg"></div><div class="f06adapt-rowmark"></div>
+              <div class="f06adapt-rowlabel">Alimentaci&oacute;n</div>
+              <div class="f06adapt-track"><div class="f06adapt-bar" id="f06adapt-b1"></div></div>
+              <div class="f06adapt-amt" id="f06adapt-a1">$3,546.30</div>
+            </div>
+            <div class="f06adapt-row" id="f06adapt-r2" style="top:238px">
+              <div class="f06adapt-rowbg"></div><div class="f06adapt-rowmark"></div>
+              <div class="f06adapt-rowlabel">Compras</div>
+              <div class="f06adapt-track"><div class="f06adapt-bar" id="f06adapt-b2"></div></div>
+              <div class="f06adapt-amt" id="f06adapt-a2">$1,299.00</div>
+            </div>
+            <div class="f06adapt-row" id="f06adapt-r3" style="top:284px">
+              <div class="f06adapt-rowbg"></div><div class="f06adapt-rowmark"></div>
+              <div class="f06adapt-rowlabel">Transporte</div>
+              <div class="f06adapt-track"><div class="f06adapt-bar" id="f06adapt-b3"></div></div>
+              <div class="f06adapt-amt" id="f06adapt-a3">$650.00</div>
+            </div>
+            <div class="f06adapt-row" id="f06adapt-r4" style="top:330px">
+              <div class="f06adapt-rowbg"></div><div class="f06adapt-rowmark"></div>
+              <div class="f06adapt-rowlabel">Servicios</div>
+              <div class="f06adapt-track"><div class="f06adapt-bar" id="f06adapt-b4"></div></div>
+              <div class="f06adapt-amt" id="f06adapt-a4">$599.00</div>
+            </div>
+            <div class="f06adapt-row" id="f06adapt-r5" style="top:376px">
+              <div class="f06adapt-rowbg"></div><div class="f06adapt-rowmark"></div>
+              <div class="f06adapt-rowlabel">Entretenimiento</div>
+              <div class="f06adapt-track"><div class="f06adapt-bar" id="f06adapt-b5"></div></div>
+              <div class="f06adapt-amt" id="f06adapt-a5">$448.00</div>
+            </div>
+
+            <div class="f06adapt-rule" style="top:438px"></div>
+            <div class="f06adapt-totlabel">Total</div>
+            <div class="f06adapt-tot" id="f06adapt-total">$14,042.30</div>
+          </div>
+
+          <!-- period selector -->
+          <div class="f06adapt-card" id="f06adapt-sel">
+            <div class="f06adapt-fieldlabel" style="left:28px">Desde</div>
+            <div class="f06adapt-field" id="f06adapt-fdesde" style="left:28px">
+              <div class="f06adapt-fieldtext">01/<span id="f06adapt-mes"><b id="f06adapt-mes-old">09</b><b id="f06adapt-mes-mid">0</b><b id="f06adapt-mes-new">08</b></span>/2026</div>
+              <div id="f06adapt-caret"></div>
+            </div>
+            <div class="f06adapt-fieldlabel" style="left:268px">Hasta</div>
+            <div class="f06adapt-field" id="f06adapt-fhasta" style="left:268px">
+              <div class="f06adapt-fieldtext">12/09/2026</div>
+            </div>
+            <div id="f06adapt-btn"><span>Actualizar periodo</span></div>
+          </div>
+        </div>
+
+        <!-- movements panel -->
+        <div class="f06adapt-card" id="f06adapt-panel">
+          <div class="f06adapt-ptitle" id="f06adapt-ptitle">Movimientos &middot; Vivienda</div>
+          <div class="f06adapt-psub" id="f06adapt-psubt">01/08/2026 &ndash; 12/09/2026</div>
+          <div class="f06adapt-phead" style="left:32px">Fecha</div>
+          <div class="f06adapt-phead" style="left:184px">Concepto</div>
+          <div class="f06adapt-phead" style="left:446px">Tarjeta</div>
+          <div class="f06adapt-phead" style="left:618px;width:150px;text-align:right">Monto</div>
+
+          <div class="f06adapt-mrow" id="f06adapt-m0" style="top:152px">
+            <div class="f06adapt-mfecha">01/08/2026</div>
+            <div class="f06adapt-mcon">Renta departamento</div>
+            <div class="f06adapt-mtar">Cuenta &bull;&bull;4417</div>
+            <div class="f06adapt-mmonto">$7,500.00</div>
+          </div>
+          <div class="f06adapt-mrow" id="f06adapt-m1" style="top:228px">
+            <div class="f06adapt-mfecha">05/08/2026</div>
+            <div class="f06adapt-mcon">Mantenimiento edificio</div>
+            <div class="f06adapt-mtar">Tarjeta &bull;&bull;2093</div>
+            <div class="f06adapt-mmonto">$980.00</div>
+          </div>
+          <div class="f06adapt-mrow" id="f06adapt-m2" style="top:304px">
+            <div class="f06adapt-mfecha">18/08/2026</div>
+            <div class="f06adapt-mcon">Seguro de hogar</div>
+            <div class="f06adapt-mtar">Tarjeta &bull;&bull;2093</div>
+            <div class="f06adapt-mmonto">$460.00</div>
+          </div>
+          <div class="f06adapt-mrow" id="f06adapt-m3" style="top:380px">
+            <div class="f06adapt-mfecha">01/09/2026</div>
+            <div class="f06adapt-mcon">Renta departamento</div>
+            <div class="f06adapt-mtar">Cuenta &bull;&bull;4417</div>
+            <div class="f06adapt-mmonto">$7,500.00</div>
+          </div>
+          <div class="f06adapt-mrow" id="f06adapt-m4" style="top:456px">
+            <div class="f06adapt-mfecha">09/09/2026</div>
+            <div class="f06adapt-mcon">Reparaci&oacute;n plomer&iacute;a</div>
+            <div class="f06adapt-mtar">Tarjeta &bull;&bull;2093</div>
+            <div class="f06adapt-mmonto">$1,100.00</div>
+          </div>
+
+          <div class="f06adapt-rule" id="f06adapt-prule" style="left:32px;width:736px;top:548px;opacity:0"></div>
+          <div class="f06adapt-ptotlabel">Total Vivienda</div>
+          <div class="f06adapt-ptot">$17,540.00</div>
+        </div>
+
+        <!-- cursor -->
+        <div id="f06adapt-cursor">
+          <div id="f06adapt-ripple"></div>
+          <svg width="30" height="42" viewBox="0 0 30 42">
+            <path d="M2 2 L2 32 L9.5 25 L14.5 37 L20 34.5 L15 22.8 L25 22 Z"
+                  fill="#1F1919" stroke="#FAF7F4" stroke-width="2.4" stroke-linejoin="round" />
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      var q = function (id) { return document.getElementById(id); };
+      var nf = new Intl.NumberFormat("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+      var money = function (v) { return "$" + nf.format(v); };
+
+      // set A = 01/09/2026 - 12/09/2026 (12 dias) ; set B = 01/08/2026 - 12/09/2026
+      var A = [7500, 3546.3, 1299, 650, 599, 448];
+      var B = [17540, 11284.6, 6930, 1980, 2145, 1712.4];
+      var maxA = 7500, maxB = 17540;
+      var TOT_A = 14042.3, TOT_B = 41592;
+
+      window.__timelines = window.__timelines || {};
+      var tl = gsap.timeline({ paused: true });
+
+      // NOTE: seek() suppresses onUpdate, so the renderer would never see a
+      // callback-driven counter. modifiers run inside the render pipeline and
+      // therefore fire on every seek, forward or backward.
+      function count(el, from, to, dur, at) {
+        var o = { v: from };
+        tl.to(o, {
+          v: to, duration: dur, ease: "power2.out",
+          modifiers: { v: function (v) { el.textContent = money(v); return v; } }
+        }, at);
+      }
+
+      // base camera framing (punch-and-return returns to exactly this)
+      gsap.set("#f06adapt-world", { scale: 1.1, y: 0 });
+
+      // initial bar scale (set A)
+      for (var i = 0; i < 6; i++) {
+        gsap.set(q("f06adapt-b" + i), { scaleX: 0 });
+      }
+
+      // --- Scene 1 (0.0-1.6): el componente y el selector real -------------
+      tl.fromTo("#f06adapt-chart", { opacity: 0, y: 26 },
+        { opacity: 1, y: 0, duration: 0.55, ease: "power2.out" }, 0);
+      tl.fromTo("#f06adapt-kicker", { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" }, 0.12);
+      tl.fromTo(["#f06adapt-charttitle", "#f06adapt-charthint"], { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: "power2.out" }, 0.14);
+      tl.fromTo(".f06adapt-row", { opacity: 0, x: -14 },
+        { opacity: 1, x: 0, duration: 0.36, stagger: 0.06, ease: "power2.out" }, 0.24);
+      tl.fromTo(["#f06adapt-b0", "#f06adapt-b1", "#f06adapt-b2", "#f06adapt-b3", "#f06adapt-b4", "#f06adapt-b5"],
+        { scaleX: 0 },
+        { scaleX: function (i) { return A[i] / maxA; }, duration: 0.5, stagger: 0.06, ease: "power3.out" }, 0.3);
+      tl.fromTo("#f06adapt-total", { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.62);
+
+      tl.fromTo("#f06adapt-sel", { opacity: 0, y: 38 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power3.out" }, 0.62);
+      tl.fromTo(["#f06adapt-fdesde", "#f06adapt-fhasta", "#f06adapt-btn"],
+        { opacity: 0, scale: 0.9 },
+        { opacity: 1, scale: 1, duration: 0.34, stagger: 0.08, ease: "back.out(2)" }, 1.02);
+
+      // --- Scene 2 (1.6-4.0): retype "Desde" + Actualizar -> live re-sort --
+      tl.fromTo("#f06adapt-cursor", { opacity: 0, x: 1540, y: 630 },
+        { opacity: 1, x: 628, y: 802, duration: 0.45, ease: "power2.inOut" }, 1.32);
+
+      // field focus + selection on the month token
+      tl.to("#f06adapt-fdesde", { borderColor: "rgba(31, 25, 25, 0.72)", duration: 0.2 }, 1.7);
+      tl.to("#f06adapt-mes", { backgroundColor: "rgba(205,145,48,0.42)", duration: 0.18 }, 1.72);
+      // discrete retype 09 -> 0 -> 08 (stacked states, seek-safe in both directions)
+      tl.set("#f06adapt-mes", { backgroundColor: "rgba(205,145,48,0)" }, 1.94);
+      tl.set("#f06adapt-mes-old", { opacity: 0 }, 1.94);
+      tl.set("#f06adapt-mes-mid", { opacity: 1 }, 1.94);
+      tl.set("#f06adapt-caret", { opacity: 1, x: -15 }, 1.94);
+      tl.set("#f06adapt-mes-mid", { opacity: 0 }, 2.14);
+      tl.set("#f06adapt-mes-new", { opacity: 1 }, 2.14);
+      tl.set("#f06adapt-caret", { opacity: 1, x: 0 }, 2.14);
+      tl.set("#f06adapt-caret", { opacity: 0 }, 2.42);
+      // seek-backward safety: restore the pre-edit state
+      tl.set("#f06adapt-mes-old", { opacity: 1 }, 0);
+      tl.set("#f06adapt-mes-mid", { opacity: 0 }, 0);
+      tl.set("#f06adapt-mes-new", { opacity: 0 }, 0);
+      tl.set("#f06adapt-caret", { opacity: 0, x: 0 }, 0);
+
+      // punch-in on the control<->chart couple (both stay in frame)
+      tl.to("#f06adapt-world", { scale: 1.22, y: -26, duration: 0.5, ease: "power2.inOut" }, 2.34);
+
+      // cursor to the button, press, ripple
+      tl.to("#f06adapt-cursor", { x: 1262, y: 798, duration: 0.34, ease: "power2.inOut" }, 2.4);
+      tl.to("#f06adapt-btn", { scale: 0.965, duration: 0.09, ease: "power1.out" }, 2.74);
+      tl.to("#f06adapt-btn", { scale: 1, duration: 0.22, ease: "power2.out" }, 2.83);
+      tl.fromTo("#f06adapt-ripple", { opacity: 0.55, scale: 0.25 },
+        { opacity: 0, scale: 1.15, duration: 0.5, ease: "power2.out" }, 2.74);
+
+      // THE COUPLE: same beat — bars re-scale, rows re-sort, numbers recount
+      var SYNC = 2.8;
+      for (var j = 0; j < 6; j++) {
+        tl.to(q("f06adapt-b" + j), { scaleX: B[j] / maxB, duration: 0.85, ease: "power2.inOut" }, SYNC + j * 0.045);
+        count(q("f06adapt-a" + j), A[j], B[j], 0.95, SYNC + j * 0.045);
+      }
+      // Servicios (idx 4) climbs over Transporte (idx 3); they dip while crossing
+      tl.to("#f06adapt-r3", { y: 46, duration: 0.62, ease: "power2.inOut" }, SYNC + 0.14);
+      tl.to("#f06adapt-r4", { y: -46, duration: 0.62, ease: "power2.inOut" }, SYNC + 0.14);
+      tl.to(["#f06adapt-r3", "#f06adapt-r4"], { opacity: 0.28, duration: 0.3, ease: "power1.inOut" }, SYNC + 0.16);
+      tl.to(["#f06adapt-r3", "#f06adapt-r4"], { opacity: 1, duration: 0.3, ease: "power1.inOut" }, SYNC + 0.46);
+      count(q("f06adapt-total"), TOT_A, TOT_B, 1.05, SYNC);
+      tl.fromTo("#f06adapt-total", { scale: 1 }, { scale: 1.045, duration: 0.3, ease: "power2.out" }, SYNC);
+      tl.to("#f06adapt-total", { scale: 1, duration: 0.55, ease: "power2.inOut" }, SYNC + 0.3);
+
+      // pull back to the identical opening framing
+      tl.to("#f06adapt-world", { scale: 1.1, y: 0, duration: 0.72, ease: "power2.inOut" }, 3.58);
+
+      // --- Scene 3 (4.0-6.4): tocar "Vivienda" -> split 50/50 -------------
+      tl.to("#f06adapt-cursor", { x: 700, y: 372, duration: 0.44, ease: "power2.inOut" }, 4.0);
+      tl.fromTo("#f06adapt-ripple", { opacity: 0.55, scale: 0.25 },
+        { opacity: 0, scale: 1.15, duration: 0.5, ease: "power2.out" }, 4.48);
+      tl.to("#f06adapt-r0 .f06adapt-rowbg", { opacity: 1, duration: 0.28, ease: "power2.out" }, 4.5);
+      tl.fromTo("#f06adapt-r0 .f06adapt-rowmark", { opacity: 1, scaleY: 0 },
+        { opacity: 1, scaleY: 1, duration: 0.32, ease: "power2.out" }, 4.5);
+      tl.to("#f06adapt-b0", { backgroundColor: "#CD9130", duration: 0.35 }, 4.5);
+
+      // the chart yields half the frame; the camera opens to hold the split
+      tl.to("#f06adapt-world", { scale: 1, duration: 0.8, ease: "power2.inOut" }, 4.58);
+      tl.to("#f06adapt-col", { x: -420, duration: 0.8, ease: "power2.inOut" }, 4.58);
+      tl.to("#f06adapt-cursor", { x: 280, duration: 0.8, ease: "power2.inOut" }, 4.58);
+
+      // the movements table slides in
+      tl.fromTo("#f06adapt-panel", { opacity: 0, x: 300 },
+        { opacity: 1, x: 0, duration: 0.78, ease: "power3.out" }, 4.92);
+      tl.fromTo(["#f06adapt-ptitle", "#f06adapt-psubt"], { opacity: 0, y: 12 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.08, ease: "power2.out" }, 5.4);
+      tl.fromTo(".f06adapt-phead", { opacity: 0 }, { opacity: 1, duration: 0.3 }, 5.5);
+      tl.fromTo(".f06adapt-mrow", { opacity: 0, y: 16 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.1, ease: "back.out(1.4)" }, 5.58);
+      tl.to("#f06adapt-prule", { opacity: 1, duration: 0.3 }, 6.08);
+      tl.fromTo([".f06adapt-ptotlabel", ".f06adapt-ptot"], { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.4, stagger: 0.07, ease: "power2.out" }, 6.14);
+
+      // --- Scene 4 (6.4-10.0): la linea accent + el sub, held read --------
+      tl.fromTo("#f06adapt-accent", { opacity: 0, y: 14 },
+        { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" }, 6.62);
+      tl.fromTo("#f06adapt-accentsub", { opacity: 0, y: 10 },
+        { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 7.24);
+      // quiet micro-drift under the hold
+      tl.to("#f06adapt-world", { scale: 1.018, duration: 2.35, ease: "sine.inOut" }, 7.6);
+      tl.to("#f06adapt-world", { scale: 1.018, duration: 0.04 }, 9.96);
+
+      window.__timelines["06-adaptable"] = tl;
+    })();
+  </script>
+</template>

@@ -4,7 +4,7 @@
 
 El backend ya implementa login real, hash Argon2id, sesiones revocables, autorización por propietario, tarjetas, historial, análisis, metas, simulaciones y conversaciones. Los perfiles nuevos comienzan con saldo cero e historial vacío. Los perfiles nuevos no reciben precargas. Las cuentas existentes conservan sus datos; a petición del usuario se cargó posteriormente historial de ejemplo en su cuenta para las pruebas.
 
-El servidor MCP por stdio y el cliente Nest están implementados y probados. El adaptador Gemini y la generación de mensajes A2UI v0.9.1 están implementados. La integración se verificó también con Gemini real (Flash-Lite), desde el navegador hasta PostgreSQL. La clave local está configurada únicamente en server/.env; no se versiona.
+El servidor MCP por stdio y el cliente Nest están implementados y probados. Gemini es el proveedor del chat y de embeddings RAG. La generación de mensajes A2UI v0.9.1 está implementada. Las claves permanecen únicamente en `server/.env`; no se versionan.
 
 El frontend ya consume login, cuenta, tarjetas, movimientos, metas, simulación y asistente. El renderer del catálogo A2UI y el flujo confirmado se probaron desde navegador. Solo hay login y dos cuentas de prueba; registro público cerrado. Docker ejecuta únicamente PostgreSQL.
 

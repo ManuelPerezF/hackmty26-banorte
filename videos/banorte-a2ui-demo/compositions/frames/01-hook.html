@@ -1,0 +1,217 @@
+<template>
+  <style id="hf-fonts">
+@font-face{font-family:'Outfit';src:url('assets/fonts/outfit-latin-wght-normal.woff2') format('woff2-variations');font-weight:100 900;font-style:normal;font-display:block;}
+@font-face{font-family:'JetBrains Mono';src:url('assets/fonts/jetbrains-mono-400.ttf') format('truetype');font-weight:400;font-style:normal;font-display:block;}
+</style>
+<style>
+    #root {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      container-type: size;
+    }
+
+    #f01hook-bg {
+      position: absolute;
+      inset: 0;
+      background: #faf7f4;
+    }
+
+    #f01hook-stage {
+      position: absolute;
+      inset: 0;
+      font-family:'Outfit',sans-serif;
+      color: #1f1919;
+    }
+
+    #f01hook-mark {
+      position: absolute;
+      top: 3.6cqw;
+      left: 4.2cqw;
+      height: 3.1cqw;
+      width: auto;
+      opacity: 0;
+    }
+
+    #f01hook-lines {
+      position: absolute;
+      top: 15cqw;
+      left: 4.2cqw;
+      right: 4.2cqw;
+      text-align: center;
+    }
+
+    .f01hook-line {
+      font-size: 7cqw;
+      font-weight: 400;
+      line-height: 1.02;
+      letter-spacing: -0.022em;
+      white-space: nowrap;
+    }
+
+    #f01hook-l2 {
+      margin-top: 1.2cqw;
+    }
+
+    .f01hook-w {
+      display: inline-block;
+    }
+
+    #f01hook-swrap {
+      position: relative;
+      display: inline-block;
+    }
+
+    #f01hook-struck {
+      position: relative;
+      z-index: 1;
+    }
+
+    #f01hook-strike {
+      position: absolute;
+      left: -0.4cqw;
+      right: -0.4cqw;
+      top: calc(50% - 1px);
+      height: 2px;
+      background: #d71033;
+      z-index: 2;
+    }
+
+    #f01hook-construye {
+      color: #d71033;
+    }
+
+    #f01hook-mono {
+      margin-top: 3.2cqw;
+      font-family:'JetBrains Mono',monospace;
+      font-size: 1.46cqw;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(31, 25, 25, 0.55);
+    }
+
+    #f01hook-mono span {
+      display: inline-block;
+      margin: 0 0.5cqw;
+    }
+  </style>
+
+  <div
+    id="root"
+    data-composition-id="01-hook"
+    data-width="1920"
+    data-height="1080" data-duration="6.5"
+  >
+    <div
+      id="f01hook-bg"
+      class="clip"
+      data-start="0"
+      data-duration="6.5"
+      data-track-index="0"
+    ></div>
+
+    <div
+      id="f01hook-stage"
+      class="clip"
+      data-start="0"
+      data-duration="6.5"
+      data-track-index="1"
+    >
+      <img id="f01hook-mark" src="assets/banorte-mark.png" alt="Banorte" />
+
+      <div id="f01hook-lines">
+        <div class="f01hook-line" id="f01hook-l1">
+          <span class="f01hook-w">Tu</span>
+          <span class="f01hook-w">banco</span>
+          <span class="f01hook-w"><span id="f01hook-swrap"><span id="f01hook-struck">responde</span><span id="f01hook-strike"></span></span>.</span>
+        </div>
+
+        <div class="f01hook-line" id="f01hook-l2">
+          <span id="f01hook-ahora">Ahora</span>
+          <span id="f01hook-construye">construye.</span>
+        </div>
+
+        <div id="f01hook-mono">
+          <span>LLM</span><span>·</span><span>MCP</span><span>·</span><span>A2UI</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+  <script>
+    (function () {
+      window.__timelines = window.__timelines || {};
+      const tl = gsap.timeline({ paused: true });
+
+      // Scene 1 (0.0-1.6s) — sello Banorte + primera linea display por palabras
+      tl.fromTo(
+        "#f01hook-mark",
+        { opacity: 0, scale: 0.92 },
+        { opacity: 1, scale: 1, duration: 0.5, ease: "power2.out" },
+        0.12,
+      );
+
+      tl.fromTo(
+        "#f01hook-l1 .f01hook-w",
+        { opacity: 0, y: 20, filter: "blur(14px)" },
+        {
+          opacity: 1,
+          y: 0,
+          filter: "blur(0px)",
+          duration: 0.55,
+          ease: "power2.out",
+          stagger: 0.13,
+        },
+        0.25,
+      );
+
+      // Scene 2 (1.6-3.0s) — la regla coral barre "responde" y el texto baja de contraste
+      tl.fromTo(
+        "#f01hook-strike",
+        { scaleX: 0, transformOrigin: "left center" },
+        { scaleX: 1, duration: 0.55, ease: "power2.inOut" },
+        1.6,
+      );
+
+      tl.to("#f01hook-struck", { opacity: 0.34, duration: 0.35, ease: "power1.out" }, 2.2);
+
+      // Scene 3 (3.0-4.6s) — swap en el sitio, corte duro (sin fade)
+      tl.fromTo(
+        "#f01hook-ahora",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.01, ease: "none" },
+        3.0,
+      );
+
+      tl.fromTo(
+        "#f01hook-construye",
+        { opacity: 0 },
+        { opacity: 1, duration: 0.01, ease: "none" },
+        3.38,
+      );
+
+      // Scene 4 (4.6-6.0s) — linea de apoyo mono y hold sostenido
+      tl.fromTo(
+        "#f01hook-mono span",
+        { opacity: 0, y: 10 },
+        {
+          opacity: 1,
+          y: 0,
+          duration: 0.4,
+          ease: "power2.out",
+          stagger: 0.07,
+        },
+        4.6,
+      );
+
+      // mantiene la duracion completa del plano (hold final, sin salida)
+      tl.to({}, { duration: 6 }, 0);
+
+      window.__timelines["01-hook"] = tl;
+    })();
+  </script>
+</template>

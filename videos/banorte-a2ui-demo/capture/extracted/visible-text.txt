@@ -1,0 +1,45 @@
+[a] Ir al contenido
+[a] Personas
+[a] Tarjetas
+[a] Banca digital
+[a] Banco en línea
+[a] Abre tu cuenta
+[a] Personas
+[a] Tarjetas
+[a] Banca digital
+[a] Banco en línea
+[a] Abre tu cuenta
+[p] Contigo, en cada nueva dirección.
+[h1] El mundo sigue.
+[span] Tú vas más lejos.
+[p] Nuevos planes. Nuevos destinos. Una tarjeta Banorte
+[p] para acompañar lo que viene.
+[button] Platinum
+[button] Oro
+[button] Clásica
+[p] Banorte
+[p] Platinum
+[p] Una nueva perspectiva.
+[a] Conoce
+[a] Platinum
+[span] Tu vida cambia. Tu banca también.
+[a] Descubre una nueva forma de avanzar
+[span] Conoce a Maya
+[h2] De tus planes
+[h2] a tu próximo paso.
+[p] Pregunta por tus gastos, registra movimientos y consulta los documentos de tus tarjetas. Maya adapta la información a lo que necesitas.
+[a] Habla con Maya
+[small] Inicia sesión para conversar sobre tu dinero.
+[strong] Maya
+[span] Asistente Banorte
+[h3] Hagamos espacio
+[h3] para tus planes.
+[p] Tu siguiente paso empieza con una pregunta.
+[span] Pregunta algo sobre tus cuentas o tus planes…
+[p] Podemos empezar por aquí
+[span] ¿En qué gasté este mes?
+[span] Quiero registrar un movimiento
+[span] Consultar documentos
+[small] Elige tu tarjeta, un tema y tu pregunta.
+[span] Banorte · Una nueva perspectiva
+[a] Visita banorte.com

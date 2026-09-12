@@ -18,7 +18,7 @@ API: `http://127.0.0.1:3001/api/v1`. `cp -n` conserva la configuración existent
 
 Los perfiles nuevos empiezan en cero, sin movimientos ni tarjetas precargadas. El registro público está deshabilitado. En una base nueva, configurar `BOOTSTRAP_EMAIL`/`BOOTSTRAP_PASSWORD` y `SECOND_TEST_EMAIL`/`SECOND_TEST_PASSWORD` antes del seed para aprovisionar dos cuentas. Si ya hay dos usuarios, el seed los conserva; no cambia credenciales ni elimina historial. Nunca versionar `.env`.
 
-Configurar `GEMINI_API_KEY` para el asistente. MCP utiliza las dependencias y el código compilado de este backend; `npm run dev` compila antes de arrancar. Para ejecutar sin watch: `npm run build && npm start`.
+Gemini es el proveedor del chat y de RAG: configura `LLM_PROVIDER=gemini`, `GEMINI_API_KEY` y `LLM_MODEL`. El chat no cambia a otro proveedor por defecto. MCP utiliza las dependencias y el código compilado de este backend; `npm run dev` compila antes de arrancar. Para ejecutar sin watch: `npm run build && npm start`.
 
 - [Backend y verificación](../docs/backend.md)
 - [Endpoints y ejemplos](../docs/endpoints.md)
