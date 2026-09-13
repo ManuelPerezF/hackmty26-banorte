@@ -5,6 +5,7 @@ export const catalogId = "urn:banorte:a2ui:catalog:1";
 export const uiPlanSchema = z.strictObject({
   title: z.string().min(1).max(120),
   explanation: z.string().max(2000),
+  offTopic: z.boolean().optional(),
   goalDraft: goalDraftSchema.optional(),
   movementDraft: movementSchema.partial().optional(),
   knowledgeQuotes: z
@@ -33,10 +34,11 @@ export const uiPlanSchema = z.strictObject({
         "health",
         "coach",
         "points",
+        "trace",
       ]),
     )
     .min(1)
-    .max(14),
+    .max(15),
 });
 export type UiPlan = z.infer<typeof uiPlanSchema>;
 const common = { id: z.string().min(1).max(100) };
@@ -70,6 +72,7 @@ export const componentSchema = z.discriminatedUnion("component", [
       "BanorteCoachActions",
       "BanorteContributionConfirmation",
       "BanorteRewardPoints",
+      "BanorteBalanceTrace",
     ] as const
   ).map((name) =>
     z.strictObject({

@@ -27,6 +27,7 @@ import {
   AnalisisModule,
   AnalisisService,
   insightsSchema,
+  traceSchema,
 } from "../../modules/analisis/analisis.module";
 import {
   categories,
@@ -101,6 +102,8 @@ class ToolGatewayController {
         return { items: categories };
       case "get_spending_insights":
         return this.insights.spending(parse(insightsSchema), i);
+      case "get_balance_trace":
+        return this.insights.trace(parse(traceSchema), i);
       case "list_goals":
         return this.goals.list(i, parse(goalQuerySchema));
       case "simulate_savings":

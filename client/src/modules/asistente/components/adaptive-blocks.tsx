@@ -174,3 +174,70 @@ export function KnowledgeFacts({ data }: { data: unknown }) {
     </section>
   );
 }
+
+const traceItem = z.object({
+  id: z.string(),
+  date: z.iso.date(),
+  description: z.string(),
+  type: z.enum(['income', 'expense']),
+  category: z.string(),
+  amountCents: cents,
+  runningBalanceCents: cents,
+  card: z
+    .object({ last4: z.string(), product: z.object({ name: z.string() }) })
+    .nullable()
+    .optional(),
+});
+
+export function BalanceTrace({ data }: { data: unknown }) {
+  const d = z
+    .object({
+      period: z.object({ from: z.iso.date(), to: z.iso.date() }),
+      openingBalanceCents: cents,
+      closingBalanceCents: cents,
+      total: z.number().int(),
+      truncated: z.boolean(),
+      items: z.array(traceItem),
+    })
+    .parse(data);
+  return (
+    <section className="chat-trace" aria-label="Trazabilidad de saldo">
+      <h4>Cómo llegaste a tu saldo</h4>
+      <p>
+        Saldo inicial el {formatMovementDate(d.period.from)}:{' '}
+        <strong>{formatMoney(d.openingBalanceCents)}</strong>
+      </p>
+      <ol className="chat-trace-list">
+        {d.items.map((m) => (
+          <li key={m.id}>
+            <div>
+              <span>{m.description}</span>
+              <small>
+                {formatMovementDate(m.date)} · {m.category}
+                {m.card ? ` · ${m.card.product.name} ${m.card.last4}` : ''}
+              </small>
+            </div>
+            <div>
+              <b>
+                {m.type === 'income' ? '+' : '−'}
+                {formatMoney(m.amountCents)}
+              </b>
+              <small>Saldo: {formatMoney(m.runningBalanceCents)}</small>
+            </div>
+          </li>
+        ))}
+      </ol>
+      {!d.items.length && <p>No hay movimientos en este periodo.</p>}
+      <p>
+        Saldo al {formatMovementDate(d.period.to)}:{' '}
+        <strong>{formatMoney(d.closingBalanceCents)}</strong>
+      </p>
+      {d.truncated && (
+        <small>
+          Mostrando los primeros {d.items.length} de {d.total} movimientos del
+          periodo. Acota el rango de fechas para ver el resto.
+        </small>
+      )}
+    </section>
+  );
+}

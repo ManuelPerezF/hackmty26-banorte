@@ -1107,6 +1107,62 @@
   }
 }
 
+.chat-trace {
+  padding: 1.2rem 0;
+  border-top: 1px solid #e6e3e1;
+}
+.chat-trace h4 {
+  margin: 0 0 0.8rem;
+  font-size: 1rem;
+}
+.chat-trace > p {
+  font-size: 0.85rem;
+  line-height: 1.6;
+}
+.chat-trace-list {
+  list-style: none;
+  margin: 0.8rem 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  max-height: 22rem;
+  overflow-y: auto;
+}
+.chat-trace-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px dashed #e6e3e1;
+  font-size: 0.85rem;
+}
+.chat-trace-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+.chat-trace-list li > div:first-child {
+  min-width: 0;
+}
+.chat-trace-list li > div:first-child span {
+  display: block;
+  font-weight: 500;
+}
+.chat-trace-list li small {
+  display: block;
+  font-size: 0.72rem;
+  color: #746c69;
+  margin-top: 0.15rem;
+}
+.chat-trace-list li > div:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+.chat-trace-list li > div:last-child b {
+  display: block;
+}
+
 /* Interactive financial blocks use the same restrained controls as the panel. */
 .chat-goal-heading,
 .chat-goal-actions,

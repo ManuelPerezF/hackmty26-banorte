@@ -3,7 +3,7 @@ import { knowledgeQuerySchema } from "../../modules/conocimiento/knowledge.schem
 import { z } from "zod";
 import { rewardQuerySchema } from "../../modules/recompensas/recompensas.module";
 import { movementQuerySchema } from "../../modules/movimientos/schemas/movimiento.schema";
-import { insightsSchema } from "../../modules/analisis/analisis.module";
+import { insightsSchema, traceSchema } from "../../modules/analisis/analisis.module";
 import { goalQuerySchema } from "../../modules/metas/metas.module";
 import { simulationSchema } from "../../modules/simulaciones/simulaciones.module";
 export const toolDefinitions = {
@@ -41,6 +41,11 @@ export const toolDefinitions = {
     description:
       "Gastos propios por categoría y serie temporal. from/to deben enviarse juntos, máximo 366 días; por defecto mes actual. share es proporción 0–1. Neto del periodo no es saldo de cuenta.",
     schema: insightsSchema,
+  },
+  get_balance_trace: {
+    description:
+      "Trazabilidad del saldo: lista movimientos en orden cronológico con el saldo resultante después de cada uno (saldo inicial del periodo + acumulado). from/to deben enviarse juntos, máximo 366 días; por defecto del día 1 del mes actual a hoy. limit acota cuántos movimientos se devuelven (máx 200); truncated indica si hay más. Útil para explicar cómo se llegó al saldo actual, no para ver categorías o promedios.",
+    schema: traceSchema,
   },
   list_goals: {
     description:
@@ -110,6 +115,7 @@ export const toolMetadata: Record<ToolName, { title: string; readOnly: boolean }
   get_movement: { title: "Consultar movimiento", readOnly: true },
   list_movement_categories: { title: "Consultar categorías", readOnly: true },
   get_spending_insights: { title: "Analizar gastos", readOnly: true },
+  get_balance_trace: { title: "Trazabilidad de saldo", readOnly: true },
   list_goals: { title: "Consultar metas", readOnly: true },
   simulate_savings: { title: "Simular ahorro", readOnly: true },
   get_spending_forecast: { title: "Proyectar cierre de mes", readOnly: true },

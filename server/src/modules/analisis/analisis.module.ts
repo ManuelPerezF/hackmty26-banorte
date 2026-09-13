@@ -23,6 +23,22 @@ export const insightsSchema = z
     "Rango inválido o mayor a 366 días.",
   );
 export type InsightQuery = z.infer<typeof insightsSchema>;
+export const traceSchema = z
+  .strictObject({
+    from: dateSchema.optional(),
+    to: dateSchema.optional(),
+    category: z.enum(categories).optional(),
+    limit: z.number().int().min(1).max(200).optional(),
+  })
+  .refine((q) => Boolean(q.from) === Boolean(q.to), "Indica ambas fechas.")
+  .refine(
+    (q) =>
+      !q.from ||
+      !q.to ||
+      (q.from <= q.to && (Date.parse(q.to) - Date.parse(q.from)) / 86400000 < 366),
+    "Rango inválido o mayor a 366 días.",
+  );
+export type TraceQuery = z.infer<typeof traceSchema>;
 @Injectable()
 export class AnalisisService {
   constructor(private readonly db: PrismaService) {}
@@ -103,6 +119,67 @@ export class AnalisisService {
       })),
     };
   }
+  async trace(q: TraceQuery, i: Identity) {
+    const today = todayInTimezone(i.timezone);
+    const from = q.from ?? `${today.slice(0, 7)}-01`;
+    const to = q.to ?? today;
+    const limit = q.limit ?? 100;
+    const account = await this.db.account.findUniqueOrThrow({ where: { id: i.accountId } });
+    const priorWhere: Prisma.MovementWhereInput = {
+      accountId: i.accountId,
+      date: { lt: new Date(`${from}T00:00:00Z`) },
+    };
+    const rangeWhere: Prisma.MovementWhereInput = {
+      accountId: i.accountId,
+      category: q.category,
+      date: { gte: new Date(`${from}T00:00:00Z`), lte: new Date(`${to}T00:00:00Z`) },
+    };
+    const [priorSums, total, items] = await this.db.$transaction(
+      [
+        this.db.movement.groupBy({
+          by: ["type"],
+          orderBy: { type: "asc" },
+          where: priorWhere,
+          _sum: { amountCents: true },
+        }),
+        this.db.movement.count({ where: rangeWhere }),
+        this.db.movement.findMany({
+          where: rangeWhere,
+          orderBy: [{ date: "asc" }, { createdAt: "asc" }, { id: "asc" }],
+          take: limit,
+          include: { card: { select: { last4: true, product: { select: { name: true } } } } },
+        }),
+      ],
+      { isolationLevel: Prisma.TransactionIsolationLevel.RepeatableRead },
+    );
+    const priorIncome = priorSums.find((s) => s.type === "income")?._sum?.amountCents ?? 0n;
+    const priorExpense = priorSums.find((s) => s.type === "expense")?._sum?.amountCents ?? 0n;
+    let running = account.openingBalanceCents + priorIncome - priorExpense;
+    const openingBalanceCents = safeCents(running);
+    const trace = items.map((m) => {
+      running += m.type === "income" ? m.amountCents : -m.amountCents;
+      return {
+        id: m.id,
+        date: m.date.toISOString().slice(0, 10),
+        description: m.description,
+        type: m.type,
+        category: m.category,
+        amountCents: safeCents(m.amountCents),
+        runningBalanceCents: safeCents(running),
+        card: m.card ? { last4: m.card.last4, product: { name: m.card.product.name } } : null,
+      };
+    });
+    return {
+      currency: account.currency,
+      period: { from, to },
+      filters: { category: q.category ?? null },
+      openingBalanceCents,
+      closingBalanceCents: safeCents(running),
+      total,
+      truncated: total > items.length,
+      items: trace,
+    };
+  }
 }
 @Controller("insights")
 class AnalisisController {
@@ -112,6 +189,12 @@ class AnalisisController {
     @CurrentUser() i: Identity,
   ) {
     return this.service.spending(q, i);
+  }
+  @Get("trace") trace(
+    @Query(new ZodValidationPipe(traceSchema)) q: TraceQuery,
+    @CurrentUser() i: Identity,
+  ) {
+    return this.service.trace(q, i);
   }
 }
 @Module({

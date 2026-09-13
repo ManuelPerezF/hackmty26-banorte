@@ -55,8 +55,8 @@ async function seed() {
     );
 }
 seed()
-  .catch(() => {
-    console.error("Seed falló: revisa configuración, credenciales y migraciones.");
+  .catch((e) => {
+    console.error("Seed falló: revisa configuración, credenciales y migraciones.", e);
     process.exitCode = 1;
   })
   .finally(() => db.$disconnect());

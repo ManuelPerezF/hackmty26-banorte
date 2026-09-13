@@ -1,5 +1,5 @@
 'use client';
-import { PeriodComparison, KnowledgeFacts } from './adaptive-blocks';
+import { PeriodComparison, KnowledgeFacts, BalanceTrace } from './adaptive-blocks';
 import { KnowledgeSources } from './knowledge-sources';
 import { GoalList, GoalConfirmation } from './goal-blocks';
 import { CardList, SavingsBlock } from './financial-blocks';
@@ -127,6 +127,8 @@ function UiBlock({
     return <PeriodComparison data={data} />;
   if (component.component === 'BanorteKnowledgeFacts')
     return <KnowledgeFacts data={data} />;
+  if (component.component === 'BanorteBalanceTrace')
+    return <BalanceTrace data={data} />;
   if (component.component === 'BanorteSources')
     return <KnowledgeSources data={data} />;
   if (component.component === 'BanorteCardList')

@@ -813,6 +813,21 @@ export class AsistenteService implements OnModuleInit {
           return;
         }
         const plan = await this.llm.respond(context, execute, signal, mode);
+        // Ámbito cerrado: si el modelo marca la solicitud como ajena a finanzas
+        // personales, la app o Banorte, se corta aquí, antes de cualquier gating
+        // de mode/coach/generic y antes de resolver bloques o tools de lectura.
+        // Solo aplica a mensajes de texto del usuario: una acción de UI (change_period,
+        // drilldown, etc.) nunca lleva texto libre off-topic y no debe verse afectada.
+        if (plan.offTopic && input.kind === "message") {
+          await this.finish(
+            id,
+            "Fuera de alcance",
+            "Solo puedo ayudarte con tus cuentas, movimientos, metas, plan del mes, puntos y los documentos de Banorte. Cuéntame qué necesitas sobre tu dinero o la app y con gusto te ayudo.",
+            [],
+            {},
+          );
+          return;
+        }
         const data: Record<string, unknown> = {};
         const components: unknown[] = [];
         const add = (id: string, component: string, action?: string) =>
@@ -882,6 +897,15 @@ export class AsistenteService implements OnModuleInit {
             add("spending", "BanorteSpendingChart", "select_category");
             data.period = (data.spending as { period: { from: string; to: string } }).period;
             add("period", "BanortePeriodSelector", "change_period");
+          }
+          if (block === "trace") {
+            data.trace =
+              cached.get("get_balance_trace") ??
+              (await execute(
+                "get_balance_trace",
+                input.kind === "action" && input.event === "change_period" ? input.values : {},
+              ));
+            add("trace", "BanorteBalanceTrace");
           }
           if (block === "cards") {
             data.cards = cached.get("list_my_cards") ?? (await execute("list_my_cards", {}));
