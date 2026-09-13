@@ -839,6 +839,7 @@ export class AsistenteService implements OnModuleInit {
           "forecast",
           "budgets",
           "health",
+          "points",
         ].some((block) => requested.has(block as UiPlan["blocks"][number]));
         // "education" sin datos financieros es la forma que toman saludos,
         // negativas y respuestas documentales: ahí el chip se retira aunque el
@@ -921,6 +922,15 @@ export class AsistenteService implements OnModuleInit {
             // haber llamado la herramienta, se consulta aquí de todos modos.
             data.coach = cached.get("get_coach_actions") ?? (await execute("get_coach_actions", {}));
             add("coach", "BanorteCoachActions", "prepare_contribution");
+          }
+          if (block === "points") {
+            data.points =
+              cached.get("get_reward_points") ??
+              (await execute(
+                "get_reward_points",
+                input.kind === "action" && input.event === "change_period" ? input.values : {},
+              ));
+            add("points", "BanorteRewardPoints");
           }
           if (block === "savings") {
             data.savings = { result: cached.get("simulate_savings") ?? null };

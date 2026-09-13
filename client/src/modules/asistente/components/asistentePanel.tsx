@@ -48,7 +48,7 @@ const SUGGESTIONS = {
     { icon: ChartColumn, text: '¿En qué gasté este mes?' },
     { icon: Scale, text: 'Compara este mes con el anterior' },
     { icon: Wallet, text: '¿Cómo van mis presupuestos?' },
-    { icon: CreditCard, text: 'Muéstrame mis cuentas y tarjetas' },
+    { icon: CreditCard, text: '¿Cuántos puntos generé con mis tarjetas?' },
   ],
 } as const;
 

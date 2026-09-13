@@ -127,6 +127,7 @@ const firstOfMonth = iso(new Date(Date.UTC(today.getUTCFullYear(), today.getUTCM
         "BanorteHealthScore",
         "BanorteCoachActions",
         "BanorteContributionConfirmation",
+        "BanorteRewardPoints",
       ])
         assert.ok(c.components[n], `falta ${n} en el catálogo`);
     });
@@ -315,6 +316,41 @@ const firstOfMonth = iso(new Date(Date.UTC(today.getUTCFullYear(), today.getUTCM
       });
       const greeting = await send("hola", "coach");
       assert.equal(data(greeting).coach, undefined, "el servidor lo retira");
+    });
+
+    await check("Los puntos salen de la tasa documentada de cada tarjeta", async () => {
+      const cardId = randomUUID();
+      await db.query('INSERT INTO "Card" (id,"profileId","productKey",last4) VALUES ($1,$2,$3,$4)', [
+        cardId, identity.profileId, "oro", "5743",
+      ]);
+      await db.query(
+        'INSERT INTO "Movement" (id,"accountId","cardId",description,"amountCents",type,category,date,"idempotencyKey") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)',
+        [randomUUID(), accountId, cardId, "Súper con Oro", 25400, "expense", "Alimentación", firstOfMonth, randomUUID()],
+      );
+      const r = (await call("/rewards/points")).body;
+      const oro = r.cards.find((c) => c.cardId === cardId);
+      assert.ok(oro, "la tarjeta aparece en el desglose");
+      assert.equal(oro.pointsPer10Pesos, 1.15, "la tasa de Oro viene del documento, no de una constante");
+      assert.equal(oro.points, 28.75, "$254 → 25 decenas × 1.15");
+      assert.match(oro.source.title, /Oro/, "y trae la cita del documento");
+      assert.ok(oro.source.page >= 1);
+      // El gasto sin tarjeta de checks anteriores no genera puntos.
+      assert.equal(r.totalSpentCents, 25400);
+      // Con el mismo gasto, Platinum habría dado más y Clásica menos.
+      const hyp = Object.fromEntries(r.hypothetical.map((h) => [h.product, h.points]));
+      assert.equal(hyp.platinum, 31.25);
+      assert.equal(hyp.clasica, 25);
+      assert.equal(hyp.oro, 28.75);
+      // Y el bloque A2UI lo entrega al chat con la misma cifra.
+      blocks = ["points"];
+      app.get(LlmService).respond = async (_h, execute) => {
+        await execute("get_reward_points", {});
+        return { title: "Puntos", explanation: "Con tasa documentada.", blocks };
+      };
+      const turn = await send("¿Cuántos puntos generé?", "analyst");
+      assert.equal(data(turn).points.totalPoints, 28.75);
+      await db.query('DELETE FROM "Movement" WHERE "cardId"=$1', [cardId]);
+      await db.query('DELETE FROM "Card" WHERE id=$1', [cardId]);
     });
 
     await check("Una meta ajena no acepta aportaciones", async () => {

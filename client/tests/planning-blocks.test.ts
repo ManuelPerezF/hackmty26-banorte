@@ -89,3 +89,49 @@ test('la proyección sin presupuesto lleva porcentaje null, no cero', () => {
   });
   assert.equal(parsed.budgetUsagePct, null);
 });
+
+test('el bloque de puntos acepta el payload real con cita por tarjeta', async () => {
+  const { rewardsSchema } = await import(
+    '../src/modules/asistente/components/planning-schemas.ts'
+  );
+  const parsed = rewardsSchema.parse({
+    period: { from: '2026-09-01', to: '2026-09-30' },
+    cards: [
+      {
+        cardId: 'c1',
+        product: 'oro',
+        productName: 'Oro',
+        last4: '5743',
+        spentCents: 25400,
+        purchases: 1,
+        pointsPer10Pesos: 1.15,
+        points: 28.75,
+        source: {
+          title: 'Banorte Oro · Folleto informativo',
+          page: 1,
+          validFrom: '2026-05-01',
+          validTo: '2026-10-31',
+        },
+      },
+      {
+        cardId: 'c2',
+        product: 'clasica',
+        productName: 'Clásica',
+        last4: '6952',
+        spentCents: 0,
+        purchases: 0,
+        pointsPer10Pesos: null,
+        points: null,
+        source: null,
+      },
+    ],
+    totalPoints: 28.75,
+    totalSpentCents: 25400,
+    hypothetical: [
+      { product: 'platinum', pointsPer10Pesos: 1.25, points: 31.25, owned: false },
+    ],
+    assumptions: { program: 'Recompensa Total Banorte' },
+  });
+  assert.equal(parsed.cards[0].source?.page, 1);
+  assert.equal(parsed.cards[1].points, null, 'una tarjeta sin tasa documentada no inventa puntos');
+});

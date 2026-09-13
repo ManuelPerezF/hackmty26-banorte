@@ -32,10 +32,11 @@ export const uiPlanSchema = z.strictObject({
         "budgets",
         "health",
         "coach",
+        "points",
       ]),
     )
     .min(1)
-    .max(13),
+    .max(14),
 });
 export type UiPlan = z.infer<typeof uiPlanSchema>;
 const common = { id: z.string().min(1).max(100) };
@@ -68,6 +69,7 @@ export const componentSchema = z.discriminatedUnion("component", [
       "BanorteHealthScore",
       "BanorteCoachActions",
       "BanorteContributionConfirmation",
+      "BanorteRewardPoints",
     ] as const
   ).map((name) =>
     z.strictObject({

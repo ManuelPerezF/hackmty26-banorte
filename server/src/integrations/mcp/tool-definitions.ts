@@ -1,6 +1,7 @@
 import { comparisonSchema } from "../../modules/analisis/comparison";
 import { knowledgeQuerySchema } from "../../modules/conocimiento/knowledge.schemas";
 import { z } from "zod";
+import { rewardQuerySchema } from "../../modules/recompensas/recompensas.module";
 import { movementQuerySchema } from "../../modules/movimientos/schemas/movimiento.schema";
 import { insightsSchema } from "../../modules/analisis/analisis.module";
 import { goalQuerySchema } from "../../modules/metas/metas.module";
@@ -76,6 +77,11 @@ export const toolDefinitions = {
       "Sugerencias accionables calculadas por el servidor a partir de datos propios: presupuestos excedidos y aportaciones a metas cercanas a cumplirse. No las inventes tú; usa exactamente las que devuelve.",
     schema: z.strictObject({}),
   },
+  get_reward_points: {
+    description:
+      "Puntos Recompensa Total generados por compras con cada tarjeta propia en un periodo (por defecto el mes en curso). La tasa por producto se lee de los documentos indexados y viene con su cita; no la inventes ni la redondees. Solo cuentan compras con tarjeta. Incluye cuánto habrían dado los otros productos con el mismo gasto.",
+    schema: rewardQuerySchema,
+  },
   contribute_to_goal: {
     description:
       "Ejecuta exclusivamente la aportación a meta ya aprobada por el usuario. No acepta ni cambia sus datos. Registra avance del plan; no mueve dinero de la cuenta.",
@@ -111,6 +117,7 @@ export const toolMetadata: Record<ToolName, { title: string; readOnly: boolean }
   list_recurrences: { title: "Consultar cargos fijos", readOnly: true },
   get_financial_health: { title: "Calcular salud financiera", readOnly: true },
   get_coach_actions: { title: "Sugerir acciones", readOnly: true },
+  get_reward_points: { title: "Calcular puntos de recompensa", readOnly: true },
   contribute_to_goal: { title: "Guardar aportación confirmada", readOnly: false },
   apply_goal_change: { title: "Guardar cambio de meta confirmado", readOnly: false },
   register_movement: { title: "Guardar movimiento confirmado", readOnly: false },

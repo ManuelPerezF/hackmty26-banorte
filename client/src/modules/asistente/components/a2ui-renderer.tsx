@@ -8,6 +8,7 @@ import {
   BudgetListBlock,
   HealthScoreBlock,
   CoachActionsBlock,
+  RewardPointsBlock,
 } from './planning-blocks';
 import { formText } from '@/shared/api/client';
 import { useState, useEffect } from 'react';
@@ -499,6 +500,8 @@ function UiBlock({
     );
   }
   if (component.component === 'BanorteForecast') return <ForecastBlock data={data} />;
+  if (component.component === 'BanorteRewardPoints')
+    return <RewardPointsBlock data={data} />;
   if (component.component === 'BanorteBudgetList')
     return <BudgetListBlock data={data} />;
   if (component.component === 'BanorteHealthScore')

@@ -38,6 +38,11 @@ import {
   PlaneacionService,
   contributionSchema,
 } from "../../modules/planeacion/planeacion.module";
+import {
+  RecompensasModule,
+  RecompensasService,
+  rewardQuerySchema,
+} from "../../modules/recompensas/recompensas.module";
 import { CapabilityService } from "./capability.service";
 import { McpService } from "./mcp.service";
 import { ToolName, toolDefinitions } from "./tool-definitions";
@@ -54,6 +59,7 @@ class ToolGatewayController {
     private readonly goals: MetasService,
     private readonly knowledge: KnowledgeService,
     private readonly planning: PlaneacionService,
+    private readonly rewards: RecompensasService,
   ) {}
   @SetMetadata("auth:mcp", true) @Post(":name") async call(
     @Param("name") name: ToolName,
@@ -109,6 +115,8 @@ class ToolGatewayController {
         return this.planning.health(i);
       case "get_coach_actions":
         return this.planning.coachActions(i);
+      case "get_reward_points":
+        return this.rewards.points(i, parse(rewardQuerySchema));
       case "contribute_to_goal": {
         // Igual que register_movement: el modelo no aporta datos, solo dispara
         // la acción que el usuario ya confirmó y que vive en el servidor.
@@ -172,6 +180,7 @@ class ToolGatewayController {
     AnalisisModule,
     MetasModule,
     PlaneacionModule,
+    RecompensasModule,
   ],
   controllers: [ToolGatewayController],
   providers: [CapabilityService, McpService],

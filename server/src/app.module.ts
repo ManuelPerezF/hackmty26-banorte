@@ -4,6 +4,7 @@ import { PerfilModule } from "./modules/perfil/perfil.module";
 import { AnalisisModule } from "./modules/analisis/analisis.module";
 import { MetasModule } from "./modules/metas/metas.module";
 import { PlaneacionModule } from "./modules/planeacion/planeacion.module";
+import { RecompensasModule } from "./modules/recompensas/recompensas.module";
 import { SimulacionesModule } from "./modules/simulaciones/simulaciones.module";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "./config/config.module";
@@ -20,6 +21,7 @@ import { SaludModule } from "./modules/salud/salud.module";
     AnalisisModule,
     MetasModule,
     PlaneacionModule,
+    RecompensasModule,
     SimulacionesModule,
     CuentasModule,
     MovimientosModule,

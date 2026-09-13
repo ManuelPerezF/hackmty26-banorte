@@ -4,7 +4,9 @@ import {
   coachSchema,
   forecastSchema,
   healthSchema,
+  rewardsSchema,
 } from './planning-schemas';
+import { formatMovementDate } from '@/shared/utils/money';
 import { Button } from '@/shared/components/ui/button';
 import { formatMoney } from '@/shared/utils/money';
 
@@ -197,6 +199,78 @@ export function CoachActionsBlock({
       <small>
         Sugerencias calculadas con tus propios datos. Ninguna se aplica sin que
         la confirmes.
+      </small>
+    </section>
+  );
+}
+
+const PRODUCT_LABEL: Record<string, string> = {
+  clasica: 'Clásica',
+  oro: 'Oro',
+  platinum: 'Platinum',
+};
+
+export function RewardPointsBlock({ data }: { data: unknown }) {
+  const r = rewardsSchema.parse(data);
+  const withRate = r.cards.filter((c) => c.pointsPer10Pesos !== null);
+  const best = [...r.hypothetical].sort((a, b) => b.points - a.points)[0];
+  const ownedBest = r.hypothetical
+    .filter((h) => h.owned)
+    .sort((a, b) => b.points - a.points)[0];
+  return (
+    <section className="chat-points" aria-label="Puntos de recompensa">
+      <h4>Puntos Recompensa Total</h4>
+      <div className="chat-points-figure">
+        <strong>{r.totalPoints.toLocaleString('es-MX')}</strong>
+        <span>
+          puntos · {formatMovementDate(r.period.from)} –{' '}
+          {formatMovementDate(r.period.to)}
+        </span>
+      </div>
+      {r.cards.length ? (
+        <ul>
+          {r.cards.map((c) => (
+            <li key={c.cardId}>
+              <div className="chat-points-row">
+                <strong>
+                  {c.productName} ····{c.last4}
+                </strong>
+                <span className="chat-points-value">
+                  {c.points === null ? '—' : c.points.toLocaleString('es-MX')}{' '}
+                  pts
+                </span>
+              </div>
+              <small>
+                {formatMoney(c.spentCents)} en {c.purchases}{' '}
+                {c.purchases === 1 ? 'compra' : 'compras'}
+                {c.pointsPer10Pesos !== null && c.source
+                  ? ` · ${c.pointsPer10Pesos} pts por $10 — ${c.source.title}, p. ${c.source.page}` +
+                    (c.source.validTo
+                      ? ` (vigente hasta ${formatMovementDate(c.source.validTo)})`
+                      : '')
+                  : ' · sin tasa documentada para este producto'}
+              </small>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No tienes tarjetas asignadas; los puntos se generan por compras con tarjeta.</p>
+      )}
+      {/* La comparación vuelve concreta la diferencia entre productos: es la
+          misma compra, solo cambia el plástico. Se marca cuál ya tienes. */}
+      {r.totalSpentCents > 0 && best && ownedBest && best.product !== ownedBest.product && (
+        <p className="chat-points-hint">
+          Con el mismo gasto, una {PRODUCT_LABEL[best.product] ?? best.product}{' '}
+          habría generado {best.points.toLocaleString('es-MX')} puntos (
+          {best.pointsPer10Pesos} por $10) frente a{' '}
+          {ownedBest.points.toLocaleString('es-MX')} de tu{' '}
+          {PRODUCT_LABEL[ownedBest.product] ?? ownedBest.product}.
+        </p>
+      )}
+      <small>
+        Estimación con la tasa publicada por producto; requiere inscripción al
+        programa. Solo cuentan compras con tarjeta, no ingresos ni cargos a
+        cuenta.{withRate.length === 0 && ' No se encontró tasa en los documentos.'}
       </small>
     </section>
   );

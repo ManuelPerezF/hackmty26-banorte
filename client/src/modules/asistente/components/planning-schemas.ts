@@ -67,3 +67,39 @@ export const coachSchema = z.object({
     ]),
   ),
 });
+
+const source = z
+  .object({
+    title: z.string(),
+    page: z.number().int(),
+    validFrom: z.string().nullable(),
+    validTo: z.string().nullable(),
+  })
+  .nullable();
+
+export const rewardsSchema = z.object({
+  period: z.object({ from: z.string(), to: z.string() }),
+  cards: z.array(
+    z.object({
+      cardId: z.string(),
+      product: z.string(),
+      productName: z.string(),
+      last4: z.string(),
+      spentCents: cents,
+      purchases: z.number().int(),
+      pointsPer10Pesos: z.number().nullable(),
+      points: z.number().nullable(),
+      source,
+    }),
+  ),
+  totalPoints: z.number(),
+  totalSpentCents: cents,
+  hypothetical: z.array(
+    z.object({
+      product: z.string(),
+      pointsPer10Pesos: z.number(),
+      points: z.number(),
+      owned: z.boolean(),
+    }),
+  ),
+});
