@@ -6,7 +6,11 @@ import { simulationSchema } from "../simulaciones/simulaciones.module";
 export const conversationSchema = z.strictObject({
   title: z.string().trim().min(1).max(80).default("Nueva conversación"),
 });
-export const messageSchema = z.strictObject({ content: z.string().trim().min(1).max(4000) });
+export const assistantModes = ["coach", "analyst"] as const;
+export const messageSchema = z.strictObject({
+  content: z.string().trim().min(1).max(4000),
+  mode: z.enum(assistantModes).default("coach"),
+});
 const common = { surfaceId: z.uuid(), revision: z.number().int().nonnegative() };
 export const actionSchema = z.discriminatedUnion("event", [
   z.strictObject({ ...common, event: z.literal("prepare_goal"), values: goalChangeSchema }),
@@ -39,6 +43,16 @@ export const actionSchema = z.discriminatedUnion("event", [
         "Rango inválido o mayor a 366 días.",
       ),
   }),
+  z.strictObject({
+    ...common,
+    event: z.literal("prepare_contribution"),
+    values: z.strictObject({
+      goalId: z.uuid(),
+      amountCents: z.number().int().min(1).max(100000000),
+    }),
+  }),
+  z.strictObject({ ...common, event: z.literal("confirm_contribution"), actionId: z.uuid() }),
+  z.strictObject({ ...common, event: z.literal("cancel_contribution"), actionId: z.uuid() }),
   z.strictObject({ ...common, event: z.literal("submit_movement_form"), values: movementSchema }),
   z.strictObject({ ...common, event: z.literal("confirm_movement"), actionId: z.uuid() }),
   z.strictObject({ ...common, event: z.literal("cancel_movement"), actionId: z.uuid() }),
@@ -46,6 +60,10 @@ export const actionSchema = z.discriminatedUnion("event", [
 export type AgentAction = z.infer<typeof actionSchema>;
 
 export const turnInputSchema = z.union([
-  z.strictObject({ kind: z.literal("message"), content: messageSchema.shape.content }),
+  z.strictObject({
+    kind: z.literal("message"),
+    content: messageSchema.shape.content,
+    mode: z.enum(assistantModes).optional(),
+  }),
   ...actionSchema.options.map((s) => s.extend({ kind: z.literal("action") })),
 ]);

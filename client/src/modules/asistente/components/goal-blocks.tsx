@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { z } from 'zod';
+import { GoalCard } from '@/modules/metas/components/goal-card';
 import { Button } from '@/shared/components/ui/button';
 import { formText } from '@/shared/api/client';
 import { formatMoney, formatMovementDate } from '@/shared/utils/money';
@@ -213,20 +214,10 @@ export function GoalList({
         ))}
       </fieldset>
       {list.items.length ? (
-        <ul>
+        <ul className="chat-goals-grid">
           {list.items.map((g) => (
             <li key={g.id}>
-              <div>
-                <strong>{g.name}</strong>
-                <small>
-                  {g.deadline
-                    ? `Para el ${formatMovementDate(g.deadline)}`
-                    : 'Sin fecha objetivo'}
-                </small>
-              </div>
-              <strong className="chat-item-meta">
-                {formatMoney(g.targetCents)}
-              </strong>
+              <GoalCard goal={g} today={list.today ?? ''} />
               <div className="chat-goal-actions">
                 <Button
                   variant="ghost"

@@ -33,6 +33,11 @@ import {
   movementSchema,
   movementQuerySchema,
 } from "../../modules/movimientos/schemas/movimiento.schema";
+import {
+  PlaneacionModule,
+  PlaneacionService,
+  contributionSchema,
+} from "../../modules/planeacion/planeacion.module";
 import { CapabilityService } from "./capability.service";
 import { McpService } from "./mcp.service";
 import { ToolName, toolDefinitions } from "./tool-definitions";
@@ -48,6 +53,7 @@ class ToolGatewayController {
     private readonly db: PrismaService,
     private readonly goals: MetasService,
     private readonly knowledge: KnowledgeService,
+    private readonly planning: PlaneacionService,
   ) {}
   @SetMetadata("auth:mcp", true) @Post(":name") async call(
     @Param("name") name: ToolName,
@@ -93,6 +99,38 @@ class ToolGatewayController {
         return this.goals.list(i, parse(goalQuerySchema));
       case "simulate_savings":
         return simulate(parse(simulationSchema));
+      case "get_spending_forecast":
+        return this.planning.forecast(i);
+      case "get_budgets":
+        return this.planning.budgets(i);
+      case "list_recurrences":
+        return this.planning.recurrences(i);
+      case "get_financial_health":
+        return this.planning.health(i);
+      case "get_coach_actions":
+        return this.planning.coachActions(i);
+      case "contribute_to_goal": {
+        // Igual que register_movement: el modelo no aporta datos, solo dispara
+        // la acción que el usuario ya confirmó y que vive en el servidor.
+        if (!cap.actionId) throw new UnauthorizedException();
+        const action = await this.db.pendingAction.findFirst({
+          where: {
+            id: cap.actionId,
+            sessionId: i.sessionId,
+            turn: { conversation: { profileId: i.profileId } },
+            status: { in: ["executing", "completed"] },
+          },
+        });
+        if (!action) throw new UnauthorizedException();
+        const payload = contributionSchema.parse(action.payload);
+        if (action.status === "completed") return action.result;
+        const result = await this.planning.contribute(i, payload, action.id);
+        await this.db.pendingAction.update({
+          where: { id: action.id },
+          data: { status: "completed", result },
+        });
+        return result;
+      }
       case "apply_goal_change": {
         if (!cap.actionId) throw new UnauthorizedException();
         return this.goals.applyConfirmed(i, cap.actionId);
@@ -133,6 +171,7 @@ class ToolGatewayController {
     MovimientosModule,
     AnalisisModule,
     MetasModule,
+    PlaneacionModule,
   ],
   controllers: [ToolGatewayController],
   providers: [CapabilityService, McpService],

@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ArrowUp,
   ArrowUpRight,
@@ -12,16 +12,46 @@ import {
   History,
   CreditCard,
   Flag,
+  HeartPulse,
+  Mic,
+  MicOff,
+  Scale,
+  Sparkles,
+  TrendingUp,
+  Wallet,
   X,
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { useBank } from '@/modules/cuentas/context/bank-context';
 import type { useAsistente } from '../hooks/useAsistente';
+import { useDictation } from '../hooks/useDictation';
 import { MayaClip } from './maya-clip';
 import { MayaMark } from './maya-mark';
 import { A2uiRenderer } from './a2ui-renderer';
 import { DocumentConsultation } from './document-consultation';
 import '../styles/chat.css';
+/**
+ * Atajos de bienvenida por modo. El coach abre con lo que se puede hacer; el
+ * analista con lo que se puede medir. Ninguno inventa capacidades: cada frase
+ * cae en un bloque que el servidor ya sabe construir.
+ */
+const SUGGESTIONS = {
+  coach: [
+    { icon: Sparkles, text: '¿Qué me sugieres para este mes?' },
+    { icon: HeartPulse, text: '¿Cómo va mi salud financiera?' },
+    { icon: Flag, text: 'Ayúdame a avanzar en mis metas' },
+    { icon: PiggyBank, text: 'Ayúdame a simular mi ahorro' },
+    { icon: Receipt, text: 'Quiero registrar un movimiento' },
+  ],
+  analyst: [
+    { icon: TrendingUp, text: '¿Cómo voy a cerrar el mes?' },
+    { icon: ChartColumn, text: '¿En qué gasté este mes?' },
+    { icon: Scale, text: 'Compara este mes con el anterior' },
+    { icon: Wallet, text: '¿Cómo van mis presupuestos?' },
+    { icon: CreditCard, text: 'Muéstrame mis cuentas y tarjetas' },
+  ],
+} as const;
+
 export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
   const { profile } = useBank();
   // null = sin decisión del usuario: manda el default del CSS (abierto en escritorio, cerrado en móvil)
@@ -35,6 +65,13 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
     return () => query.removeEventListener('change', sync);
   }, []);
   const historyVisible = historyOpen ?? wide;
+  const { setDraft } = a;
+  const appendDictation = useCallback(
+    (text: string) =>
+      setDraft((current: string) => (current ? `${current} ${text}` : text)),
+    [setDraft],
+  );
+  const dictation = useDictation(appendDictation);
   const scroll = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const area = scroll.current;
@@ -83,6 +120,19 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
           }
         }}
       />
+      {dictation.supported && (
+        <Button
+          type="button"
+          variant="ghost"
+          className="chat-dictate"
+          aria-label={dictation.listening ? 'Detener dictado' : 'Dictar mensaje'}
+          aria-pressed={dictation.listening}
+          disabled={a.busy || a.loading}
+          onClick={dictation.toggle}
+        >
+          {dictation.listening ? <MicOff size={18} /> : <Mic size={18} />}
+        </Button>
+      )}
       <Button
         type="submit"
         aria-label="Enviar mensaje"
@@ -90,7 +140,9 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
       >
         <ArrowUp size={19} />
       </Button>
-      <small>Revisa los datos antes de confirmar un cambio.</small>
+      <small>
+        {dictation.error || 'Revisa los datos antes de confirmar un cambio.'}
+      </small>
     </form>
   );
   return (
@@ -111,6 +163,22 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
             <h2>Maya</h2>
             <p>Asistente Banorte</p>
           </div>
+          <fieldset
+            className="chat-mode"
+            aria-label="Tono del asistente"
+            disabled={a.busy || a.loading}
+          >
+            {(['coach', 'analyst'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                aria-pressed={a.mode === m}
+                onClick={() => a.setMode(m)}
+              >
+                {m === 'coach' ? 'Coach' : 'Analista'}
+              </button>
+            ))}
+          </fieldset>
           <Button
             variant="ghost"
             className="chat-history-toggle"
@@ -136,18 +204,13 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
               <p>Hagamos espacio para tus planes.</p>
               {composer}
               <div className="chat-suggestions">
-                <span>PODEMOS EMPEZAR POR AQUÍ</span>
+                <span>
+                  {a.mode === 'analyst'
+                    ? 'PARA ANALIZAR TUS NÚMEROS'
+                    : 'PODEMOS EMPEZAR POR AQUÍ'}
+                </span>
                 {documents}
-                {[
-                  { icon: ChartColumn, text: '¿En qué gasté este mes?' },
-                  { icon: Receipt, text: 'Quiero registrar un movimiento' },
-                  {
-                    icon: CreditCard,
-                    text: 'Muéstrame mis cuentas y tarjetas',
-                  },
-                  { icon: Flag, text: 'Quiero revisar mis metas' },
-                  { icon: PiggyBank, text: 'Ayúdame a simular mi ahorro' },
-                ].map(({ icon: Icon, text }) => (
+                {SUGGESTIONS[a.mode].map(({ icon: Icon, text }) => (
                   <button
                     key={text}
                     disabled={!a.catalogReady || a.busy}

@@ -2,7 +2,12 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 228px;
   transition: grid-template-columns 220ms ease;
-  min-height: 700px;
+  /* La altura vive en la tarjeta, no en sus columnas: así el historial y la
+     conversación comparten un alto acotado y cada uno hace su propio scroll,
+     en vez de estirar la página. El piso es bajo a propósito para que en
+     pantallas cortas la tarjeta quepa completa. */
+  height: min(950px, calc(100dvh - 130px));
+  min-height: 440px;
   background: #faf9f8;
   border: 1px solid #ebe8e6;
   border-radius: 20px;
@@ -11,10 +16,9 @@
 }
 .chat-main {
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  height: min(950px, calc(100dvh - 130px));
-  min-height: 740px;
 }
 .bank-chat-header {
   display: flex;
@@ -65,7 +69,11 @@
   border-left: 1px solid #e8e5e3;
   padding: 17px 14px;
   min-width: 0;
-  overflow: auto;
+  /* Sin min-height:0 un ítem de grid crece con su contenido y `overflow:auto`
+     nunca llega a aplicarse: la lista de conversaciones estiraba la tarjeta. */
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 .chat-history-top {
   display: flex;
@@ -134,7 +142,6 @@
 }
 .bank-chat .chat-history-toggle {
   display: flex;
-  margin-left: auto;
   font-size: 11px;
   color: #55504e;
 }
@@ -826,11 +833,12 @@
   .bank-chat {
     display: flex;
     flex-direction: column;
+    height: auto;
     min-height: 600px;
   }
   .chat-main {
-    height: auto;
-    min-height: 700px;
+    height: min(820px, calc(100dvh - 120px));
+    min-height: 520px;
   }
   .chat-history {
     display: none;
@@ -862,9 +870,6 @@
   }
   .chat-history-empty > svg {
     display: none;
-  }
-  .chat-main:not(:has(.chat-welcome)) {
-    height: 80dvh;
   }
 }
 @media (max-width: 500px) {
@@ -1178,5 +1183,226 @@ button.chat-chart-row:focus-visible {
   outline-offset: 3px;
 }
 button.chat-chart-row:disabled {
+  cursor: default;
+}
+
+/* Metas del asistente como tarjetas: misma pieza que la sección Metas. */
+.chat-goals-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(236px, 1fr));
+  gap: 14px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+}
+.chat-goals-grid > li {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.chat-goals-grid .chat-goal-actions {
+  justify-content: flex-start;
+}
+
+/* ---- Planeación: proyección, presupuestos, salud y coach ---- */
+.chat-forecast,
+.chat-budgets,
+.chat-health,
+.chat-coach {
+  border: 1px solid var(--ui-line, #e8e5e3);
+  border-radius: 14px;
+  padding: 18px;
+  margin: 14px 0;
+  background: #fff;
+}
+.chat-forecast h4,
+.chat-budgets h4,
+.chat-health h4,
+.chat-coach h4 {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+}
+.chat-budgets h4 span {
+  margin-left: 6px;
+  font-weight: 400;
+  color: #7a7472;
+}
+.chat-forecast-total {
+  display: block;
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  font-variant-numeric: tabular-nums;
+}
+.chat-forecast-total small {
+  font-size: 12px;
+  font-weight: 500;
+  color: #7a7472;
+}
+.chat-forecast-basis {
+  font-size: 12px;
+  color: #55504e;
+  margin: 6px 0 14px;
+}
+.chat-forecast-bar,
+.chat-budget-bar,
+.chat-health-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: #efeceb;
+  overflow: hidden;
+}
+.chat-forecast-bar > span,
+.chat-budget-bar > span,
+.chat-health-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #eb0029;
+}
+/* Tres estados, no un degradado: el aviso tiene que leerse de un vistazo. */
+.chat-forecast-bar > span[data-state='on_track'] {
+  background: #2f8f5b;
+}
+.chat-forecast-bar > span[data-state='warning'] {
+  background: #c98a1e;
+}
+.chat-forecast-parts {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 10px;
+}
+.chat-forecast-parts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  font-size: 12px;
+}
+.chat-forecast-parts dt {
+  color: #7a7472;
+}
+.chat-forecast-parts dd {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+.chat-budgets ul,
+.chat-health ul,
+.chat-coach ul {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: grid;
+  gap: 14px;
+}
+.chat-budget-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+  font-size: 13px;
+}
+.chat-budget-chip {
+  margin-left: auto;
+  font-size: 11px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: #f1eeed;
+  color: #55504e;
+}
+.chat-budgets li[data-state='warning'] .chat-budget-chip {
+  background: #fdf3e0;
+  color: #8a5d05;
+}
+.chat-budgets li[data-state='exceeded'] .chat-budget-chip {
+  background: #fdeaed;
+  color: #a3001d;
+}
+.chat-budgets li[data-state='on_track'] .chat-budget-bar > span {
+  background: #2f8f5b;
+}
+.chat-budgets li[data-state='warning'] .chat-budget-bar > span {
+  background: #c98a1e;
+}
+.chat-budgets li small,
+.chat-coach small,
+.chat-health small,
+.chat-forecast small {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: #7a7472;
+}
+.chat-health-figure {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.chat-health-figure strong {
+  font-size: 40px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.chat-health-figure span {
+  font-size: 12px;
+  color: #55504e;
+}
+.chat-health li > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 5px;
+}
+.chat-health-points {
+  font-variant-numeric: tabular-nums;
+  color: #7a7472;
+}
+.chat-coach ul {
+  gap: 8px;
+}
+.chat-coach li > button {
+  width: 100%;
+  justify-content: flex-start;
+}
+.chat-coach-note {
+  display: block;
+  font-size: 12px;
+  color: #55504e;
+  padding: 8px 0;
+}
+/* ---- Compositor: dictado y tono ---- */
+.bank-chat .chat-dictate {
+  padding: 0 10px;
+}
+.bank-chat .chat-dictate[aria-pressed='true'] {
+  color: #eb0029;
+}
+.chat-mode {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  border: 1px solid #e8e5e3;
+  border-radius: 999px;
+  padding: 2px;
+}
+.chat-mode button {
+  border: 0;
+  background: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: #55504e;
+  cursor: pointer;
+}
+.chat-mode button[aria-pressed='true'] {
+  background: #f4eceb;
+  color: #a3001d;
+  font-weight: 500;
+}
+.chat-mode:disabled button {
+  opacity: 0.5;
   cursor: default;
 }

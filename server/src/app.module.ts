@@ -3,6 +3,7 @@ import { AuthModule } from "./modules/autenticacion/auth.module";
 import { PerfilModule } from "./modules/perfil/perfil.module";
 import { AnalisisModule } from "./modules/analisis/analisis.module";
 import { MetasModule } from "./modules/metas/metas.module";
+import { PlaneacionModule } from "./modules/planeacion/planeacion.module";
 import { SimulacionesModule } from "./modules/simulaciones/simulaciones.module";
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "./config/config.module";
@@ -18,6 +19,7 @@ import { SaludModule } from "./modules/salud/salud.module";
     PerfilModule,
     AnalisisModule,
     MetasModule,
+    PlaneacionModule,
     SimulacionesModule,
     CuentasModule,
     MovimientosModule,

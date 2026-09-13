@@ -71,6 +71,9 @@ model Profile {
   account Account?
   cards Card[]
   goals Goal[]
+  goalContributions GoalContribution[]
+  budgets Budget[]
+  recurrences Recurrence[]
   conversations Conversation[]
 }
 model Session {
@@ -94,6 +97,7 @@ model CardProduct {
 }
 model Card {
   movements Movement[]
+  recurrences Recurrence[]
   id String @id @default(uuid()) @db.Uuid
   profileId String @db.Uuid
   profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
@@ -116,7 +120,51 @@ model Goal {
   originalInput Json
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  contributions GoalContribution[]
   @@unique([profileId, requestKey])
+}
+/// Aportación a una meta. Es una anotación de plan, no un traspaso de dinero:
+/// no toca el saldo de la cuenta ni genera un Movement.
+model GoalContribution {
+  id String @id @default(uuid()) @db.Uuid
+  goalId String @db.Uuid
+  goal Goal @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  profileId String @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  amountCents BigInt
+  requestKey String @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  @@unique([profileId, requestKey])
+  @@index([goalId])
+}
+/// Límite mensual de gasto por categoría. Uno por categoría y perfil.
+model Budget {
+  id String @id @default(uuid()) @db.Uuid
+  profileId String @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  category String @db.VarChar(40)
+  amountCents BigInt
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@unique([profileId, category])
+}
+/// Cargo o ingreso fijo mensual. dayOfMonth se limita a 28 para que la fecha
+/// exista en todos los meses, febrero incluido.
+model Recurrence {
+  id String @id @default(uuid()) @db.Uuid
+  profileId String @db.Uuid
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  cardId String? @db.Uuid
+  card Card? @relation(fields: [cardId], references: [id], onDelete: SetNull)
+  description String @db.VarChar(80)
+  category String @db.VarChar(40)
+  amountCents BigInt
+  type String @db.VarChar(10)
+  dayOfMonth Int
+  active Boolean @default(true)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([profileId, active])
 }
 model Conversation {
   id String @id @default(uuid()) @db.Uuid

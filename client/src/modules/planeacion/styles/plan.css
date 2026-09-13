@@ -1,0 +1,275 @@
+.plan-view {
+  display: grid;
+  gap: 26px;
+}
+.plan-error {
+  color: oklch(0.5 0.17 22);
+  font-size: 13px;
+}
+.plan-kicker {
+  display: block;
+  font-size: 11px;
+  color: var(--ui-muted);
+  margin-bottom: 8px;
+}
+.plan-section > header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--ui-line);
+}
+.plan-section h3 {
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+.plan-section > header > button {
+  margin-left: auto;
+}
+.plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+  padding-top: 18px;
+}
+.plan-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+.plan-chip {
+  font-size: 11px;
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--ui-raised);
+  color: var(--ui-muted);
+}
+.plan-list li[data-state='warning'] .plan-chip {
+  background: oklch(0.96 0.05 85);
+  color: oklch(0.45 0.11 70);
+}
+.plan-list li[data-state='exceeded'] .plan-chip {
+  background: oklch(0.95 0.04 20);
+  color: oklch(0.47 0.17 22);
+}
+.plan-amount {
+  font-variant-numeric: tabular-nums;
+}
+.plan-row > .plan-remove {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--ui-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+}
+.plan-row > .plan-remove:hover:not(:disabled) {
+  color: oklch(0.5 0.17 22);
+}
+.plan-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--ui-raised);
+  overflow: hidden;
+  margin: 8px 0 6px;
+}
+.plan-bar > span {
+  display: block;
+  height: 100%;
+  background: oklch(0.55 0.2 22);
+}
+.plan-list li[data-state='on_track'] .plan-bar > span {
+  background: oklch(0.55 0.13 155);
+}
+.plan-list li[data-state='warning'] .plan-bar > span {
+  background: oklch(0.68 0.13 75);
+}
+.plan-list li small,
+.plan-empty {
+  font-size: 12px;
+  color: var(--ui-muted);
+  line-height: 1.6;
+}
+.plan-empty {
+  padding: 18px 0 0;
+}
+.plan-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+  align-items: end;
+  padding: 18px 0;
+  border-bottom: 1px solid var(--ui-line);
+}
+.plan-form label {
+  display: grid;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--ui-muted);
+}
+.plan-form input,
+.plan-form select {
+  min-width: 0;
+  padding: 11px 12px;
+  border: 1px solid var(--ui-line);
+  border-radius: 10px;
+  font-size: 14px;
+  background: transparent;
+  color: inherit;
+}
+
+/* ---- Resumen: proyección y salud lado a lado ---- */
+.plan-view {
+  max-width: 1080px;
+}
+.plan-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+}
+.plan-card {
+  border: 1px solid var(--ui-line);
+  border-radius: 16px;
+  padding: 22px;
+}
+.plan-card > strong {
+  display: block;
+  font-size: clamp(28px, 3.5vw, 38px);
+  font-weight: 500;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.plan-card > p {
+  font-size: 13px;
+  color: var(--ui-muted);
+  margin-top: 10px;
+  line-height: 1.6;
+}
+.plan-card > small {
+  display: block;
+  margin-top: 10px;
+  font-size: 11px;
+  color: var(--ui-muted);
+  line-height: 1.6;
+}
+.plan-bar-forecast {
+  margin-top: 14px;
+}
+.plan-bar-forecast[data-state='on_track'] > span {
+  background: oklch(0.55 0.13 155);
+}
+.plan-bar-forecast[data-state='warning'] > span {
+  background: oklch(0.68 0.13 75);
+}
+.plan-health-figure {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0 16px;
+}
+.plan-health-figure strong {
+  font-size: clamp(40px, 4.5vw, 54px);
+  font-weight: 500;
+  letter-spacing: -0.05em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.plan-health-figure span {
+  font-size: 12px;
+  line-height: 1.4;
+  color: var(--ui-muted);
+}
+.plan-health-parts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.plan-health-parts li > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 5px;
+  color: var(--ui-muted);
+}
+.plan-health-parts .plan-bar {
+  margin: 0;
+}
+.plan-health-parts .plan-bar > span {
+  background: oklch(0.55 0.2 22);
+}
+
+/* ---- Sugerencias de límite a partir del gasto real ---- */
+.plan-suggest {
+  padding-top: 18px;
+}
+.plan-suggest > ul {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 10px;
+}
+.plan-suggest button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--ui-line);
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease;
+}
+.plan-suggest button:hover:not(:disabled) {
+  border-color: oklch(0.7 0.12 22);
+  background: oklch(0.985 0.01 22);
+}
+.plan-suggest button > span:first-child {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+.plan-suggest button strong {
+  font-size: 14px;
+  font-weight: 500;
+}
+.plan-suggest button small {
+  font-size: 11px;
+  color: var(--ui-muted);
+}
+.plan-suggest-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  font-size: 12px;
+  color: oklch(0.5 0.17 22);
+  white-space: nowrap;
+}
+.plan-empty-card {
+  display: grid;
+  gap: 14px;
+  justify-items: start;
+  padding: 20px;
+  margin-top: 18px;
+  border: 1px dashed var(--ui-line);
+  border-radius: 14px;
+}
+.plan-empty-card p {
+  font-size: 13px;
+  color: var(--ui-muted);
+  line-height: 1.6;
+  margin: 0;
+}

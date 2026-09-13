@@ -5,12 +5,10 @@ import {
   ArrowUpRight,
   Archive,
   CalendarDays,
-  ChevronRight,
   Flag,
   Plus,
   RotateCcw,
   Pencil,
-  Calculator,
 } from 'lucide-react';
 import { Button } from '@/shared/components/ui/button';
 import { formatMoney, formatMovementDate } from '@/shared/utils/money';
@@ -19,6 +17,7 @@ import { SavingsSimulator } from '@/modules/simulaciones/components/savings-simu
 import type { Goal } from '@/shared/api/types';
 import type { useMetas } from '../hooks/useMetas';
 import { goalPlan } from '../services/goal-plan';
+import { GoalCard } from './goal-card';
 import { GoalForm } from './goal-form';
 import '../styles/metas.css';
 const ideas = [
@@ -172,15 +171,11 @@ export function MetasPanel(props: ReturnType<typeof useMetas>) {
       ) : goal ? (
         <div className="goal-detail-layout">
           <div>
-            <div className="goal-detail-amount">
-              <span className="goal-symbol">
-                <Flag size={25} />
-              </span>
-              <span>Monto objetivo</span>
-              <strong>{formatMoney(goal.targetCents)}</strong>
-              <span className="goal-status">{status(goal, today)}</span>
-            </div>
-            <dl className="goal-facts">
+            <div className="goal-detail-top">
+              <div className="goal-detail-hero">
+                <GoalCard goal={goal} today={today} foot="none" />
+              </div>
+              <dl className="goal-facts">
               <div>
                 <dt>
                   <CalendarDays size={17} /> Fecha objetivo
@@ -191,11 +186,16 @@ export function MetasPanel(props: ReturnType<typeof useMetas>) {
                     : 'Todavía no definida'}
                 </dd>
               </div>
-              <div>
-                <dt>Tipo de meta</dt>
-                <dd>Plan de ahorro</dd>
-              </div>
-            </dl>
+                <div>
+                  <dt>Tipo de meta</dt>
+                  <dd>Plan de ahorro</dd>
+                </div>
+                <div>
+                  <dt>Estado</dt>
+                  <dd>{status(goal, today)}</dd>
+                </div>
+              </dl>
+            </div>
             <div className="goal-actions">
               {goal.status === 'active' ? (
                 <>
@@ -231,35 +231,6 @@ export function MetasPanel(props: ReturnType<typeof useMetas>) {
                 </Button>
               )}
             </div>
-            {goal.status === 'active' && (
-              <details
-                className="goal-simulation"
-                key={`${goal.id}-${goal.targetCents}-${goal.deadline}`}
-              >
-                <summary>
-                  <Calculator size={19} />
-                  <span>
-                    Explorar un escenario de ahorro
-                    <small>
-                      Ajusta cuánto aportarías y compara el resultado con tu
-                      objetivo.
-                    </small>
-                  </span>
-                  <ChevronRight size={17} />
-                </summary>
-                <SavingsSimulator
-                  targetCents={goal.targetCents}
-                  initialValues={
-                    plan?.status === 'scheduled' && plan.months <= 600
-                      ? {
-                          monthlyCents: plan.monthlyCents!,
-                          months: plan.months,
-                        }
-                      : undefined
-                  }
-                />
-              </details>
-            )}
           </div>
           <aside
             className="goal-next-step"
@@ -311,25 +282,26 @@ export function MetasPanel(props: ReturnType<typeof useMetas>) {
               </>
             ) : (
               <>
-                <h3>Una referencia para empezar</h3>
-                <strong className="goal-monthly">
-                  {formatMoney(plan.monthlyCents!)}
-                  <small>al mes</small>
-                </strong>
+                <h3>Prueba tu plan</h3>
                 <p>
-                  Para un objetivo de {formatMoney(goal.targetCents)} en
-                  aproximadamente {plan.months}{' '}
-                  {plan.months === 1 ? 'mes' : 'meses'}.
+                  Arranca en {formatMoney(plan.monthlyCents!)} al mes durante{' '}
+                  {plan.months} {plan.months === 1 ? 'mes' : 'meses'}, la
+                  referencia para reunir {formatMoney(goal.targetCents)}. Cambia
+                  lo que quieras y compara contra tu objetivo.
                 </p>
-                <details>
-                  <summary>¿Cómo se calcula?</summary>
-                  <p>
-                    Dividimos el objetivo entre los meses restantes, redondeando
-                    el plazo y los centavos hacia arriba. Parte de $0, sin
-                    rendimientos ni aportaciones previas. Es una referencia de
-                    planificación.
-                  </p>
-                </details>
+                <SavingsSimulator
+                  embedded
+                  key={`${goal.id}-${goal.targetCents}-${goal.deadline}`}
+                  targetCents={goal.targetCents}
+                  initialValues={
+                    plan.months <= 600
+                      ? {
+                          monthlyCents: plan.monthlyCents!,
+                          months: plan.months,
+                        }
+                      : undefined
+                  }
+                />
               </>
             )}
             <p className="goal-planning-note">
@@ -376,7 +348,7 @@ export function MetasPanel(props: ReturnType<typeof useMetas>) {
               {loading ? (
                 <output className="goals-empty">Cargando tus metas…</output>
               ) : visible.length ? (
-                <ul className="goals-list">
+                <ul className="goals-grid">
                   {visible.map((g) => (
                     <li key={g.id}>
                       <button
@@ -384,25 +356,7 @@ export function MetasPanel(props: ReturnType<typeof useMetas>) {
                         onClick={() => setSelected(g.id)}
                         aria-label={`Ver meta ${g.name}`}
                       >
-                        <span className="goal-symbol">
-                          <Flag size={20} />
-                        </span>
-                        <span className="goal-list-name">
-                          <strong>{g.name}</strong>
-                          <small>
-                            {g.deadline
-                              ? formatMovementDate(g.deadline)
-                              : 'Define una fecha para planificarla'}
-                            <span className="goal-status">
-                              {status(g, today)}
-                            </span>
-                          </small>
-                        </span>
-                        <span className="goal-list-amount">
-                          {formatMoney(g.targetCents)}
-                          <small>Monto objetivo</small>
-                        </span>
-                        <ChevronRight size={17} />
+                        <GoalCard goal={g} today={today} />
                       </button>
                     </li>
                   ))}

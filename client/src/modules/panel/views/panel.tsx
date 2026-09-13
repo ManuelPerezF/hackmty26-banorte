@@ -7,6 +7,7 @@ import { AssistantWorkspace } from '@/modules/asistente/views/asistente';
 import { CardSelection } from '@/modules/tarjetas/views/tarjetas';
 import { ProfileView } from '@/modules/perfil/views/perfil';
 import { Metas } from '@/modules/metas/views/metas';
+import { PlanPanel } from '@/modules/planeacion/components/planPanel';
 import { navigation } from '../data/navigation';
 import { usePanel } from '../hooks/usePanel';
 function PanelContent() {
@@ -43,6 +44,7 @@ function PanelContent() {
           onMovements={panel.showMovements}
         />
       )}
+      {section === 'Plan del mes' && <PlanPanel />}
       {section === 'Metas' && <Metas {...panel.metas} />}
       {section === 'Perfil' && (
         <ProfileView savedCardLabel={savedCard?.label ?? null} />

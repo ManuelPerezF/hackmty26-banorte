@@ -122,3 +122,106 @@ void test('checks actual catalog capabilities, not only its identifier', async (
   );
   assert.throws(() => assertCatalog({ catalogId }));
 });
+
+test('el cliente decodifica los bloques de planeación que emite el servidor', () => {
+  // Las formas son las que produce el servidor (verify-planeacion.cjs las
+  // ejerce contra la API real); aquí se comprueba que el contrato del
+  // renderer las acepta, que es donde cliente y servidor pueden separarse.
+  const turn = {
+    id: 'turn-2',
+    conversationId: 'conversation-1',
+    revision: 1,
+    status: 'completed',
+    assistantMessage: 'Planeación',
+    pendingActions: [],
+    error: null,
+    uiSnapshot: [
+      { version: 'v0.9.1', createSurface: { surfaceId: 'turn-2', catalogId } },
+      {
+        version: 'v0.9.1',
+        updateComponents: {
+          surfaceId: 'turn-2',
+          components: [
+            {
+              id: 'root',
+              component: 'Column',
+              children: ['forecast', 'budgets', 'health', 'coach'],
+            },
+            {
+              id: 'forecast',
+              component: 'BanorteForecast',
+              data: { path: '/forecast' },
+            },
+            {
+              id: 'budgets',
+              component: 'BanorteBudgetList',
+              data: { path: '/budgets' },
+            },
+            {
+              id: 'health',
+              component: 'BanorteHealthScore',
+              data: { path: '/health' },
+            },
+            {
+              id: 'coach',
+              component: 'BanorteCoachActions',
+              data: { path: '/coach' },
+              action: 'prepare_contribution',
+            },
+          ],
+        },
+      },
+      {
+        version: 'v0.9.1',
+        updateDataModel: {
+          surfaceId: 'turn-2',
+          path: '/',
+          value: {
+            forecast: { projectedTotalCents: 1050000, budgetUsagePct: 105 },
+            budgets: { items: [{ category: 'Alimentación', usagePct: 90 }] },
+            health: { score: 42, grade: 'Regular' },
+            coach: {
+              items: [
+                {
+                  type: 'contribute_goal',
+                  label: 'Aportar $50.00 a Fondo',
+                  goalId: 'goal-1',
+                  goalName: 'Fondo',
+                  amountCents: 5000,
+                },
+              ],
+            },
+          },
+        },
+      },
+    ],
+    createdAt: 0,
+    updatedAt: 0,
+  };
+  const surface = decodeSurface(turnSchema.parse(turn));
+  assert.deepEqual(
+    surface.components.map((c) => c.component),
+    [
+      'BanorteForecast',
+      'BanorteBudgetList',
+      'BanorteHealthScore',
+      'BanorteCoachActions',
+    ],
+  );
+  const forecast = dataAt(surface.data, '/forecast') as {
+    projectedTotalCents: number;
+  };
+  const coachData = dataAt(surface.data, '/coach') as {
+    items: { goalId: string }[];
+  };
+  assert.equal(forecast.projectedTotalCents, 1050000);
+  assert.equal(coachData.items[0].goalId, 'goal-1');
+  const coach = surface.components.find(
+    (c) => c.component === 'BanorteCoachActions',
+  );
+  assert.equal(
+    coach && 'action' in coach ? coach.action : null,
+    'prepare_contribution',
+    'el chip debe poder disparar la preparación de la aportación',
+  );
+});

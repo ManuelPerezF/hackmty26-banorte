@@ -22,7 +22,7 @@ import { AuthService } from "../autenticacion/auth.service";
 import { McpService } from "../../integrations/mcp/mcp.service";
 import { LlmService } from "../../integrations/llm/llm.service";
 import { ToolName, toolDefinitions } from "../../integrations/mcp/tool-definitions";
-import { surface, a2uiMessageSchema } from "../../ui-protocol/a2ui";
+import { surface, a2uiMessageSchema, UiPlan } from "../../ui-protocol/a2ui";
 import { sameJson } from "../../shared/requests";
 import { ENV, Environment } from "../../config/env";
 import { AgentAction, turnInputSchema } from "./asistente.schemas";
@@ -32,6 +32,7 @@ import {
   categories,
 } from "../movimientos/schemas/movimiento.schema";
 import { insightsSchema } from "../analisis/analisis.module";
+import { PlaneacionService, contributionSchema } from "../planeacion/planeacion.module";
 const json = (value: unknown) => JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
 const agentErrors: Record<string, string> = {
   LLM_QUOTA_EXCEEDED:
@@ -53,6 +54,7 @@ export class AsistenteService implements OnModuleInit {
     private readonly mcp: McpService,
     private readonly llm: LlmService,
     private readonly goals: MetasService,
+    private readonly planning: PlaneacionService,
     @Inject(ENV) private readonly env: Environment,
   ) {}
   async onModuleInit() {
@@ -144,10 +146,16 @@ export class AsistenteService implements OnModuleInit {
       eventsUrl: `/api/v1/assistant/turns/${turn.id}/events`,
     };
   }
-  async send(i: Identity, id: string, content: string, requestKey: string) {
+  async send(
+    i: Identity,
+    id: string,
+    content: string,
+    requestKey: string,
+    mode: "coach" | "analyst" = "coach",
+  ) {
     await this.conversation(i, id);
     this.llm.assertConfigured();
-    return this.enqueue(i, id, { kind: "message", content }, requestKey);
+    return this.enqueue(i, id, { kind: "message", content, mode }, requestKey);
   }
   async action(i: Identity, id: string, action: AgentAction, requestKey: string) {
     await this.conversation(i, id);
@@ -401,6 +409,48 @@ export class AsistenteService implements OnModuleInit {
         );
         return;
       }
+      if (input.kind === "action" && input.event === "prepare_contribution") {
+        // El monto y la meta vienen del chip que calculó el servidor, pero se
+        // revalidan aquí: la meta debe ser propia y seguir activa.
+        const goals = await this.planning.goalsWithProgress(i);
+        const goal = goals.find((g) => g.id === input.values.goalId && g.status === "active");
+        if (!goal) throw new NotFoundException();
+        const payload = contributionSchema.parse(input.values);
+        const action = await this.db.pendingAction.create({
+          data: {
+            turnId: id,
+            sessionId: i.sessionId,
+            surfaceId: id,
+            revision: 1,
+            payload,
+            expiresAt: new Date(Date.now() + 600000),
+          },
+        });
+        await this.finish(
+          id,
+          "Confirma tu aportación",
+          "Registra avance en tu plan de ahorro. No mueve dinero de tu cuenta.",
+          [
+            {
+              id: "contribution",
+              component: "BanorteContributionConfirmation",
+              data: { path: "/contribution" },
+              action: "confirm_contribution",
+            },
+          ],
+          {
+            contribution: {
+              actionId: action.id,
+              ...payload,
+              goalName: goal.name,
+              targetCents: goal.targetCents,
+              savedCents: goal.savedCents,
+              cancelEvent: "cancel_contribution",
+            },
+          },
+        );
+        return;
+      }
       if (input.kind === "action" && input.event === "submit_movement_form") {
         const payload = movementSchema.parse(input.values);
         if (payload.date > todayInTimezone(i.timezone)) throw new Error("INVALID_DATE");
@@ -432,7 +482,7 @@ export class AsistenteService implements OnModuleInit {
       }
       if (
         input.kind === "action" &&
-        ["cancel_movement", "cancel_goal"].includes(input.event) &&
+        ["cancel_movement", "cancel_goal", "cancel_contribution"].includes(input.event) &&
         "actionId" in input
       ) {
         const result = await this.db.pendingAction.updateMany({
@@ -445,7 +495,9 @@ export class AsistenteService implements OnModuleInit {
           "Cambio cancelado",
           input.event === "cancel_goal"
             ? "No se modificó la meta."
-            : "No se registró el movimiento.",
+            : input.event === "cancel_contribution"
+              ? "No se registró la aportación."
+              : "No se registró el movimiento.",
           [],
           {},
         );
@@ -453,7 +505,7 @@ export class AsistenteService implements OnModuleInit {
       }
       if (
         input.kind === "action" &&
-        ["confirm_movement", "confirm_goal"].includes(input.event) &&
+        ["confirm_movement", "confirm_goal", "confirm_contribution"].includes(input.event) &&
         "actionId" in input
       ) {
         actionId = input.actionId;
@@ -473,12 +525,22 @@ export class AsistenteService implements OnModuleInit {
           data: { status: "executing" },
         });
       }
+      // El modo no es solo tono: decide qué herramientas entran en la capacidad.
+      // Un analista no puede sugerir acciones porque `get_coach_actions` no
+      // viaja en su token; no es una instrucción que el modelo pueda ignorar.
+      const mode = input.kind === "message" ? (input.mode ?? "coach") : "coach";
       const names = (Object.keys(toolDefinitions) as ToolName[]).filter((n) =>
         n === "register_movement"
           ? Boolean(actionId && input.kind === "action" && input.event === "confirm_movement")
           : n === "apply_goal_change"
             ? Boolean(actionId && input.kind === "action" && input.event === "confirm_goal")
-            : true,
+            : n === "contribute_to_goal"
+              ? Boolean(
+                  actionId && input.kind === "action" && input.event === "confirm_contribution",
+                )
+              : n === "get_coach_actions"
+                ? mode === "coach"
+                : true,
       );
       await this.mcp.withClient(i, names, actionId, async (client) => {
         await client.listTools();
@@ -528,6 +590,30 @@ export class AsistenteService implements OnModuleInit {
           cached.set(name, value);
           return value;
         };
+        if (actionId && input.kind === "action" && input.event === "confirm_contribution") {
+          const result = await execute("contribute_to_goal", {});
+          const coach = await execute("get_coach_actions", {});
+          await this.finish(
+            id,
+            "Aportación registrada",
+            "Tu meta avanzó. Sigue siendo un plan: el dinero permanece en tu cuenta.",
+            [
+              {
+                id: "contributionResult",
+                component: "BanorteActionResult",
+                data: { path: "/contributionResult" },
+              },
+              {
+                id: "coach",
+                component: "BanorteCoachActions",
+                data: { path: "/coach" },
+                action: "prepare_contribution",
+              },
+            ],
+            { contributionResult: result, coach },
+          );
+          return;
+        }
         if (actionId && input.kind === "action" && input.event === "confirm_goal") {
           const result = await execute("apply_goal_change", {});
           const goals = await execute("list_goals", {});
@@ -726,7 +812,7 @@ export class AsistenteService implements OnModuleInit {
           );
           return;
         }
-        const plan = await this.llm.respond(context, execute, signal);
+        const plan = await this.llm.respond(context, execute, signal, mode);
         const data: Record<string, unknown> = {};
         const components: unknown[] = [];
         const add = (id: string, component: string, action?: string) =>
@@ -736,7 +822,37 @@ export class AsistenteService implements OnModuleInit {
             data: { path: `/${id}` },
             ...(action ? { action } : {}),
           });
-        for (const block of new Set(plan.blocks)) {
+        // El analista nunca ofrece acciones; el coach cierra con un siguiente
+        // paso, pero solo cuando la respuesta trata de finanzas. Un saludo, una
+        // negativa o una respuesta documental no llevan chip: proponer "aportar
+        // $4,500 a tu meta" debajo de "no puedo participar en descalificaciones"
+        // es exactamente lo que no debe pasar. Se resuelve aquí y no en el
+        // prompt para que sea una garantía del servidor.
+        const requested = new Set(plan.blocks);
+        const financial = [
+          "balance",
+          "movements",
+          "spending",
+          "goals",
+          "savings",
+          "comparison",
+          "forecast",
+          "budgets",
+          "health",
+        ].some((block) => requested.has(block as UiPlan["blocks"][number]));
+        // "education" sin datos financieros es la forma que toman saludos,
+        // negativas y respuestas documentales: ahí el chip se retira aunque el
+        // modelo lo haya pedido. Un plan que solo trae "coach" ("¿qué me
+        // sugieres?") sí es una petición financiera y se conserva.
+        const generic = !financial && requested.has("education");
+        if (mode === "analyst" || generic) requested.delete("coach");
+        else if (financial && input.kind === "message" && !requested.has("coach")) {
+          const suggestions = (await execute("get_coach_actions", {})) as {
+            items: unknown[];
+          };
+          if (suggestions.items.length) requested.add("coach");
+        }
+        for (const block of requested) {
           if (block === "comparison" && cached.has("compare_spending_periods")) {
             data.comparison = cached.get("compare_spending_periods");
             add("comparison", "BanortePeriodComparison");
@@ -785,6 +901,26 @@ export class AsistenteService implements OnModuleInit {
               ...(draft ? { draft } : {}),
             };
             add("goals", "BanorteGoalList", "prepare_goal");
+          }
+          if (block === "forecast") {
+            data.forecast =
+              cached.get("get_spending_forecast") ?? (await execute("get_spending_forecast", {}));
+            add("forecast", "BanorteForecast");
+          }
+          if (block === "budgets") {
+            data.budgets = cached.get("get_budgets") ?? (await execute("get_budgets", {}));
+            add("budgets", "BanorteBudgetList");
+          }
+          if (block === "health") {
+            data.health =
+              cached.get("get_financial_health") ?? (await execute("get_financial_health", {}));
+            add("health", "BanorteHealthScore");
+          }
+          if (block === "coach") {
+            // Las sugerencias son del servidor: si el modelo pide el bloque sin
+            // haber llamado la herramienta, se consulta aquí de todos modos.
+            data.coach = cached.get("get_coach_actions") ?? (await execute("get_coach_actions", {}));
+            add("coach", "BanorteCoachActions", "prepare_contribution");
           }
           if (block === "savings") {
             data.savings = { result: cached.get("simulate_savings") ?? null };

@@ -18,21 +18,31 @@ type Result = {
 export function SavingsSimulator({
   initialValues,
   targetCents,
+  embedded = false,
 }: {
   initialValues?: { monthlyCents: number; months: number };
   targetCents?: number;
+  /** Dentro de un panel que ya se presenta a sí mismo (el aside de una meta),
+   *  el encabezado propio sería un segundo título para lo mismo. */
+  embedded?: boolean;
 } = {}) {
   const [result, setResult] = useState<Result | null>(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
   return (
-    <section className="savings-simulator">
-      <h3>Explora cómo podría crecer tu ahorro</h3>
-      <p>
-        El escenario parte de $0 y una tasa de 0%. Ajusta los valores a lo que
-        quieras explorar; no representan un saldo guardado.
-      </p>
+    <section
+      className={`savings-simulator ${embedded ? 'is-embedded' : ''}`}
+    >
+      {!embedded && (
+        <>
+          <h3>Explora cómo podría crecer tu ahorro</h3>
+          <p>
+            El escenario parte de $0 y una tasa de 0%. Ajusta los valores a lo
+            que quieras explorar; no representan un saldo guardado.
+          </p>
+        </>
+      )}
       <form
         className="simulation-form"
         onInput={() => setResult(null)}

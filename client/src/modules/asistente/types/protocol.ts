@@ -29,6 +29,11 @@ const component = z.discriminatedUnion('component', [
       'BanorteSources',
       'BanortePeriodComparison',
       'BanorteKnowledgeFacts',
+      'BanorteForecast',
+      'BanorteBudgetList',
+      'BanorteHealthScore',
+      'BanorteCoachActions',
+      'BanorteContributionConfirmation',
     ]),
     data: z.object({ path: z.string().regex(/^\//) }),
     action: z.string().optional(),
@@ -157,6 +162,11 @@ export const supportedComponents = [
   'BanorteSources',
   'BanortePeriodComparison',
   'BanorteKnowledgeFacts',
+  'BanorteForecast',
+  'BanorteBudgetList',
+  'BanorteHealthScore',
+  'BanorteCoachActions',
+  'BanorteContributionConfirmation',
 ] as const;
 export class UiCompatibilityError extends Error {
   constructor() {

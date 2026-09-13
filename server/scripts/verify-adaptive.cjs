@@ -326,10 +326,20 @@ const first = { from: "2026-08-01", to: "2026-08-31" },
       await app
         .get(McpService)
         .withClient(identity, ["compare_spending_periods"], undefined, async (c) => {
-          assert.equal((await c.listTools()).tools.length, 13);
+          // Derivado del catálogo: agregar una herramienta no debe romper la
+          // prueba, pero sí debe seguir siendo imposible escribir sin capacidad.
+          assert.equal(
+            (await c.listTools()).tools.length,
+            Object.keys(req("./dist/integrations/mcp/tool-definitions").toolDefinitions).length,
+          );
           assert.equal(
             (await c.callTool({ name: "register_movement", arguments: {} })).isError,
             true,
+          );
+          assert.equal(
+            (await c.callTool({ name: "contribute_to_goal", arguments: {} })).isError,
+            true,
+            "una capacidad de lectura tampoco puede aportar a metas",
           );
         });
     });

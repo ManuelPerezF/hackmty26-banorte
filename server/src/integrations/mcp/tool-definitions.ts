@@ -51,6 +51,36 @@ export const toolDefinitions = {
       "Calcula un escenario de ahorro en MXN, sin mover dinero. Importes en centavos, tasa nominal anual en puntos base (500=5%). Usa solo supuestos expresos del usuario; nunca inventes una tasa. Devuelve totales, supuestos y calendario mensual.",
     schema: simulationSchema,
   },
+  get_spending_forecast: {
+    description:
+      "Proyección de gasto al cierre del mes en curso: extrapola el promedio diario de lo ya gastado y suma los cargos fijos que aún no caen. Devuelve el avance contra el presupuesto total cuando existe. Es una estimación, no un compromiso; no consulta saldo.",
+    schema: z.strictObject({}),
+  },
+  get_budgets: {
+    description:
+      "Presupuestos mensuales propios por categoría, con lo gastado del mes y su estado (on_track, warning a partir del 80%, exceeded al 100%). Si items está vacío, el usuario no ha configurado ninguno; no inventes límites.",
+    schema: z.strictObject({}),
+  },
+  list_recurrences: {
+    description:
+      "Cargos e ingresos fijos mensuales propios, con su día del mes (1-28). Alimentan la proyección de cierre de mes.",
+    schema: z.strictObject({}),
+  },
+  get_financial_health: {
+    description:
+      "Puntaje de salud financiera 0-100 del mes en curso: 40 puntos por tasa de ahorro, 35 por adherencia al presupuesto, 25 por avance de metas. Devuelve el desglose y en qué se basó. Sin presupuestos configurados el componente vale la mitad; sin metas vale cero.",
+    schema: z.strictObject({}),
+  },
+  get_coach_actions: {
+    description:
+      "Sugerencias accionables calculadas por el servidor a partir de datos propios: presupuestos excedidos y aportaciones a metas cercanas a cumplirse. No las inventes tú; usa exactamente las que devuelve.",
+    schema: z.strictObject({}),
+  },
+  contribute_to_goal: {
+    description:
+      "Ejecuta exclusivamente la aportación a meta ya aprobada por el usuario. No acepta ni cambia sus datos. Registra avance del plan; no mueve dinero de la cuenta.",
+    schema: z.strictObject({}),
+  },
   apply_goal_change: {
     description:
       "Aplica exclusivamente el cambio de meta ya confirmado. No acepta datos ni IDs del modelo.",
@@ -76,6 +106,12 @@ export const toolMetadata: Record<ToolName, { title: string; readOnly: boolean }
   get_spending_insights: { title: "Analizar gastos", readOnly: true },
   list_goals: { title: "Consultar metas", readOnly: true },
   simulate_savings: { title: "Simular ahorro", readOnly: true },
+  get_spending_forecast: { title: "Proyectar cierre de mes", readOnly: true },
+  get_budgets: { title: "Consultar presupuestos", readOnly: true },
+  list_recurrences: { title: "Consultar cargos fijos", readOnly: true },
+  get_financial_health: { title: "Calcular salud financiera", readOnly: true },
+  get_coach_actions: { title: "Sugerir acciones", readOnly: true },
+  contribute_to_goal: { title: "Guardar aportación confirmada", readOnly: false },
   apply_goal_change: { title: "Guardar cambio de meta confirmado", readOnly: false },
   register_movement: { title: "Guardar movimiento confirmado", readOnly: false },
 };

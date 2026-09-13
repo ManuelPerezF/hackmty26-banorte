@@ -78,7 +78,7 @@
 .goals-workspace,
 .goal-detail-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(240px, 310px);
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 380px);
   gap: 40px;
   align-items: start;
 }
@@ -288,6 +288,27 @@
   max-width: 40ch;
   margin: 0 auto 20px;
 }
+.goal-detail-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 34px;
+  margin: 4px 0 30px;
+}
+.goal-detail-hero {
+  flex: 0 1 360px;
+  min-width: 260px;
+}
+/* La ficha acompaña a la tarjeta en la misma fila; sin esto la columna
+   quedaba con un hueco del ancho de la tarjeta a su derecha. */
+.goal-detail-top .goal-facts {
+  flex: 1 1 240px;
+  min-width: 230px;
+  border-top: 0;
+}
+.goal-detail-top .goal-facts > div:first-child {
+  padding-top: 0;
+}
 .goal-detail-amount {
   padding: 6px 0 28px;
 }
@@ -341,7 +362,11 @@
   margin-top: 24px;
 }
 .goal-next-step {
-  background: oklch(0.97 0.012 80);
+  /* Antes oklch(... 80) — un caqui que no pertenece a ninguna otra pieza de
+     la vista. Esta es la misma familia rosa del .goal-symbol, un paso más
+     clara, para que el aside lea como parte del mismo sistema. */
+  background: oklch(0.975 0.012 22);
+  border: 1px solid oklch(0.93 0.02 22);
   border-radius: 20px;
   padding: 26px;
 }
@@ -579,4 +604,19 @@
     display: grid;
     gap: 18px;
   }
+}
+
+/* Simulador embebido en el aside de la meta: pierde el borde y el aire que
+   tiene cuando vive suelto al final de la página, y baja a una columna. */
+.goal-next-step .savings-simulator.is-embedded {
+  border-top: 0;
+  margin-top: 18px;
+  padding-top: 0;
+}
+.goal-next-step .savings-simulator .simulation-form {
+  grid-template-columns: 1fr;
+}
+.goal-next-step .savings-simulator .chat-table-wrap,
+.goal-next-step .savings-simulator table {
+  font-size: 12px;
 }

@@ -29,6 +29,8 @@ export function useAsistente(onChanged: () => Promise<void>) {
   const [active, setActive] = useState<string | null>(null);
   const [latest, setLatest] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
+  // El modo solo cambia el tono de la respuesta; las herramientas son las mismas.
+  const [mode, setMode] = useState<'coach' | 'analyst'>('coach');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -186,7 +188,7 @@ export function useAsistente(onChanged: () => Promise<void>) {
         setConversationId(id);
         createKey.current = null;
       }
-      const body = { content: text.trim() };
+      const body = { content: text.trim(), mode };
       const receipt = await api<{ turnId: string }>(
         `/assistant/conversations/${id}/messages`,
         {
@@ -258,6 +260,8 @@ export function useAsistente(onChanged: () => Promise<void>) {
     busy: busy || Boolean(active),
     loading,
     catalogReady,
+    mode,
+    setMode,
     send,
     act,
     open,

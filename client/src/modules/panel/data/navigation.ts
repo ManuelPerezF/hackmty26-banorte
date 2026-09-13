@@ -4,6 +4,7 @@ import {
   Home,
   MessageCircle,
   Target,
+  TrendingUp,
   UserRound,
 } from 'lucide-react';
 export const navigation = [
@@ -11,6 +12,7 @@ export const navigation = [
   { title: 'Movimientos', icon: ArrowLeftRight },
   { title: 'Asistente', icon: MessageCircle },
   { title: 'Cuentas y tarjetas', icon: CreditCard },
+  { title: 'Plan del mes', icon: TrendingUp },
   { title: 'Metas', icon: Target },
   { title: 'Perfil', icon: UserRound },
 ];

@@ -3,6 +3,12 @@ import { PeriodComparison, KnowledgeFacts } from './adaptive-blocks';
 import { KnowledgeSources } from './knowledge-sources';
 import { GoalList, GoalConfirmation } from './goal-blocks';
 import { CardList, SavingsBlock } from './financial-blocks';
+import {
+  ForecastBlock,
+  BudgetListBlock,
+  HealthScoreBlock,
+  CoachActionsBlock,
+} from './planning-blocks';
 import { formText } from '@/shared/api/client';
 import { useState, useEffect } from 'react';
 import { z } from 'zod';
@@ -95,7 +101,11 @@ function UiBlock({
   const [now, setNow] = useState(Date.now);
   useEffect(() => {
     if (
-      !['BanorteConfirmation', 'BanorteGoalConfirmation'].includes(
+      ![
+        'BanorteConfirmation',
+        'BanorteGoalConfirmation',
+        'BanorteContributionConfirmation',
+      ].includes(
         component.component,
       )
     )
@@ -488,7 +498,116 @@ function UiBlock({
       </section>
     );
   }
+  if (component.component === 'BanorteForecast') return <ForecastBlock data={data} />;
+  if (component.component === 'BanorteBudgetList')
+    return <BudgetListBlock data={data} />;
+  if (component.component === 'BanorteHealthScore')
+    return <HealthScoreBlock data={data} />;
+  if (component.component === 'BanorteCoachActions')
+    return (
+      <CoachActionsBlock
+        data={data}
+        disabled={disabled || !latest}
+        onAction={(event, payload) => void action(event, payload)}
+      />
+    );
+  if (component.component === 'BanorteContributionConfirmation') {
+    const c = z
+      .object({
+        actionId: z.string(),
+        goalId: z.string(),
+        goalName: z.string(),
+        amountCents: cents,
+        targetCents: cents,
+        savedCents: cents,
+      })
+      .parse(data);
+    const pending = turn.pendingActions.find((p) => p.id === c.actionId);
+    const unavailable =
+      !pending ||
+      !['pending', 'executing'].includes(pending.status) ||
+      (pending.status === 'pending' && pending.expiresAt < now);
+    return (
+      <section className="chat-confirm">
+        <h4>Confirma tu aportación</h4>
+        <dl>
+          <div>
+            <dt>Meta</dt>
+            <dd>{c.goalName}</dd>
+          </div>
+          <div>
+            <dt>Aportación</dt>
+            <dd>{formatMoney(c.amountCents)}</dd>
+          </div>
+          <div>
+            <dt>Avance</dt>
+            <dd>
+              {formatMoney(c.savedCents)} de {formatMoney(c.targetCents)}
+            </dd>
+          </div>
+        </dl>
+        {unavailable ? (
+          <p>
+            {pending?.status === 'completed'
+              ? 'Aportación registrada.'
+              : pending?.status === 'cancelled'
+                ? 'Aportación cancelada.'
+                : 'Esta confirmación ya no está disponible.'}
+          </p>
+        ) : (
+          <div>
+            <Button
+              className="button"
+              disabled={disabled}
+              onClick={() => {
+                void action('confirm_contribution', { actionId: c.actionId });
+              }}
+            >
+              Confirmar aportación
+            </Button>
+            <Button
+              variant="ghost"
+              disabled={disabled || pending?.status !== 'pending'}
+              onClick={() => {
+                void action('cancel_contribution', { actionId: c.actionId });
+              }}
+            >
+              Cancelar
+            </Button>
+          </div>
+        )}
+        <small>Registra avance de tu plan. No mueve dinero de tu cuenta.</small>
+      </section>
+    );
+  }
   if (component.component === 'BanorteActionResult') {
+    // El mismo componente sirve a dos escrituras confirmadas; cada una trae su
+    // propia forma y se distinguen explícitamente.
+    const contribution = z
+      .object({
+        contributedCents: cents,
+        goal: z.object({
+          name: z.string(),
+          savedCents: cents,
+          targetCents: cents,
+        }),
+      })
+      .safeParse(data);
+    if (contribution.success) {
+      const { goal, contributedCents } = contribution.data;
+      return (
+        <output className="chat-result">
+          <strong>Aportación registrada</strong>
+          <p>
+            {goal.name} · {formatMoney(contributedCents)}
+          </p>
+          <small>
+            Llevas {formatMoney(goal.savedCents)} de{' '}
+            {formatMoney(goal.targetCents)} en tu plan.
+          </small>
+        </output>
+      );
+    }
     const m = movement.parse(data);
     return (
       <output className="chat-result">

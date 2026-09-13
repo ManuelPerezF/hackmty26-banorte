@@ -46,10 +46,10 @@ export class AsistenteController {
   @Post("conversations/:id/messages") @HttpCode(202) send(
     @CurrentUser() i: Identity,
     @Param("id", new ParseUUIDPipe()) id: string,
-    @Body(new ZodValidationPipe(messageSchema)) b: { content: string },
+    @Body(new ZodValidationPipe(messageSchema)) b: { content: string; mode: "coach" | "analyst" },
     @Headers("idempotency-key") k: unknown,
   ) {
-    return this.service.send(i, id, b.content, key(k));
+    return this.service.send(i, id, b.content, key(k), b.mode);
   }
   @Post("conversations/:id/actions") @HttpCode(202) action(
     @CurrentUser() i: Identity,
