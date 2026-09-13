@@ -4,7 +4,7 @@
   --red: oklch(0.56 0.22 22);
   background: var(--paper);
   color: var(--ink);
-  font-family: 'Outfit Variable', Arial, sans-serif;
+  font-family: var(--font-body);
 }
 .new-perspective .header {
   position: relative;
@@ -284,7 +284,7 @@
   object-fit: contain;
 }
 .maya-preview-welcome h3 {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: var(--font-display);
   font-size: clamp(25px, 2.5vw, 34px);
   line-height: 1.14;
   letter-spacing: -0.035em;

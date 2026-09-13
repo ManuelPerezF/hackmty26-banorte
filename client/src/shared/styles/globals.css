@@ -1,5 +1,33 @@
 @import 'tailwindcss';
 
+/* Tipografía según la Guía de estilos web Banorte (p.3):
+   Gotham   → títulos, subtítulos, botones, header, menú, campos de texto
+   Roboto   → cuerpo, tooltips, tablas, componentes
+   Gotham es comercial y no se distribuye aquí: si la licencia está, coloca
+   los archivos en public/fonts/gotham/ y estas @font-face la activan; si no,
+   cae a Montserrat, el sustituto abierto con la misma construcción geométrica. */
+@font-face {
+  font-family: 'Gotham';
+  src: url('/fonts/gotham/Gotham-Book.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gotham';
+  src: url('/fonts/gotham/Gotham-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Gotham';
+  src: url('/fonts/gotham/Gotham-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Revolut-inspired editorial composition; Banorte assets and brand red.
    DESIGN_VARIANCE: 6 / MOTION_INTENSITY: 3 / VISUAL_DENSITY: 2.
    The supplied reference determines the spacious, vertically centered hero. */
@@ -8,6 +36,8 @@
   --background: #030303;
   --foreground: #f7f7f7;
   --brand: #eb0029;
+  --font-display: 'Gotham', 'Montserrat Variable', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Roboto Variable', 'Helvetica Neue', Arial, sans-serif;
 }
 * {
   box-sizing: border-box;
@@ -19,7 +49,7 @@ html {
 body {
   margin: 0;
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
 }
 a {
@@ -405,7 +435,7 @@ h1 {
   }
 }
 
-/* Product design: restrained Banorte red, warm charcoal, self-hosted Outfit. */
+/* Product design: restrained Banorte red, warm charcoal; tipografía de la guía web (Gotham/Roboto, ver :root). */
 :root {
   --ui-bg: oklch(0.135 0.007 20);
   --ui-surface: oklch(0.19 0.007 20);
@@ -427,7 +457,7 @@ h1 {
 }
 .access-page,
 .business-shell {
-  font-family: 'Outfit Variable', Arial, sans-serif;
+  font-family: var(--font-body);
   color: var(--ui-ink);
   background: var(--ui-bg);
 }
@@ -1551,7 +1581,7 @@ h1 {
   background: var(--ui-bg);
   color: var(--ui-ink);
   border-color: var(--ui-line);
-  font-family: 'Outfit Variable', Arial, sans-serif;
+  font-family: var(--font-display);
 }
 [data-mobile='true'] .business-sidebar-footer {
   margin-top: auto;
@@ -2985,4 +3015,20 @@ h1 {
     font-size: 9px;
     padding-bottom: 5px;
   }
+}
+
+/* Reparto de la guía: Gotham (o su sustituto) en títulos, botones, campos y
+   navegación; el resto hereda Roboto del cuerpo. */
+h1, h2, h3, h4, h5, h6,
+button, input, select, textarea,
+nav, [role='tablist'], .chat-mode {
+  font-family: var(--font-display);
+}
+/* Con la especificidad del shell: las reglas de módulo que ponen
+   `font-family: inherit` en los campos dejarían Roboto donde la guía pide
+   Gotham. El tamaño sí se hereda del contexto, no del navegador. */
+.access-page :is(input, select, textarea, button),
+.business-shell :is(input, select, textarea, button) {
+  font-family: var(--font-display);
+  font-size: inherit;
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
-import '@fontsource-variable/outfit';
+import '@fontsource-variable/roboto';
+import '@fontsource-variable/montserrat';
 import '@/shared/styles/globals.css';
 import '@/shared/layout/styles/panel.css';
 

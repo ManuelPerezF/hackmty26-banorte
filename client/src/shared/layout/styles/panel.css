@@ -533,7 +533,7 @@
   color: #343037;
   border: 0;
   gap: 0;
-  font-family: 'Outfit Variable', Arial, sans-serif;
+  font-family: var(--font-body);
   color-scheme: light;
   overflow-y: auto;
   --ui-muted: #817982;
