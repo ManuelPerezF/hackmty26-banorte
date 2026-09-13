@@ -5,6 +5,8 @@ export const catalogId = "urn:banorte:a2ui:catalog:1";
 export const uiPlanSchema = z.strictObject({
   title: z.string().min(1).max(120),
   explanation: z.string().max(2000),
+  /** El modelo marca solicitudes ajenas a finanzas/la app; el servidor las neutraliza. */
+  offTopic: z.boolean().optional(),
   goalDraft: goalDraftSchema.optional(),
   movementDraft: movementSchema.partial().optional(),
   knowledgeQuotes: z

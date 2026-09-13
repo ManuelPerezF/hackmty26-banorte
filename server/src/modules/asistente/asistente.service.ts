@@ -45,6 +45,13 @@ const agentErrors: Record<string, string> = {
     "El asistente tardó demasiado en responder. Consulta el estado de tu movimiento antes de reintentar.",
 };
 const terminal = (s: string) => ["completed", "failed", "interrupted"].includes(s);
+const offTopicPlan: UiPlan = {
+  title: "Fuera de mi alcance",
+  explanation:
+    "Solo puedo ayudarte con tus cuentas, movimientos, metas, plan del mes, puntos y los documentos de Banorte. ¿Sobre cuál quieres que veamos algo?",
+  blocks: ["education"],
+};
+
 @Injectable()
 export class AsistenteService implements OnModuleInit {
   private readonly logger = new Logger(AsistenteService.name);
@@ -812,7 +819,11 @@ export class AsistenteService implements OnModuleInit {
           );
           return;
         }
-        const plan = await this.llm.respond(context, execute, signal, mode);
+        let plan = await this.llm.respond(context, execute, signal, mode);
+        // Fuera de ámbito: el servidor impone la negativa. No se conservan bloques,
+        // borradores ni citas que el modelo haya pedido; el texto es fijo para que
+        // ninguna instrucción del usuario lo convierta en una respuesta general.
+        if (plan.offTopic) plan = offTopicPlan;
         const data: Record<string, unknown> = {};
         const components: unknown[] = [];
         const add = (id: string, component: string, action?: string) =>

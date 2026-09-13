@@ -318,6 +318,22 @@ const firstOfMonth = iso(new Date(Date.UTC(today.getUTCFullYear(), today.getUTCM
       assert.equal(data(greeting).coach, undefined, "el servidor lo retira");
     });
 
+    await check("Una pregunta ajena a la app no se responde ni ejecuta herramientas", async () => {
+      // El modelo marca offTopic pero, adrede, pide bloques y texto de otro tema:
+      // el servidor debe descartar todo eso y dejar solo la negativa fija.
+      app.get(LlmService).respond = async () => ({
+        title: "Optimización del Algoritmo Two Sum",
+        explanation: "El algoritmo más eficiente usa una tabla hash…",
+        blocks: ["spending", "coach"],
+        offTopic: true,
+      });
+      const turn = await send("qué algoritmo es el mejor para resolver two sum", "coach");
+      assert.equal(data(turn).spending, undefined, "sin bloques financieros");
+      assert.equal(data(turn).coach, undefined, "sin chip de coach");
+      assert.match(turn.assistantMessage, /Solo puedo ayudarte/, "texto fijo del servidor");
+      assert.doesNotMatch(turn.assistantMessage, /hash/i, "el texto del modelo se descarta");
+    });
+
     await check("Los puntos salen de la tasa documentada de cada tarjeta", async () => {
       const cardId = randomUUID();
       await db.query('INSERT INTO "Card" (id,"profileId","productKey",last4) VALUES ($1,$2,$3,$4)', [
