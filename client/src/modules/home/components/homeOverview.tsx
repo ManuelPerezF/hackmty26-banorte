@@ -27,7 +27,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
         </Button>
         <Button
           variant="ghost"
-          onClick={() => onNavigate('Cuentas y tarjetas')}
+          onClick={() => onNavigate('Cuentas')}
         >
           Tarjetas
         </Button>
@@ -55,7 +55,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
               </Button>
               <Button
                 variant="ghost"
-                onClick={() => onNavigate('Cuentas y tarjetas')}
+                onClick={() => onNavigate('Cuentas')}
               >
                 <CreditCard size={19} /> Ver tarjetas
               </Button>
@@ -94,7 +94,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
                   <Button
                     variant="ghost"
                     aria-label="Ver tarjetas de tu cuenta"
-                    onClick={() => onNavigate('Cuentas y tarjetas')}
+                    onClick={() => onNavigate('Cuentas')}
                   >
                     <ChevronRight size={21} />
                   </Button>
@@ -113,7 +113,7 @@ export function HomeOverview({ onNavigate, cardId, ledger }: HomeProps) {
                 <Button
                   variant="ghost"
                   className="account-details"
-                  onClick={() => onNavigate('Cuentas y tarjetas')}
+                  onClick={() => onNavigate('Cuentas')}
                 >
                   <CreditCard size={16} /> Ver mis cuentas{' '}
                   <ArrowUpRight size={15} />

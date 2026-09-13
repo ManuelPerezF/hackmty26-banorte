@@ -36,7 +36,7 @@ function PanelContent() {
           }}
         />
       )}
-      {section === 'Cuentas y tarjetas' && (
+      {section === 'Cuentas' && (
         <CardSelection
           saved={savedCard}
           onSave={setSavedCard}
