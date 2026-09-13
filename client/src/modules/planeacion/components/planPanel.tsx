@@ -96,12 +96,24 @@ export function PlanPanel() {
                 </small>
               </>
             ) : (
-              <small>
-                {f.pendingFixedCents > 0
-                  ? `Incluye ${formatMoney(f.pendingFixedCents)} de cargos fijos por caer. `
-                  : 'Solo gasto variable: aún no registras cargos fijos. '}
-                Sin presupuestos no hay contra qué comparar la proyección.
-              </small>
+              <>
+                {/* Sin presupuesto no hay límite contra el que medir; la barra muestra qué parte de la proyección ya ocurrió */}
+                <div className="plan-bar plan-bar-forecast" data-state="on_track">
+                  <span
+                    style={{
+                      width: `${f.projectedTotalCents > 0 ? Math.min(100, Math.round((f.spentCents / f.projectedTotalCents) * 100)) : 0}%`,
+                    }}
+                  />
+                </div>
+                <small>
+                  {f.projectedTotalCents > 0
+                    ? `${Math.round((f.spentCents / f.projectedTotalCents) * 100)}% de la proyección ya gastado`
+                    : 'Sin gasto registrado este mes'}
+                  {f.pendingFixedCents > 0 &&
+                    ` · incluye ${formatMoney(f.pendingFixedCents)} de cargos fijos por caer`}
+                  . Ponle un límite a una categoría para comparar contra tu presupuesto.
+                </small>
+              </>
             )}
           </article>
         )}
@@ -143,6 +155,10 @@ export function PlanPanel() {
               {h.basis.budgetCount === 0 &&
                 'Sin presupuestos se otorga la mitad de esos puntos. '}
               {h.basis.goalCount === 0 && 'Una meta suma hasta 25 puntos.'}
+            </small>
+            <small className="plan-health-how">
+              Ahorro: (ingresos − gastos) ÷ ingresos, 20% vale los 40 · Presupuestos: qué tanto
+              respetas cada límite · Metas: avance promedio de tus metas activas.
             </small>
           </article>
         )}
@@ -236,31 +252,35 @@ export function PlanPanel() {
                 ? 'Gasto de este mes sin límite'
                 : 'Empieza por donde ya gastas'}
             </span>
-            <ul>
+            {/* Misma fila y barra que un presupuesto: la barra es la parte de tu gasto, no un avance */}
+            <ul className="plan-list">
               {unbudgeted.slice(0, 4).map((c) => (
-                <li key={c.category}>
-                  <button
-                    type="button"
-                    disabled={plan.busy}
-                    onClick={() =>
-                      setOpenForm({
-                        kind: 'budget',
-                        category: c.category,
-                        amountCents: suggestLimit(c.expenseCents),
-                      })
-                    }
-                  >
-                    <span>
-                      <strong>{c.category}</strong>
-                      <small>
-                        {formatMoney(c.expenseCents)} este mes ·{' '}
-                        {Math.round(c.share * 100)}% de tu gasto
-                      </small>
-                    </span>
-                    <span className="plan-suggest-cta">
+                <li key={c.category} data-state="none">
+                  <div className="plan-row">
+                    <strong>{c.category}</strong>
+                    <span className="plan-chip">Sin límite</span>
+                    <button
+                      type="button"
+                      className="plan-set-limit"
+                      disabled={plan.busy}
+                      onClick={() =>
+                        setOpenForm({
+                          kind: 'budget',
+                          category: c.category,
+                          amountCents: suggestLimit(c.expenseCents),
+                        })
+                      }
+                    >
                       Poner límite <ArrowUpRight size={14} />
-                    </span>
-                  </button>
+                    </button>
+                  </div>
+                  <div className="plan-bar">
+                    <span style={{ width: `${Math.round(c.share * 100)}%` }} />
+                  </div>
+                  <small>
+                    {formatMoney(c.expenseCents)} este mes ·{' '}
+                    {Math.round(c.share * 100)}% de tu gasto
+                  </small>
                 </li>
               ))}
             </ul>
@@ -370,15 +390,16 @@ export function PlanPanel() {
         ) : (
           <div className="plan-empty-card">
             <p>
-              Renta, suscripciones, nómina. Con ellos la proyección deja de ver
-              solo el gasto variable y anticipa lo que aún no ha caído.
+              Renta, suscripciones, nómina. Con ellos la proyección anticipa lo
+              que aún no ha caído.
             </p>
             <Button
-              variant="outline"
+              variant="ghost"
+              className="plan-set-limit"
               disabled={plan.busy}
               onClick={() => setOpenForm({ kind: 'recurrence' })}
             >
-              <Plus size={16} /> Agregar mi primer cargo fijo
+              <Plus size={16} /> Agregar cargo fijo
             </Button>
           </div>
         )}

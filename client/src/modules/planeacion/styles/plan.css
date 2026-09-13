@@ -209,67 +209,51 @@
 .plan-suggest {
   padding-top: 18px;
 }
-.plan-suggest > ul {
-  list-style: none;
-  margin: 10px 0 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
-  gap: 10px;
+.plan-suggest > .plan-list {
+  padding-top: 12px;
 }
-.plan-suggest button {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  width: 100%;
-  padding: 14px 16px;
-  border: 1px solid var(--ui-line);
-  border-radius: 12px;
-  background: transparent;
-  color: inherit;
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 140ms ease, background-color 140ms ease;
+.plan-list li[data-state='none'] .plan-bar > span {
+  background: oklch(0.82 0.03 60);
 }
-.plan-suggest button:hover:not(:disabled) {
-  border-color: oklch(0.7 0.12 22);
-  background: oklch(0.985 0.01 22);
-}
-.plan-suggest button > span:first-child {
-  display: grid;
-  gap: 3px;
-  min-width: 0;
-}
-.plan-suggest button strong {
-  font-size: 14px;
-  font-weight: 500;
-}
-.plan-suggest button small {
-  font-size: 11px;
-  color: var(--ui-muted);
-}
-.plan-suggest-cta {
+/* Acción a la derecha de la fila, en el lugar del botón de quitar */
+.plan-set-limit {
+  margin-left: auto;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  flex-shrink: 0;
-  font-size: 12px;
+  border: 0;
+  background: none;
+  padding: 4px 6px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13px;
   color: oklch(0.5 0.17 22);
   white-space: nowrap;
+  cursor: pointer;
+}
+.plan-set-limit:hover:not(:disabled) {
+  background: oklch(0.985 0.01 22);
 }
 .plan-empty-card {
-  display: grid;
-  gap: 14px;
-  justify-items: start;
-  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 18px 0 0;
   margin-top: 18px;
-  border: 1px dashed var(--ui-line);
-  border-radius: 14px;
+  border-top: 1px solid var(--ui-line);
 }
 .plan-empty-card p {
   font-size: 13px;
   color: var(--ui-muted);
   line-height: 1.6;
   margin: 0;
+}
+
+.plan-health-how {
+  display: block;
+  margin-top: 6px;
+  font-size: 11px;
+  color: var(--ui-muted);
+  line-height: 1.5;
 }
