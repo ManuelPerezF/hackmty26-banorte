@@ -1,6 +1,7 @@
 .bank-chat {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 228px;
+  transition: grid-template-columns 220ms ease;
   min-height: 700px;
   background: #faf9f8;
   border: 1px solid #ebe8e6;
@@ -37,6 +38,7 @@
 .maya-mark-header {
   width: 38px;
   height: 38px;
+  flex-shrink: 0;
 }
 .bank-chat-header .maya-lockup h2 {
   font-size: 19px;
@@ -130,9 +132,27 @@
   font-size: 11px;
   line-height: 1.6;
 }
-.bank-chat .chat-history-toggle,
+.bank-chat .chat-history-toggle {
+  display: flex;
+  margin-left: auto;
+  font-size: 11px;
+  color: #55504e;
+}
 .bank-chat .chat-history-close {
-  display: none;
+  display: flex;
+  margin-left: auto;
+}
+/* escritorio: el usuario cerró el historial, la columna se colapsa */
+.bank-chat.is-history-closed {
+  grid-template-columns: minmax(0, 1fr) 0;
+}
+.is-history-closed .chat-history {
+  opacity: 0;
+  pointer-events: none;
+  border-left-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+  transition: opacity 140ms ease;
 }
 .chat-scroll {
   overflow: auto;
@@ -147,10 +167,34 @@
   text-align: center;
 }
 .chat-welcome-mark {
-  width: 86px;
-  height: 86px;
+  width: 132px;
+  height: 132px;
+  margin: 0 auto 14px;
+}
+/* clip decorativo de Maya: el video manda, la marca estática es el respaldo */
+.maya-clip {
   display: block;
-  margin: 0 auto 18px;
+  position: relative;
+  flex-shrink: 0;
+}
+.maya-clip-video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  /* Los clips llevan alpha: nada de placa de fondo bajo Maya. */
+  background: transparent;
+}
+.maya-clip-still {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .maya-clip-video {
+    display: none;
+  }
+  .maya-clip-still {
+    display: block;
+  }
 }
 .chat-welcome h3 {
   font-family: Georgia, 'Times New Roman', serif;
@@ -613,11 +657,9 @@
   gap: 10px;
   align-items: center;
 }
-.chat-working i {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: oklch(0.56 0.18 20);
+.chat-working .maya-clip {
+  width: 34px;
+  height: 34px;
 }
 .chat-error {
   background: oklch(0.97 0.015 20);
@@ -799,14 +841,12 @@
   }
   .is-history-open .chat-history {
     display: block;
+    opacity: 1;
+    pointer-events: auto;
+    padding: 17px 14px;
   }
-  .bank-chat .chat-history-toggle {
-    display: flex;
-    margin-left: auto;
-    font-size: 11px;
-  }
-  .bank-chat .chat-history-close {
-    display: flex;
+  .is-history-closed .chat-history {
+    display: none;
   }
   .chat-history-top > button:first-child {
     width: auto;
@@ -848,9 +888,9 @@
     margin-bottom: 25px;
   }
   .chat-welcome-mark {
-    width: 72px;
-    height: 72px;
-    margin-bottom: 18px;
+    width: 104px;
+    height: 104px;
+    margin-bottom: 14px;
   }
   .bank-chat-compose {
     margin: 10px 14px 16px;

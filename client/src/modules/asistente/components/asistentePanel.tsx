@@ -17,13 +17,24 @@ import {
 import { Button } from '@/shared/components/ui/button';
 import { useBank } from '@/modules/cuentas/context/bank-context';
 import type { useAsistente } from '../hooks/useAsistente';
+import { MayaClip } from './maya-clip';
 import { MayaMark } from './maya-mark';
 import { A2uiRenderer } from './a2ui-renderer';
 import { DocumentConsultation } from './document-consultation';
 import '../styles/chat.css';
 export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
   const { profile } = useBank();
-  const [historyOpen, setHistoryOpen] = useState(false);
+  // null = sin decisión del usuario: manda el default del CSS (abierto en escritorio, cerrado en móvil)
+  const [historyOpen, setHistoryOpen] = useState<boolean | null>(null);
+  const [wide, setWide] = useState(true);
+  useEffect(() => {
+    const query = window.matchMedia('(min-width: 851px)');
+    const sync = () => setWide(query.matches);
+    sync();
+    query.addEventListener('change', sync);
+    return () => query.removeEventListener('change', sync);
+  }, []);
+  const historyVisible = historyOpen ?? wide;
   const scroll = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const area = scroll.current;
@@ -84,12 +95,18 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
   );
   return (
     <section
-      className={`bank-chat ${welcome ? 'is-welcome' : ''} ${historyOpen ? 'is-history-open' : ''}`}
+      className={`bank-chat ${welcome ? 'is-welcome' : ''} ${
+        historyOpen === null
+          ? ''
+          : historyOpen
+            ? 'is-history-open'
+            : 'is-history-closed'
+      }`}
       aria-label="Asistente financiero"
     >
       <div className="chat-main">
         <header className="bank-chat-header">
-          <MayaMark className="maya-mark-header" />
+          <MayaClip name="maya-idle" loop className="maya-mark-header" />
           <div className="maya-lockup">
             <h2>Maya</h2>
             <p>Asistente Banorte</p>
@@ -97,9 +114,9 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
           <Button
             variant="ghost"
             className="chat-history-toggle"
-            aria-expanded={historyOpen}
+            aria-expanded={historyVisible}
             aria-controls="chat-history"
-            onClick={() => setHistoryOpen(!historyOpen)}
+            onClick={() => setHistoryOpen(!historyVisible)}
           >
             <History size={18} /> Historial
           </Button>
@@ -114,9 +131,7 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
           )}
           {welcome && (
             <div className="chat-welcome">
-              <span className="chat-welcome-mark" aria-hidden="true">
-                <MayaMark />
-              </span>
+              <MayaClip name="maya-entrada" className="chat-welcome-mark" />
               <h3>Hola, {profile.displayName.split(' ')[0]}.</h3>
               <p>Hagamos espacio para tus planes.</p>
               {composer}
@@ -198,7 +213,8 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
           )}
           {a.busy && (
             <output className="chat-working">
-              <i /> Consultando tu información…
+              <MayaClip name="maya-pensando" loop />
+              Consultando tu información…
             </output>
           )}
           {a.error && (
@@ -230,7 +246,7 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
             disabled={a.busy || a.loading}
             onClick={() => {
               a.newChat();
-              setHistoryOpen(false);
+              if (!wide) setHistoryOpen(false);
             }}
           >
             <Plus size={17} /> Nueva conversación
@@ -254,7 +270,7 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
                   aria-current={a.conversationId === c.id ? 'page' : undefined}
                   onClick={() => {
                     void a.open(c.id);
-                    setHistoryOpen(false);
+                    if (!wide) setHistoryOpen(false);
                   }}
                 >
                   <MessageSquare size={15} />

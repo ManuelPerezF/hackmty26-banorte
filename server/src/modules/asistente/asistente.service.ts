@@ -11,6 +11,7 @@ import {
   GoneException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
   OnModuleInit,
 } from "@nestjs/common";
@@ -45,6 +46,7 @@ const agentErrors: Record<string, string> = {
 const terminal = (s: string) => ["completed", "failed", "interrupted"].includes(s);
 @Injectable()
 export class AsistenteService implements OnModuleInit {
+  private readonly logger = new Logger(AsistenteService.name);
   constructor(
     private readonly db: PrismaService,
     private readonly auth: AuthService,
@@ -879,11 +881,21 @@ export class AsistenteService implements OnModuleInit {
           [{ id: "result", component: "BanorteActionResult", data: { path: "/result" } }],
           { result: action.result },
         );
-      else
+      else {
+        // Sin esto, AGENT_FAILED llega al cliente sin rastro de su causa y el
+        // fallo no se puede diagnosticar después. El detalle queda en el log
+        // del servidor, nunca en la respuesta ni en la base.
+        this.logger.error(
+          `Turno ${id} falló con ${code}${
+            providerStatus ? ` (estado del proveedor ${String(providerStatus)})` : ""
+          }: ${e instanceof Error ? e.message : String(e)}`,
+          e instanceof Error ? e.stack : undefined,
+        );
         await this.db.agentTurn.update({
           where: { id },
           data: { status: "failed", errorCode: code },
         });
+      }
     } finally {
       await this.db.agentTurn
         .update({ where: { id }, data: { trace: json(trace) } })
