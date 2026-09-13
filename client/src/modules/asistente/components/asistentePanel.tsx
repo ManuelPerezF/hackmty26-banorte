@@ -234,7 +234,12 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
                   'Tú'
                 ) : (
                   <>
-                    <MayaMark className="maya-mark-message" />
+                    {/* La respuesta más reciente muestra el estado "lista"; las anteriores, la marca fija */}
+                    {a.latest === m.turnId ? (
+                      <MayaClip name="maya-lista" className="maya-mark-message" />
+                    ) : (
+                      <MayaMark className="maya-mark-message" />
+                    )}
                     Maya
                   </>
                 )}
@@ -263,7 +268,7 @@ export function AsistentePanel(a: ReturnType<typeof useAsistente>) {
           {standalone && !hasMessage && standalone.uiSnapshot && (
             <article className="chat-message assistant">
               <span className="chat-speaker">
-                <MayaMark className="maya-mark-message" />
+                <MayaClip name="maya-lista" className="maya-mark-message" />
                 Maya
               </span>
               <A2uiRenderer

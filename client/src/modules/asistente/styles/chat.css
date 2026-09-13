@@ -59,11 +59,11 @@
 .chat-speaker:has(.maya-mark-message) {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
 }
 .maya-mark-message {
-  width: 24px;
-  height: 24px;
+  width: 34px;
+  height: 34px;
 }
 .chat-history {
   border-left: 1px solid #e8e5e3;
@@ -665,8 +665,8 @@
   align-items: center;
 }
 .chat-working .maya-clip {
-  width: 34px;
-  height: 34px;
+  width: 56px;
+  height: 56px;
 }
 .chat-error {
   background: oklch(0.97 0.015 20);
